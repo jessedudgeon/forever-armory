@@ -1,6 +1,6 @@
 # Forever — Dudgeon’s personal armory
 
-Static, dependency-free WoW Forever character tracker for **forever.dudgeon.io**, deployed on GitHub Pages.
+Static WoW Forever character tracker for **forever.dudgeon.io**, deployed on GitHub Pages.
 
 ## Features
 - Character roster and detail pages; equipment, talents, professions, XP, gold and location when present in the export.
@@ -11,10 +11,16 @@ Static, dependency-free WoW Forever character tracker for **forever.dudgeon.io**
 - Explicit sample-data mode, isolated from the real roster. No invented live character data.
 - Responsive layout, keyboard navigation, native dialogs, escaped user text; no third-party scripts, tracking or credentials.
 
-## Data model and limitations
-This is a **device-local personal tracker**, not a public character database or automatically synced armory. GitHub Pages serves the application, while each visitor’s data remains in their browser’s localStorage. Back up regularly, particularly before clearing site data or changing domains. Browser storage does not travel between the GitHub Pages URL and the custom domain.
+## Google accounts and cloud sync
 
-The application never connects to Blizzard or uploads character data. Snapshots are keyed by case-insensitive character name plus realm. Use the precise realm name consistently; distinguish beta/live or regions in the realm field if necessary. No retroactive history is available. Identical consecutive snapshots are deduplicated. Each import reflects only the fields it contains; a basic WFB import does not pretend to refresh prior equipment. Older gear remains in earlier snapshots but the current gear view shows the latest snapshot only. Manual updates explicitly mark carried-forward equipment/talents/gold.
+The account-enabled version uses Firebase Authentication for Google sign-in and private Firestore records for each user. Setup and operating instructions: [Google sign-in setup](docs/GOOGLE-SIGNIN-SETUP.md). Accounts remain unavailable until the project configuration and ownership rules are deployed.
+
+Local mode and backups remain supported. Cloud users explicitly choose whether to upload an existing local roster. No local records are uploaded automatically.
+
+## Local mode and character-data limitations
+Without signing in, this is a **device-local personal tracker**. GitHub Pages serves the application, while each visitor’s data remains in their browser’s localStorage. Back up regularly, particularly before clearing site data or changing domains. Browser storage does not travel between the GitHub Pages URL and the custom domain.
+
+The application never connects to Blizzard. Signed-in users save their imported character data to their own Firebase account records; local-mode data stays in the browser. Snapshots are keyed by case-insensitive character name plus realm. Use the precise realm name consistently; distinguish beta/live or regions in the realm field if necessary. No retroactive history is available. Identical consecutive snapshots are deduplicated. Each import reflects only the fields it contains; a basic WFB import does not pretend to refresh prior equipment. Older gear remains in earlier snapshots but the current gear view shows the latest snapshot only. Manual updates explicitly mark carried-forward equipment/talents/gold.
 
 The companion addon is a **beta implementation, not yet tested inside the actual Forever client**. Interface 16001 targets the current beta; a later game version may need a TOC update. Unsupported APIs produce export warnings where detectable. Item names can appear as item IDs until cached; export again after opening the character sheet. Talent capture supports the modern trait tree with a legacy fallback, but does not recreate the graphical talent tree. Use `/wfb` as a basic-data alternative if the companion fails. MythicSim formats are not supported yet.
 
@@ -66,6 +72,6 @@ Log into each character and run `/farmory` outside combat. Copy the text and pas
 Money is copper, inventory slots use WoW slot numbers 1–19. Missing optional fields remain unavailable instead of becoming zero. Item links preserve enchants/suffixes for change detection. Imported strings are rendered as text, never interpreted as markup or executed. No Lua is evaluated by the site.
 
 ## Validation
-`npm test` covers the WFB and companion formats, invalid inputs, chronological snapshots, duplicate detection, backup merging, and cross-character history validation. Browser checks cover core import and journal flows. In-game addon verification is a separate remaining acceptance step.
+`npm test` covers the WFB and companion formats, invalid inputs, chronological snapshots, duplicate detection, backup merging, and cross-character history validation. Browser checks cover core import and journal flows. Cloud-record tests cover snapshot serialization, incremental writes, deletion boundaries, invalid data and oversized migrations. In-game addon verification is a separate remaining acceptance step.
 
 Optional WebMCP tools list the local roster or stage an import for human review; neither uploads data nor saves without the visible confirmation step.
