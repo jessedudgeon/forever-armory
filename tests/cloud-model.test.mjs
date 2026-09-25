@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {recordsFor,stateFromRecords,diffRecords} from '../site/cloud-model.js';
+import {demoState,emptyState,normalize,addSnapshot} from '../site/model.js';
+test('cloud records round trip the roster, history and goals',async()=>{const s=demoState(),records=await recordsFor(s),restored=stateFromRecords(records.values());assert.deepEqual(restored,s);assert.equal(records.size,8);});
+test('new snapshot writes only the additional record; old history stays intact',async()=>{const s=demoState(),n=addSnapshot(s,normalize({...s.characters[0].snapshots.at(-1),level:19,observedAt:'2026-09-26T12:00:00Z'})).state;const changes=diffRecords(await recordsFor(s),await recordsFor(n));assert.equal(changes.writes.length,1);assert.equal(changes.deletes.length,0);});
+test('goal toggle updates a single record',async()=>{const s=demoState(),n=structuredClone(s);n.tasks[0].done=true;const d=diffRecords(await recordsFor(s),await recordsFor(n));assert.equal(d.writes.length,1);assert.equal(d.writes[0].data.kind,'task');});
+test('removing one character deletes only its snapshots and goals',async()=>{const s=demoState(),n=structuredClone(s),id=n.characters.shift().id;n.tasks=n.tasks.filter(t=>t.characterId!==id);const d=diffRecords(await recordsFor(s),await recordsFor(n));assert.equal(d.deletes.length,4);assert.equal(d.writes.length,0);});
+test('corrupt cloud records fail before state is replaced',()=>{assert.throws(()=>stateFromRecords([{kind:'snapshot',payload:'bad'}]));const s=normalize({name:'A',realm:'B',class:'MAGE',level:1});assert.throws(()=>stateFromRecords([{kind:'snapshot',characterId:'another',payload:JSON.stringify(s)}]));});
+test('oversized migration is rejected without partial writes',()=>{const records=new Map(Array.from({length:451},(_,i)=>['t-'+i,{kind:'task',characterId:'x',payload:'{}'}]));assert.throws(()=>diffRecords(new Map(),records),/450/);});
+test('empty cloud account remains separate from any local or demo state',async()=>{assert.deepEqual(stateFromRecords([]),emptyState());assert.equal((await recordsFor(emptyState())).size,0);});

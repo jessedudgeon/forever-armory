@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+    match /armories/{uid} {
+      allow read: if owner(uid);
+      allow create: if owner(uid)
+        && request.resource.data.keys().hasOnly(['version', 'revision', 'updatedAt'])
+        && request.resource.data.version == 1
+        && request.resource.data.revision == 1
+        && request.resource.data.updatedAt == request.time;
+      allow update: if owner(uid)
+        && request.resource.data.keys().hasOnly(['version', 'revision', 'updatedAt'])
+        && request.resource.data.version == 1
+        && request.resource.data.revision == resource.data.revision + 1
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+      match /records/{recordId} {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid)
+          && request.resource.data.keys().hasOnly(['kind', 'characterId', 'payload'])
+          && request.resource.data.kind in ['snapshot', 'task']
+          && request.resource.data.characterId is string
+          && request.resource.data.characterId.size() <= 500
+          && request.resource.data.payload is string
+          && request.resource.data.payload.size() <= 180000;
+      }
+    }
+    // Everything outside a user's own armory remains private by default.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
