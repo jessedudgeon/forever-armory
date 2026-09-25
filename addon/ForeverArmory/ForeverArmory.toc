@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: Forever Armory
+## Notes: Export your own character to forever.dudgeon.io with /farmory.
+## Author: Dudgeon
+## Version: 0.1.0-beta
+## AllowLoadGameType: camelot
+ForeverArmory.lua
