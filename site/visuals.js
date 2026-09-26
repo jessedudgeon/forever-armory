@@ -1,40 +1,40 @@
 const CLASS_ICONS={
- DRUID:'https://wow.zamimg.com/images/wow/icons/large/classicon_druid.jpg',
- HUNTER:'https://wow.zamimg.com/images/wow/icons/large/classicon_hunter.jpg',
- MAGE:'https://wow.zamimg.com/images/wow/icons/large/classicon_mage.jpg',
- PALADIN:'https://wow.zamimg.com/images/wow/icons/large/classicon_paladin.jpg',
- PRIEST:'https://wow.zamimg.com/images/wow/icons/large/classicon_priest.jpg',
- ROGUE:'https://wow.zamimg.com/images/wow/icons/large/classicon_rogue.jpg',
- SHAMAN:'https://wow.zamimg.com/images/wow/icons/large/classicon_shaman.jpg',
- WARLOCK:'https://wow.zamimg.com/images/wow/icons/large/classicon_warlock.jpg',
- WARRIOR:'https://wow.zamimg.com/images/wow/icons/large/classicon_warrior.jpg'
+ DRUID:'./assets/icons/classicon_druid.jpg',
+ HUNTER:'./assets/icons/classicon_hunter.jpg',
+ MAGE:'./assets/icons/classicon_mage.jpg',
+ PALADIN:'./assets/icons/classicon_paladin.jpg',
+ PRIEST:'./assets/icons/classicon_priest.jpg',
+ ROGUE:'./assets/icons/classicon_rogue.jpg',
+ SHAMAN:'./assets/icons/classicon_shaman.jpg',
+ WARLOCK:'./assets/icons/classicon_warlock.jpg',
+ WARRIOR:'./assets/icons/classicon_warrior.jpg'
 };
 
 const TREE_ICONS={
- balance:'https://wow.zamimg.com/images/wow/icons/large/spell_nature_starfall.jpg',
- 'feral combat':'https://wow.zamimg.com/images/wow/icons/large/ability_druid_catform.jpg',
- restoration:'https://wow.zamimg.com/images/wow/icons/large/spell_nature_healingtouch.jpg',
- 'beast mastery':'https://wow.zamimg.com/images/wow/icons/large/ability_hunter_beasttaming.jpg',
- marksmanship:'https://wow.zamimg.com/images/wow/icons/large/ability_marksmanship.jpg',
- survival:'https://wow.zamimg.com/images/wow/icons/large/ability_hunter_swiftstrike.jpg',
- arcane:'https://wow.zamimg.com/images/wow/icons/large/spell_arcane_arcane01.jpg',
- fire:'https://wow.zamimg.com/images/wow/icons/large/spell_fire_flamebolt.jpg',
- frost:'https://wow.zamimg.com/images/wow/icons/large/spell_frost_frostbolt02.jpg',
- holy:'https://wow.zamimg.com/images/wow/icons/large/spell_holy_holybolt.jpg',
- protection:'https://wow.zamimg.com/images/wow/icons/large/ability_warrior_defensivestance.jpg',
- retribution:'https://wow.zamimg.com/images/wow/icons/large/spell_holy_auraoflight.jpg',
- discipline:'https://wow.zamimg.com/images/wow/icons/large/spell_holy_powerwordshield.jpg',
- shadow:'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_shadowwordpain.jpg',
- assassination:'https://wow.zamimg.com/images/wow/icons/large/ability_rogue_eviscerate.jpg',
- combat:'https://wow.zamimg.com/images/wow/icons/large/ability_backstab.jpg',
- subtlety:'https://wow.zamimg.com/images/wow/icons/large/ability_stealth.jpg',
- elemental:'https://wow.zamimg.com/images/wow/icons/large/spell_nature_lightning.jpg',
- enhancement:'https://wow.zamimg.com/images/wow/icons/large/spell_nature_lightningshield.jpg',
- affliction:'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathcoil.jpg',
- demonology:'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_metamorphosis.jpg',
- destruction:'https://wow.zamimg.com/images/wow/icons/large/spell_fire_incinerate.jpg',
- arms:'https://wow.zamimg.com/images/wow/icons/large/ability_warrior_savageblow.jpg',
- fury:'https://wow.zamimg.com/images/wow/icons/large/ability_warrior_innerrage.jpg'
+ balance:'./assets/icons/spell_nature_starfall.jpg',
+ 'feral combat':'./assets/icons/ability_druid_catform.jpg',
+ restoration:'./assets/icons/spell_nature_healingtouch.jpg',
+ 'beast mastery':'./assets/icons/ability_hunter_beasttaming.jpg',
+ marksmanship:'./assets/icons/ability_marksmanship.jpg',
+ survival:'./assets/icons/ability_hunter_swiftstrike.jpg',
+ arcane:'./assets/icons/spell_arcane_arcane01.jpg',
+ fire:'./assets/icons/spell_fire_flamebolt.jpg',
+ frost:'./assets/icons/spell_frost_frostbolt02.jpg',
+ holy:'./assets/icons/spell_holy_holybolt.jpg',
+ protection:'./assets/icons/ability_warrior_defensivestance.jpg',
+ retribution:'./assets/icons/spell_holy_auraoflight.jpg',
+ discipline:'./assets/icons/spell_holy_powerwordshield.jpg',
+ shadow:'./assets/icons/spell_shadow_shadowwordpain.jpg',
+ assassination:'./assets/icons/ability_rogue_eviscerate.jpg',
+ combat:'./assets/icons/ability_backstab.jpg',
+ subtlety:'./assets/icons/ability_stealth.jpg',
+ elemental:'./assets/icons/spell_nature_lightning.jpg',
+ enhancement:'./assets/icons/spell_nature_lightningshield.jpg',
+ affliction:'./assets/icons/spell_shadow_deathcoil.jpg',
+ demonology:'./assets/icons/spell_shadow_metamorphosis.jpg',
+ destruction:'./assets/icons/spell_fire_incinerate.jpg',
+ arms:'./assets/icons/ability_warrior_savageblow.jpg',
+ fury:'./assets/icons/ability_warrior_innerrage.jpg'
 };
 
 const CLASS_NAMES=Object.fromEntries(Object.keys(CLASS_ICONS).map(k=>[k,k[0]+k.slice(1).toLowerCase()]));
@@ -88,15 +88,15 @@ function enhanceProfile(){
 function talentIcon(name='',treeName='',classKey=''){
  const n=name.toLowerCase();
  const keyword=[
-  [/holy|divine|light|judg|seal/,'https://wow.zamimg.com/images/wow/icons/large/spell_holy_holybolt.jpg'],
-  [/fire|flame|burn|ignite/,'https://wow.zamimg.com/images/wow/icons/large/spell_fire_flamebolt.jpg'],
-  [/frost|ice|cold/,'https://wow.zamimg.com/images/wow/icons/large/spell_frost_frostbolt02.jpg'],
-  [/shadow|fear|curse|corrupt|demon/,'https://wow.zamimg.com/images/wow/icons/large/spell_shadow_deathcoil.jpg'],
-  [/star|moon|balance/,'https://wow.zamimg.com/images/wow/icons/large/spell_nature_starfall.jpg'],
-  [/cat|feral|claw|bite/,'https://wow.zamimg.com/images/wow/icons/large/ability_druid_catform.jpg'],
-  [/stealth|ambush|vanish|subtle/,'https://wow.zamimg.com/images/wow/icons/large/ability_stealth.jpg'],
-  [/shield|block|defen|armor|tough/,'https://wow.zamimg.com/images/wow/icons/large/ability_warrior_defensivestance.jpg'],
-  [/lightning|storm|thunder|shock/,'https://wow.zamimg.com/images/wow/icons/large/spell_nature_lightning.jpg']
+  [/holy|divine|light|judg|seal/,'./assets/icons/spell_holy_holybolt.jpg'],
+  [/fire|flame|burn|ignite/,'./assets/icons/spell_fire_flamebolt.jpg'],
+  [/frost|ice|cold/,'./assets/icons/spell_frost_frostbolt02.jpg'],
+  [/shadow|fear|curse|corrupt|demon/,'./assets/icons/spell_shadow_deathcoil.jpg'],
+  [/star|moon|balance/,'./assets/icons/spell_nature_starfall.jpg'],
+  [/cat|feral|claw|bite/,'./assets/icons/ability_druid_catform.jpg'],
+  [/stealth|ambush|vanish|subtle/,'./assets/icons/ability_stealth.jpg'],
+  [/shield|block|defen|armor|tough/,'./assets/icons/ability_warrior_defensivestance.jpg'],
+  [/lightning|storm|thunder|shock/,'./assets/icons/spell_nature_lightning.jpg']
  ].find(([rx])=>rx.test(n));
  return keyword?.[1]||TREE_ICONS[treeName.toLowerCase()]||CLASS_ICONS[classKey]||CLASS_ICONS.PALADIN;
 }

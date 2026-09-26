@@ -69,7 +69,7 @@ function catalogMatches(data,query){
 function mergeResults(a,b){const seen=new Set(),out=[];for(const item of [...a,...b]){if(!item||seen.has(item.id))continue;seen.add(item.id);out.push(item);}return out;}
 
 function itemIconHTML(item,size='large'){
- const src=iconUrl(item?.icon,size);return src?`<img class="item-art" src="${src}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'item-art-fallback',textContent:'?' }))">`:'<span class="item-art-fallback">?</span>';
+ const src=iconUrl(item?.icon,size);return src?`<img class="item-art" src="${src}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'item-art-fallback',textContent:'◆' }))">`:'<span class="item-art-fallback">◆</span>';
 }
 function wowheadLink(item,text=item?.name||`Item ${item?.id}`){return `<a class="wowhead-item-link ${qualityClass(item?.quality)}" href="https://www.wowhead.com/classic/item=${Number(item?.id)}" data-wowhead="item=${Number(item?.id)}&domain=classic" target="_blank" rel="noopener">${esc(text)}</a>`;}
 function refreshWowhead(){try{window.WH?.Tooltips?.refreshLinks?.();}catch{}}
@@ -80,7 +80,7 @@ function sourceText(item){
  const parts=[source.category,source.name].filter(Boolean);if(Array.isArray(source.quests)&&source.quests.length)parts.push(source.quests.map(q=>q.name).filter(Boolean).join(', '));return parts.join(' · ');
 }
 function tooltipHTML(item){
- if(!Array.isArray(item?.tooltip)||!item.tooltip.length)return '';
+ if(!Array.isArray(item?.tooltip)||!item.tooltip.length)return '<div class="item-tooltip-lines"><p>Detailed stats are not available for this item yet.</p></div>';
  return `<div class="item-tooltip-lines">${item.tooltip.slice(0,30).map(line=>`<div class="tooltip-line ${qualityClass(line.format)}">${esc(line.label||'')}</div>`).join('')}</div>`;
 }
 function ensureItemDialog(){
@@ -88,10 +88,17 @@ function ensureItemDialog(){
  dialog=document.createElement('dialog');dialog.id='item-detail-modal';dialog.className='item-detail-modal';dialog.innerHTML='<div id="item-detail-content"></div>';document.body.append(dialog);
  dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close();});return dialog;
 }
-function openItem(item){
+async function openItem(item){
  item=normalizeLocalItem(item)||compactItem(item);if(!item)return;
- const dialog=ensureItemDialog(),source=sourceText(item),details=[item.class,item.subclass,item.slot].filter(Boolean).join(' · '),level=[item.itemLevel!=null?`Item level ${item.itemLevel}`:'',item.requiredLevel?`Requires level ${item.requiredLevel}`:''].filter(Boolean).join(' · ');
- dialog.querySelector('#item-detail-content').innerHTML=`<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details?`<p>${esc(details)}</p>`:''}${level?`<small>${esc(level)}</small>`:''}</div><button class="item-modal-close" aria-label="Close">×</button></div>${tooltipHTML(item)}${source?`<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>`:''}<div class="item-modal-actions">${wowheadLink(item,'View with Wowhead tooltip')}<button class="primary" type="button" data-item-goal>Add as goal</button></div><p class="item-modal-note"><small>Hover the Wowhead link for its live Classic tooltip. Forever-specific items use artwork captured by the companion addon when available.</small></p>`;
+ const dialog=ensureItemDialog();
+ // Imported gear often has only an ID. Enrich it with the Classic reference before showing details.
+ if(!item.tooltip?.length||!item.icon){
+  dialog.querySelector('#item-detail-content').innerHTML='<p role="status">Loading item details…</p>';
+  if(!dialog.open)dialog.showModal();
+  try{const data=await loadCatalog(),record=data.find(raw=>Number(raw.itemId)===item.id);if(record){const reference=compactItem(record);item={...reference,...item,icon:item.icon||reference.icon,tooltip:item.tooltip?.length?item.tooltip:reference.tooltip,source:item.source||reference.source,class:item.class||reference.class,subclass:item.subclass||reference.subclass,slot:item.slot||reference.slot,itemLevel:item.itemLevel??reference.itemLevel,requiredLevel:item.requiredLevel??reference.requiredLevel};}}catch{}
+ }
+ const source=sourceText(item),details=[item.class,item.subclass,item.slot].filter(Boolean).join(' · '),level=[item.itemLevel!=null?`Item level ${item.itemLevel}`:'',item.requiredLevel?`Requires level ${item.requiredLevel}`:''].filter(Boolean).join(' · ');
+ dialog.querySelector('#item-detail-content').innerHTML=`<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details?`<p>${esc(details)}</p>`:''}${level?`<small>${esc(level)}</small>`:''}</div><button class="item-modal-close" aria-label="Close">×</button></div>${tooltipHTML(item)}${source?`<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>`:''}<div class="item-modal-actions">${wowheadLink(item,'Open on Wowhead')}<button class="primary" type="button" data-item-goal>Add as goal</button></div>`;
  dialog.querySelector('.item-modal-close').onclick=()=>dialog.close();dialog.querySelector('[data-item-goal]').onclick=()=>{dialog.close();queueItemGoal(item);};if(!dialog.open)dialog.showModal();refreshWowhead();
 }
 
