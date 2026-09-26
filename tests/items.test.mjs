@@ -25,3 +25,7 @@ test('progress stays bounded and item records compact safely',()=>{
  assert.equal(progressPercent(-1,20),0);
  assert.deepEqual(compactItem({itemId:18665,name:'The Eye of Shadow',icon:'inv_misc_orb_04',quality:'Epic'}),{id:18665,name:'The Eye of Shadow',icon:'inv_misc_orb_04',quality:'Epic',class:'',subclass:'',slot:'',itemLevel:null,requiredLevel:null,tooltip:[],source:null,link:''});
 });
+
+test('item UI module can load without a browser DOM',async()=>{
+ await import('../site/items.js');
+});
