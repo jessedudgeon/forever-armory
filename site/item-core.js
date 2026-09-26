@@ -63,6 +63,9 @@ export function compactItem(raw={}){
   requiredLevel:raw.requiredLevel??null,
   tooltip:Array.isArray(raw.tooltip)?raw.tooltip:[],
   source:raw.source??null,
-  link:raw.itemLink??raw.link??''
+  link:raw.itemLink??raw.link??'',
+  count:raw.count==null?null:Math.max(0,Math.floor(Number(raw.count)||0)),
+  target:raw.target==null?null:Math.max(1,Math.floor(Number(raw.target)||1)),
+  current:raw.current==null?null:Math.max(0,Math.floor(Number(raw.current)||0))
  };
 }
