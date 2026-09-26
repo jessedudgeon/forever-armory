@@ -1,3 +1,4 @@
+import {CHALLENGES,PERK_KEYS} from './legacy.js';
 export const newId=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("");
 export const CLASSES={WARRIOR:['Warrior','#cba57f'],PALADIN:['Paladin','#e8a6c6'],HUNTER:['Hunter','#b5d28f'],ROGUE:['Rogue','#e6d37c'],PRIEST:['Priest','#e5e4da'],SHAMAN:['Shaman','#80b4e6'],MAGE:['Mage','#8ccee3'],WARLOCK:['Warlock','#b9a1e1'],DRUID:['Druid','#e6ad79']};
 export const PLAY_STYLES=['Normal','PvP','Roleplaying','Hardcore'];
@@ -6,7 +7,7 @@ export const playStyleLabel=c=>playStyleOf(c)||'Play style not recorded';
 export const SLOTS=['','Head','Neck','Shoulders','Shirt','Chest','Waist','Legs','Feet','Wrists','Hands','Ring 1','Ring 2','Trinket 1','Trinket 2','Back','Main hand','Off hand','Ranged','Tabard'];
 const str=(v,max=200)=>typeof v==='string'?v.trim().slice(0,max):'';
 function num(v,min,max,optional=false){if(v==null&&optional)return null;if(typeof v!=='number'||!Number.isFinite(v)||v<min||v>max)throw new Error('A numeric field is missing or out of range.');return v;}
-export const keyOf=c=>JSON.stringify([c.name.toLowerCase(),c.realm.toLowerCase()]);
+export const keyOf=c=>c.accountId&&c.accountId!=='default'?JSON.stringify([c.accountId,c.name.toLowerCase(),c.realm.toLowerCase()]):JSON.stringify([c.name.toLowerCase(),c.realm.toLowerCase()]);
 export function normalize(o){
  if(!o||typeof o!=='object'||Array.isArray(o))throw new Error('Expected one character object.');
  const mainName=str(o.mainName,48),secondaryName=str(o.secondaryName,48);
@@ -19,7 +20,7 @@ export function normalize(o){
  if(new Set(gear.map(g=>g.slot)).size!==gear.length)throw new Error('Duplicate equipment slots in this export.');
  const talents=bounded(o.talents,300).map(t=>typeof t==='string'?str(t,120):`${str(t?.name,100)}${t?.rank!=null?' · '+num(t.rank,0,100):''}`).filter(Boolean);
  const observedAt=o.observedAt?new Date(o.observedAt).toISOString():new Date().toISOString();
- return {name,realm,...(mainName?{mainName}:{}),...(secondaryName?{secondaryName}:{}),...(playStyle?{playStyle}:{}),class:cls,race:str(o.race,40),faction:str(o.faction,20),level:num(o.level,1,100),xp:num(o.xp,0,1e10,true),xpMax:num(o.xpMax,0,1e10,true),money:num(o.money,0,1e14,true),zone:str(o.zone,100),professions:prof,gear,talents,observedAt,source:str(o.source,40)||'Manual',warnings:bounded(o.warnings,30).map(x=>str(x,200))};
+ return {name,realm,...(mainName?{mainName}:{}),...(secondaryName?{secondaryName}:{}),...(playStyle?{playStyle}:{}),...(o.accountId&&o.accountId!=='default'?{accountId:str(o.accountId,100)}:{}),class:cls,race:str(o.race,40),faction:str(o.faction,20),level:num(o.level,1,100),xp:num(o.xp,0,1e10,true),xpMax:num(o.xpMax,0,1e10,true),money:num(o.money,0,1e14,true),zone:str(o.zone,100),professions:prof,gear,talents,observedAt,source:str(o.source,40)||'Manual',warnings:bounded(o.warnings,30).map(x=>str(x,200))};
 }
 export function parseImport(text){
  if(typeof text!=='string'||text.length>1e6)throw new Error('Use an export smaller than 1 MB.');
@@ -33,7 +34,7 @@ export function parseImport(text){
  if(o.format!=='forever-armory'||o.version!==1)throw new Error('Unsupported export. Use /farmory in the included addon, /wfb, or add a character manually.');
  return normalize({...o.character,source:'Forever Armory addon'});
 }
-export const emptyState=()=>({version:1,characters:[],tasks:[]});
+export const emptyState=()=>({version:1,characters:[],tasks:[],gameAccounts:[{id:'default',name:'WoW 1'}],legacy:{challenges:[],perks:{}}});
 export function addSnapshot(state,c){
  const id=keyOf(c);const copy=structuredClone(state);let found=copy.characters.find(x=>x.id===id);
  if(!found){found={id,snapshots:[]};copy.characters.push(found);}
@@ -49,9 +50,19 @@ export function validateBackup(o){
  const ids=new Set(characters.map(c=>c.id));
  const tasks=o.tasks.map(t=>{if(!ids.has(t.characterId)||!str(t.title,200)||!str(t.id,100))throw new Error('Invalid journal entry.');return {id:str(t.id,100),characterId:t.characterId,title:str(t.title,200),category:['Zone','Dungeon','Gear','Profession','Other'].includes(t.category)?t.category:'Other',notes:str(t.notes,2000),done:t.done===true};});
  if(new Set(tasks.map(t=>t.id)).size!==tasks.length)throw new Error('Duplicate journal entry.');
- return {version:1,characters,tasks};
+ const gameAccounts=o.gameAccounts??[{id:'default',name:'WoW 1'}];
+ if(!Array.isArray(gameAccounts)||!gameAccounts.length||gameAccounts.length>30)throw new Error('Invalid game accounts.');
+ const accounts=gameAccounts.map(a=>({id:str(a.id,100),name:str(a.name,80)}));
+ if(accounts.some(a=>!a.id||!a.name)||new Set(accounts.map(a=>a.id)).size!==accounts.length)throw new Error('Duplicate or invalid game account.');
+ if(characters.some(c=>!accounts.some(a=>a.id===(c.snapshots[0].accountId||'default'))))throw new Error('A character belongs to a missing game account.');
+ const legacy=o.legacy??{challenges:[],perks:{}};
+ const challengeKeys=new Set(CHALLENGES.map(x=>x.id));
+ if(!Array.isArray(legacy.challenges)||legacy.challenges.length>65||new Set(legacy.challenges).size!==legacy.challenges.length||legacy.challenges.some(x=>!challengeKeys.has(x)))throw new Error('Invalid Legacy challenges.');
+ if(!legacy.perks||typeof legacy.perks!=='object'||Array.isArray(legacy.perks))throw new Error('Invalid Legacy perks.');
+ const perks={};for(const [id,allocation] of Object.entries(legacy.perks)){if(!ids.has(id)||!allocation||typeof allocation!=='object'||Array.isArray(allocation))throw new Error('Invalid character Legacy perks.');perks[id]={};for(const [key,rank]of Object.entries(allocation)){if(!PERK_KEYS.has(key)||!Number.isInteger(rank)||rank<1||rank>16)throw new Error('Invalid Legacy perk rank.');perks[id][key]=rank;}if(Object.values(perks[id]).reduce((a,b)=>a+b,0)>16)throw new Error('Too many Legacy points assigned to a character.');}
+ return {version:1,characters,tasks,gameAccounts:accounts,legacy:{challenges:[...legacy.challenges],perks}};
 }
-export function mergeBackup(current,incoming){let out=structuredClone(current);for(const c of incoming.characters)for(const s of c.snapshots){const existing=out.characters.find(x=>x.id===c.id);if(!existing?.snapshots.some(x=>JSON.stringify(x)===JSON.stringify(s)))out=addSnapshot(out,s).state;}for(const t of incoming.tasks){const existing=out.tasks.find(x=>x.id===t.id);if(!existing)out.tasks.push(t);else if(JSON.stringify(existing)!==JSON.stringify(t))out.tasks.push({...t,id:newId()});}return out;}
+export function mergeBackup(current,incoming){let out=structuredClone(current);out.gameAccounts??=[{id:'default',name:'WoW 1'}];for(const a of incoming.gameAccounts??[{id:'default',name:'WoW 1'}])if(!out.gameAccounts.some(x=>x.id===a.id))out.gameAccounts.push(a);for(const c of incoming.characters)for(const s of c.snapshots){const existing=out.characters.find(x=>x.id===c.id);if(!existing?.snapshots.some(x=>JSON.stringify(x)===JSON.stringify(s)))out=addSnapshot(out,s).state;}for(const t of incoming.tasks){const existing=out.tasks.find(x=>x.id===t.id);if(!existing)out.tasks.push(t);else if(JSON.stringify(existing)!==JSON.stringify(t))out.tasks.push({...t,id:newId()});}out.legacy??={challenges:[],perks:{}};out.legacy.challenges=[...new Set([...out.legacy.challenges,...(incoming.legacy?.challenges||[])])];out.legacy.perks={...incoming.legacy?.perks,...out.legacy.perks};return out;}
 export function demoState(){let state=emptyState();const start=new Date();start.setDate(start.getDate()-6);const dates=[start.toISOString(),new Date().toISOString()];for(const [i,name,cls,race,level,zone,prof] of [[0,'Ashwarden','PALADIN','Undead',18,'Silverpine Forest','Mining'],[1,'Duskmere','PRIEST','Undead',12,'Tirisfal Glades','Tailoring'],[2,'Bramblehorn','DRUID','Tauren',9,'Mulgore','Herbalism']]){for(let d=0;d<2;d++)state=addSnapshot(state,normalize({name,class:cls,realm:'Example Realm',race,faction:'Horde',level:level-(d?0:3),zone,professions:[{name:prof,rank:45+i*5,max:75}],money:13245+i*7500,xp:3500,xpMax:10000,observedAt:dates[d],source:'Demo',gear:[{slot:5,id:1,name:'Example adventurer’s armor',quality:2}],talents:['Example talent allocation']})).state;}
  state.tasks=[{id:'demo-1',characterId:state.characters[0].id,title:'Prepare for the next dungeon',category:'Dungeon',notes:'Gather quests, empty bags, and bring food and water.',done:false},{id:'demo-2',characterId:state.characters[0].id,title:'Pick up the next flight path',category:'Zone',notes:'An example goal. Replace with your own route.',done:false}];return state;}
 
@@ -64,10 +75,13 @@ export function saveManualCharacter(state,fields,existingId){
  if(!Number.isInteger(Number(fields.level))||Number(fields.level)<1||Number(fields.level)>60)throw new Error('Enter a whole-number level from 1 to 60.');
  const next=structuredClone(state),existing=existingId?next.characters.find(c=>c.id===existingId):null;
  if(existingId&&!existing)throw new Error('This character is no longer available. Refresh and try again.');
- const prior=existing?.snapshots.at(-1),identity={mainName,secondaryName,name:mainName+' '+secondaryName,playStyle,realm:playStyle};
- const snapshot=normalize({...prior,...fields,...identity,level:Number(fields.level),xp:null,xpMax:null,observedAt:new Date().toISOString(),source:'Manual',warnings:prior?['Equipment, talents, and gold are carried forward from the prior snapshot; they were not refreshed by this manual update.']:[]});
+ const accountId=str(fields.accountId||priorAccount(existing),100)||'default';
+ if(!next.gameAccounts.some(a=>a.id===accountId))throw new Error('Choose a game account first.');
+ const prior=existing?.snapshots.at(-1),identity={mainName,secondaryName,name:mainName+' '+secondaryName,playStyle,realm:playStyle,...(accountId!=='default'?{accountId}:{})};
+ const snapshot=normalize({...prior,...fields,...identity,accountId:accountId==='default'?'':accountId,level:Number(fields.level),xp:null,xpMax:null,observedAt:new Date().toISOString(),source:'Manual',warnings:prior?['Equipment, talents, and gold are carried forward from the prior snapshot; they were not refreshed by this manual update.']:[]});
  const id=keyOf(snapshot);
  if(next.characters.some(c=>c.id===id&&c.id!==existingId))throw new Error('A character with this full name and play style already exists. Open that profile to update it.');
- if(existing){existing.id=id;existing.snapshots=existing.snapshots.map(s=>({...s,...identity}));next.tasks=next.tasks.map(t=>t.characterId===existingId?{...t,characterId:id}:t);}
+ if(existing){existing.id=id;existing.snapshots=existing.snapshots.map(s=>{const updated={...s,...identity};if(accountId==='default')delete updated.accountId;return updated;});next.tasks=next.tasks.map(t=>t.characterId===existingId?{...t,characterId:id}:t);if(next.legacy?.perks?.[existingId]){next.legacy.perks[id]=next.legacy.perks[existingId];delete next.legacy.perks[existingId];}}
  return addSnapshot(next,snapshot);
 }
+function priorAccount(c){return c?.snapshots.at(-1)?.accountId||'default';}

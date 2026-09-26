@@ -9,6 +9,10 @@ export async function recordsFor(state){
   records.set(id,{kind:'snapshot',characterId:c.id,payload});
  }
  for(const task of state.tasks)records.set('t-'+task.id,{kind:'task',characterId:task.characterId,payload:JSON.stringify(task)});
+ // Existing Firestore rules accept snapshot/task records. Reserved task identities
+ // carry account metadata without changing the deployed security policy.
+ for(const account of state.gameAccounts||[])if(account.id!=='default'||account.name!=='WoW 1')records.set('a-'+account.id,{kind:'task',characterId:'@game-account',payload:JSON.stringify(account)});
+ if(state.legacy&&(state.legacy.challenges.length||Object.keys(state.legacy.perks).length))records.set('legacy-progress',{kind:'task',characterId:'@legacy-progress',payload:JSON.stringify(state.legacy)});
  return records;
 }
 export function stateFromRecords(records){
@@ -21,6 +25,12 @@ export function stateFromRecords(records){
    if(id!==record.characterId)throw new Error('A character record has an inconsistent identity.');
    if(!chars.has(id))chars.set(id,{id,snapshots:[]});
    chars.get(id).snapshots.push(s);
+  }else if(record.kind==='task'&&record.characterId==='@game-account'){
+   if(!payload.id||!payload.name)throw new Error('Invalid game account record.');
+   if(record.payload&&payload.id==='default')out.gameAccounts[0]=payload;
+   else out.gameAccounts.push(payload);
+  }else if(record.kind==='task'&&record.characterId==='@legacy-progress'){
+   out.legacy=payload;
   }else if(record.kind==='task'){
    if(payload.characterId!==record.characterId)throw new Error('A goal record has an inconsistent identity.');
    out.tasks.push(payload);
