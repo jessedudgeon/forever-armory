@@ -17,13 +17,16 @@ test('item goals round trip inside ordinary notes',()=>{
  assert.equal(parsed.item.target,20);
  assert.equal(parsed.item.icon,'inv_misc_flower_02');
  assert.equal(parsed.notes,'Farm around Brill.');
+ const normalized=compactItem(parsed.item);
+ assert.equal(normalized.current,7);
+ assert.equal(normalized.target,20);
 });
 
 test('progress stays bounded and item records compact safely',()=>{
  assert.equal(progressPercent(5,20),25);
  assert.equal(progressPercent(30,20),100);
  assert.equal(progressPercent(-1,20),0);
- assert.deepEqual(compactItem({itemId:18665,name:'The Eye of Shadow',icon:'inv_misc_orb_04',quality:'Epic'}),{id:18665,name:'The Eye of Shadow',icon:'inv_misc_orb_04',quality:'Epic',class:'',subclass:'',slot:'',itemLevel:null,requiredLevel:null,tooltip:[],source:null,link:''});
+ assert.deepEqual(compactItem({itemId:18665,name:'The Eye of Shadow',icon:'inv_misc_orb_04',quality:'Epic'}),{id:18665,name:'The Eye of Shadow',icon:'inv_misc_orb_04',quality:'Epic',class:'',subclass:'',slot:'',itemLevel:null,requiredLevel:null,tooltip:[],source:null,link:'',count:null,target:null,current:null});
 });
 
 test('item UI module can load without a browser DOM',async()=>{
