@@ -35,6 +35,66 @@ local function json(v)
     end
     return "null"
 end
+local function idFromLink(link)
+    local id = type(link) == "string" and link:match("item:(%d+)")
+    return id and tonumber(id) or nil
+end
+local function nameFromLink(link)
+    return type(link) == "string" and link:match('%[(.-)%]') or nil
+end
+local function itemInfo(id, link, quality, icon, count)
+    local name = nameFromLink(link)
+    if id and GetItemInfo then
+        local loadedName, loadedLink, loadedQuality, _, _, _, _, _, _, loadedIcon = safe(GetItemInfo, id)
+        name = plain(loadedName) or name
+        link = plain(loadedLink) or link
+        quality = plain(loadedQuality) or quality
+        icon = plain(loadedIcon) or icon
+    end
+    return {id=id,name=name or (id and ("Item " .. id) or "Unknown item"),link=link,quality=quality,icon=icon,count=count or 1}
+end
+local function containerSlots(bag)
+    if C_Container and C_Container.GetContainerNumSlots then return safe(C_Container.GetContainerNumSlots, bag) or 0 end
+    return safe(GetContainerNumSlots, bag) or 0
+end
+local function containerEntry(bag, slot)
+    if C_Container and C_Container.GetContainerItemInfo then
+        local info = safe(C_Container.GetContainerItemInfo, bag, slot)
+        if type(info) == "table" then
+            local link = plain(info.hyperlink) or (C_Container.GetContainerItemLink and plain(safe(C_Container.GetContainerItemLink, bag, slot)))
+            local id = plain(info.itemID) or idFromLink(link)
+            return id and itemInfo(id, link, plain(info.quality), plain(info.iconFileID), plain(info.stackCount) or 1) or nil
+        end
+    end
+    local texture, count, _, quality = safe(GetContainerItemInfo, bag, slot)
+    local link = plain(safe(GetContainerItemLink, bag, slot))
+    local id = idFromLink(link)
+    if not id and GetContainerItemID then id = plain(safe(GetContainerItemID, bag, slot)) end
+    return id and itemInfo(id, link, plain(quality), plain(texture), plain(count) or 1) or nil
+end
+local function readInventory(out)
+    if not ((C_Container and C_Container.GetContainerNumSlots) or GetContainerNumSlots) then
+        out.warnings[#out.warnings + 1] = "Bag inventory APIs unavailable in this client."
+        return
+    end
+    local aggregated = {}
+    for bag = 0, 4 do
+        for slot = 1, containerSlots(bag) do
+            local item = containerEntry(bag, slot)
+            if item and item.id then
+                if aggregated[item.id] then
+                    aggregated[item.id].count = aggregated[item.id].count + (item.count or 1)
+                    if not aggregated[item.id].icon then aggregated[item.id].icon = item.icon end
+                    if not aggregated[item.id].link then aggregated[item.id].link = item.link end
+                else aggregated[item.id] = item end
+            end
+        end
+    end
+    local ids = {}
+    for id in pairs(aggregated) do ids[#ids + 1] = id end
+    table.sort(ids)
+    for _, id in ipairs(ids) do out.inventory[#out.inventory + 1] = aggregated[id] end
+end
 local function readTalents(out)
     if C_ClassTalents and C_Traits then
         local configID = safe(C_ClassTalents.GetActiveConfigID)
@@ -80,7 +140,7 @@ local function capture()
         level=plain(safe(UnitLevel, "player")), xp=plain(safe(UnitXP, "player")),
         xpMax=plain(safe(UnitXPMax, "player")), money=plain(safe(GetMoney)),
         zone=plain(safe(GetZoneText)), observedAt=date("!%Y-%m-%dT%H:%M:%SZ"),
-        professions=array(), gear=array(), talents=array(), warnings=array()
+        professions=array(), gear=array(), inventory=array(), talents=array(), warnings=array()
     }
     if not out.name or not out.realm or not out.class or not out.level then error("Core character data is unavailable. Try again outside combat.") end
     if not GetInventoryItemID or not GetInventoryItemLink then
@@ -90,13 +150,16 @@ local function capture()
             local id = plain(safe(GetInventoryItemID, "player", slot))
             if id then
                 local link = plain(safe(GetInventoryItemLink, "player", slot))
-                local name = link and link:match('%[(.-)%]')
                 local quality = plain(safe(GetInventoryItemQuality, "player", slot))
-                out.gear[#out.gear+1] = {slot=slot,id=id,name=name or ("Item "..id),link=link,quality=quality}
+                local icon = plain(safe(GetInventoryItemTexture, "player", slot))
+                local item = itemInfo(id, link, quality, icon, 1)
+                item.slot = slot
+                out.gear[#out.gear+1] = item
                 if not link and C_Item and C_Item.RequestLoadItemDataByID then safe(C_Item.RequestLoadItemDataByID,id) end
             end
         end
     end
+    readInventory(out)
     if GetProfessions and GetProfessionInfo then
         local a,b,c,d,e = safe(GetProfessions)
         for _, index in ipairs({a or 0,b or 0,c or 0,d or 0,e or 0}) do
