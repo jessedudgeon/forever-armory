@@ -11,6 +11,11 @@ Static WoW Forever character tracker for **forever.dudgeon.io**, deployed on Git
 - Explicit sample-data mode, isolated from the real roster. No invented live character data.
 - Responsive layout, keyboard navigation, native dialogs, escaped user text; no third-party scripts, tracking or credentials.
 
+## WoW game accounts and Legacy
+A Google sign-in can contain multiple manually named WoW game accounts. Characters belong to one game account; names can repeat across accounts. These accounts are assumed to be WoW licenses under **one Battle.net account**. Blizzard shares the 65 Legacy Challenges and earned points across that Battle.net account, while each non-Hardcore character chooses its own perks (16 points spendable at launch). Hardcore progress is separate and is not tracked as a live pool yet.
+
+The Legacy page records non-Hardcore challenges, infers class and profession milestones from snapshots, tracks planned perk ranks, and shows cosmetic reward thresholds. It does not connect to Blizzard or enforce unpublished perk rank caps/prerequisites. Old rosters and backups open under WoW 1; cloud records use the existing Firestore rules. Separate Battle.net identities must not be combined in one armory, since that would incorrectly pool their Legacy Points.
+
 ## Google accounts and cloud sync
 
 The account-enabled version uses Firebase Authentication for Google sign-in and private Firestore records for each user. Setup and operating instructions: [Google sign-in setup](docs/GOOGLE-SIGNIN-SETUP.md). Accounts remain unavailable until the project configuration and ownership rules are deployed.
