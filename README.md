@@ -1,4 +1,4 @@
-# Forever — Dudgeon’s personal armory
+# Forever — Armory and reference companion
 
 Static WoW Forever character tracker for **forever.dudgeon.io**, deployed on GitHub Pages.
 
@@ -9,7 +9,7 @@ Static WoW Forever character tracker for **forever.dudgeon.io**, deployed on Git
 - Per-character adventure goals with completion, editing and notes.
 - Browser-local storage, downloadable JSON backups and merge-based restore.
 - Explicit sample-data mode, isolated from the real roster. No invented live character data.
-- Responsive layout, keyboard navigation, native dialogs, escaped user text; no third-party scripts, tracking or credentials.
+- Responsive layout, keyboard navigation, native dialogs, escaped user text; no advertising or analytics SDK; Firebase handles Google sign-in.
 
 ## WoW game accounts and Legacy
 A Google sign-in can contain multiple manually named WoW game accounts. Characters belong to one game account; names can repeat across accounts. These accounts are assumed to be WoW licenses under **one Battle.net account**. Blizzard shares the 65 Legacy Challenges and earned points across that Battle.net account, while each non-Hardcore character chooses its own perks (16 points spendable at launch). Hardcore progress is separate and is not tracked as a live pool yet.
@@ -25,7 +25,7 @@ Local mode and backups remain supported. Cloud users explicitly choose whether t
 ## Local mode and character-data limitations
 Without signing in, this is a **device-local personal tracker**. GitHub Pages serves the application, while each visitor’s data remains in their browser’s localStorage. Back up regularly, particularly before clearing site data or changing domains. Browser storage does not travel between the GitHub Pages URL and the custom domain.
 
-The application never connects to Blizzard. Signed-in users save their imported character data to their own Firebase account records; local-mode data stays in the browser. Snapshots are keyed by case-insensitive character name plus realm. Use the precise realm name consistently; distinguish beta/live or regions in the realm field if necessary. No retroactive history is available. Identical consecutive snapshots are deduplicated. Each import reflects only the fields it contains; a basic WFB import does not pretend to refresh prior equipment. Older gear remains in earlier snapshots but the current gear view shows the latest snapshot only. Manual updates explicitly mark carried-forward equipment/talents/gold.
+The application never connects to Blizzard. Signed-in users save their imported character data to their own Firebase account records; local-mode data stays in the browser. Snapshots are keyed by game account, full character name, and play style. Legacy realm values remain readable internally for migration; forms use play style and two names. No retroactive history is available. Identical consecutive snapshots are deduplicated. Each import reflects only the fields it contains; a basic WFB import does not pretend to refresh prior equipment. Older gear remains in earlier snapshots but the current gear view shows the latest snapshot only. Manual updates explicitly mark carried-forward equipment/talents/gold.
 
 The companion addon is a **beta implementation, not yet tested inside the actual Forever client**. Interface 16001 targets the current beta; a later game version may need a TOC update. Unsupported APIs produce export warnings where detectable. Item names can appear as item IDs until cached; export again after opening the character sheet. Talent capture supports the modern trait tree with a legacy fallback, but does not recreate the graphical talent tree. Use `/wfb` as a basic-data alternative if the companion fails. MythicSim formats are not supported yet.
 
@@ -68,11 +68,11 @@ git push -u origin main
 ## Addon installation
 Download `ForeverArmory.zip` from the site’s Import & backups page. Extract into your actual Forever game client’s `Interface/AddOns` directory, leaving `ForeverArmory/ForeverArmory.toc` directly inside it. Restart or reload the game. Enable the addon in the character-selection AddOns menu; if marked out of date, confirm the client version before enabling.
 
-Log into each character and run `/farmory` outside combat. Copy the text and paste it into Import character. Review the name, realm, level, and equipment count; save the snapshot.
+Log into each character and run `/farmory` outside combat. Copy the text and paste it into Import character. Review both names, play style, game account, level, and equipment count; save the snapshot.
 
 ## Export schema
 ```json
-{"format":"forever-armory","version":1,"character":{"name":"Example","realm":"Example Realm","class":"PALADIN","race":"Undead","faction":"Horde","level":13,"xp":1000,"xpMax":10000,"money":12345,"zone":"Tirisfal Glades","professions":[{"name":"Mining","rank":25,"max":75}],"gear":[{"slot":16,"id":123,"name":"Example weapon","quality":2}],"talents":[{"name":"Example talent","rank":2}],"observedAt":"2026-09-25T14:00:00Z","warnings":[]}}
+{"format":"forever-armory","version":1,"character":{"mainName":"Example","secondaryName":"Adventurer","playStyle":"Normal","class":"PALADIN","race":"Undead","faction":"Horde","level":13,"xp":1000,"xpMax":10000,"money":12345,"zone":"Tirisfal Glades","professions":[{"name":"Mining","rank":25,"max":75}],"gear":[{"slot":16,"id":123,"name":"Example weapon","quality":2}],"talents":[{"name":"Example talent","rank":2}],"observedAt":"2026-09-25T14:00:00Z","warnings":[]}}
 ```
 Money is copper, inventory slots use WoW slot numbers 1–19. Missing optional fields remain unavailable instead of becoming zero. Item links preserve enchants/suffixes for change detection. Imported strings are rendered as text, never interpreted as markup or executed. No Lua is evaluated by the site.
 
@@ -80,3 +80,12 @@ Money is copper, inventory slots use WoW slot numbers 1–19. Missing optional f
 `npm test` covers the WFB and companion formats, invalid inputs, chronological snapshots, duplicate detection, backup merging, and cross-character history validation. Browser checks cover core import and journal flows. Cloud-record tests cover snapshot serialization, incremental writes, deletion boundaries, invalid data and oversized migrations. In-game addon verification is a separate remaining acceptance step.
 
 Optional WebMCP tools list the local roster or stage an import for human review; neither uploads data nor saves without the visible confirmation step.
+
+## Expanded Armory and reference tools
+Inventory across captured storage locations, craftbooks, saved builds, statistics, notes, dungeon/raid progress, private guild planning, and unified search share the existing account/snapshot services. Items open in one click across loot, inventory, equipment, and recipes.
+
+- [Architecture and privacy](docs/ARCHITECTURE.md)
+- [Additive addon import contract](docs/IMPORT-SCHEMA.md)
+- [Validation and remaining acceptance work](docs/QA.md)
+
+Ads remain disabled. Public guild membership and full verified Forever datasets are future work.

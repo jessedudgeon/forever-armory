@@ -24,8 +24,14 @@ const forever=[
 const moreClassic=[
  ['blackfathom-deeps','Blackfathom Deeps','24–32','Ashenvale'],['stockade','The Stockade','24–32','Stormwind'],['gnomeregan','Gnomeregan','29–38','Dun Morogh'],['razorfen-kraul','Razorfen Kraul','29–38','The Barrens'],['scarlet-monastery','Scarlet Monastery','30–46','Tirisfal Glades'],['razorfen-downs','Razorfen Downs','37–46','The Barrens'],['uldaman','Uldaman','41–51','Badlands'],['zulfarrak','Zul’Farrak','44–54','Tanaris'],['maraudon','Maraudon','46–55','Desolace'],['sunken-temple','Sunken Temple','50–60','Swamp of Sorrows'],['blackrock-depths','Blackrock Depths','52–60','Blackrock Mountain'],['dire-maul','Dire Maul','54–60','Feralas'],['blackrock-spire','Blackrock Spire','55–60','Blackrock Mountain'],['scholomance','Scholomance','58–60','Western Plaguelands'],['stratholme','Stratholme','58–60','Eastern Plaguelands']
 ].map(([id,name,level,zone])=>({id,name,level,zone,faction:'Both',bosses:[]}));
-export const DUNGEONS=[...forever,...classic,...moreClassic];
+// Raid listings are Classic references, not claims about Forever launch availability.
+const raids=[
+ {id:'molten-core',name:'Molten Core',kind:'raid',level:'60',zone:'Blackrock Mountain',faction:'Both',source:'https://news.blizzard.com/en-us/article/24165121/20th-anniversary-realms-molten-core-and-onyxia-s-lair-now-live',bosses:[['Ragnaros',[]]],description:'A Classic raid beneath Blackrock Mountain. Full encounter and Forever loot coverage is pending.'},
+ {id:'onyxias-lair',name:'Onyxia’s Lair',kind:'raid',level:'60',zone:'Dustwallow Marsh',faction:'Both',source:'https://news.blizzard.com/en-us/article/24165121/20th-anniversary-realms-molten-core-and-onyxia-s-lair-now-live',bosses:[['Onyxia',[]]],description:'A Classic dragon encounter. Forever mechanics and loot remain unverified.'},
+ {id:'blackwing-lair',name:'Blackwing Lair',kind:'raid',level:'60',zone:'Blackrock Spire',faction:'Both',source:'https://news.blizzard.com/en-us/article/23302788/wow-classic-descend-into-the-depths-of-blackwing-lair',bosses:[],description:'A Classic raid at the top of Blackrock Spire. Encounter and loot tables are awaiting verified data.'}
+];
+export const DUNGEONS=[...forever,...classic,...moreClassic,...raids].map(d=>({kind:'dungeon',...d}));
 export function findDungeon(id){return DUNGEONS.find(d=>d.id===id);}
 export function searchDungeons(query='',filter='all'){
- const q=query.trim().toLocaleLowerCase();return DUNGEONS.filter(d=>(filter==='all'||(filter==='new'?d.new:filter==='classic'?!d.new:d.faction===filter||d.faction==='Both'))&&(!q||[d.name,d.zone,...d.bosses.flatMap(([name,loot])=>[name,...loot.map(item=>item.name)])].some(x=>x.toLocaleLowerCase().includes(q))));
+ const q=query.trim().toLocaleLowerCase();return DUNGEONS.filter(d=>(filter==='all'||(filter==='raids'?d.kind==='raid':filter==='dungeons'?d.kind==='dungeon':filter==='new'?d.new:filter==='classic'?!d.new:d.faction===filter||d.faction==='Both'))&&(!q||[d.name,d.zone,...d.bosses.flatMap(([name,loot])=>[name,...loot.map(item=>item.name)])].some(x=>x.toLocaleLowerCase().includes(q))));
 }

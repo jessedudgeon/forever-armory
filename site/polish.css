@@ -35,6 +35,6 @@ body{background:
 .legacy-rewards{margin-top:20px}.reward-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.reward-list span{padding:12px;border:1px solid var(--line);border-radius:5px;background:#101b17}@media(max-width:550px){.reward-list{grid-template-columns:1fr}}
 
 /* Classic racial heraldry. Skyborne shows its selected faction crest. */
-.race-banner{display:block;flex:none;background:#080a09 url('./assets/race-banners.jpg') no-repeat;background-size:400% 300%;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%);filter:drop-shadow(0 5px 10px #0006)}
+.race-banner{display:block;flex:none;background:#080a09 url('./assets/race-banners.svg') no-repeat;background-size:400% 300%;clip-path:polygon(0 0,100% 0,100% 84%,50% 100%,0 84%);filter:drop-shadow(0 5px 10px #0006)}
 .race-crest{width:48px;height:48px}.profile-race-crest{width:92px;height:92px;right:20px;bottom:18px;opacity:1}.create-race-crest{width:62px;height:62px;border-radius:0;object-fit:initial}.create-race-crest[hidden],.create-class-icon[hidden]{display:none}
 @media(max-width:760px){.profile-race-crest{width:62px;height:62px;right:12px;bottom:12px}.create-race-crest{width:50px;height:50px}}

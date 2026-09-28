@@ -11,3 +11,10 @@ test('another Google user cannot read, list, write or delete someone else’s re
 test('signed-out and non-Google clients cannot access an armory',async()=>{for(const db of [guest,nonGoogle]){await assertFails(getDoc(doc(db,'armories/alice')));await assertFails(setDoc(doc(db,'armories/alice/records/s-test'),record));}});
 test('users cannot enumerate accounts or write outside their armory',async()=>{await assertFails(getDocs(collection(alice,'armories')));await assertFails(setDoc(doc(alice,'public/anything'),record));});
 test('revision is advanced atomically, stale revision and invalid payload are denied',async()=>{await assertSucceeds(runTransaction(alice,async tx=>{const ref=doc(alice,'armories/alice');const root=await tx.get(ref);tx.set(ref,{version:1,revision:root.data().revision+1,updatedAt:serverTimestamp()});tx.set(doc(alice,'armories/alice/records/t-goal'),{...record,kind:'task'});}));await assertFails(setDoc(doc(alice,'armories/alice'),{version:1,revision:2,updatedAt:serverTimestamp()}));await assertFails(setDoc(doc(alice,'armories/alice/records/bad'),{...record,unexpected:'field'}));await assertFails(setDoc(doc(alice,'armories/alice/records/bad'),{...record,payload:'x'.repeat(180001)}));});
+test('account and guild envelopes remain private and cannot grant public access',async()=>{
+ for(const [id,characterId,payload] of [['a-second','@game-account',{id:'second',name:'WoW 2',legacyStatus:'Notes'}],['g-test','@guild',{id:'test',name:'Guild',officers:['bob'],public:true}]]){
+  const path='armories/alice/records/'+id;
+  await assertSucceeds(setDoc(doc(alice,path),{kind:'task',characterId,payload:JSON.stringify(payload)}));
+  for(const db of [bob,guest]){await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),{kind:'task',characterId,payload:'{}'}));}
+ }
+});
