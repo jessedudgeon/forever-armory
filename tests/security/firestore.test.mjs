@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {test,before,after} from 'node:test';
 import {initializeTestEnvironment,assertSucceeds,assertFails} from '@firebase/rules-unit-testing';
@@ -11,3 +12,56 @@ test('another Google user cannot read, list, write or delete someone else’s re
 test('signed-out and non-Google clients cannot access an armory',async()=>{for(const db of [guest,nonGoogle]){await assertFails(getDoc(doc(db,'armories/alice')));await assertFails(setDoc(doc(db,'armories/alice/records/s-test'),record));}});
 test('users cannot enumerate accounts or write outside their armory',async()=>{await assertFails(getDocs(collection(alice,'armories')));await assertFails(setDoc(doc(alice,'public/anything'),record));});
 test('revision is advanced atomically, stale revision and invalid payload are denied',async()=>{await assertSucceeds(runTransaction(alice,async tx=>{const ref=doc(alice,'armories/alice');const root=await tx.get(ref);tx.set(ref,{version:1,revision:root.data().revision+1,updatedAt:serverTimestamp()});tx.set(doc(alice,'armories/alice/records/t-goal'),{...record,kind:'task'});}));await assertFails(setDoc(doc(alice,'armories/alice'),{version:1,revision:2,updatedAt:serverTimestamp()}));await assertFails(setDoc(doc(alice,'armories/alice/records/bad'),{...record,unexpected:'field'}));await assertFails(setDoc(doc(alice,'armories/alice/records/bad'),{...record,payload:'x'.repeat(180001)}));});
+
+test('guild membership and roles protect shared data and private armories',async()=>{
+ const guild={name:'Test guild',description:'Private roster',faction:'Horde',playStyle:'Normal',ownerUid:'alice',memberUids:['alice'],officerUids:[],createdAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(alice,'guilds/test'),guild));
+ await assertSucceeds(getDoc(doc(guest,'guilds/test')));
+ const shared={kind:'roster',ownerUid:'alice',payload:JSON.stringify({name:'A A',level:13}),updatedAt:serverTimestamp()};
+ await assertSucceeds(setDoc(doc(alice,'guilds/test/records/hero'),shared));
+ await assertFails(getDocs(collection(bob,'guilds/test/records')));
+ await assertFails(setDoc(doc(bob,'guilds/test'),{...guild,memberUids:['alice','bob']}));
+ await assertSucceeds(setDoc(doc(bob,'guilds/test/requests/bob'),{uid:'bob',name:'Bob',createdAt:serverTimestamp()}));
+ await assertFails(setDoc(doc(bob,'guilds/test/requests/alice'),{uid:'alice',name:'Alice',createdAt:serverTimestamp()}));
+ await assertSucceeds(getDocs(collection(alice,'guilds/test/requests')));
+ const old=(await getDoc(doc(alice,'guilds/test'))).data();
+ await assertSucceeds(setDoc(doc(alice,'guilds/test'),{...old,memberUids:['alice','bob']}));
+ await assertSucceeds(getDocs(collection(bob,'guilds/test/records')));
+ await assertFails(setDoc(doc(bob,'guilds/test/records/hero'),{...shared,ownerUid:'bob'}));
+ await assertFails(setDoc(doc(bob,'guilds/test/records/event'),{...shared,kind:'event',ownerUid:'bob'}));
+ await assertSucceeds(setDoc(doc(bob,'guilds/test/records/mine'),{...shared,ownerUid:'bob'}));
+ await assertSucceeds(setDoc(doc(bob,'guilds/test/records/rsvp'),{...shared,kind:'rsvp',ownerUid:'bob'}));
+ await assertFails(getDocs(collection(bob,'armories/alice/records')));
+ await assertSucceeds(setDoc(doc(alice,'guilds/test'),{...old,memberUids:['alice','bob'],officerUids:['bob']}));
+ await assertSucceeds(setDoc(doc(bob,'guilds/test/records/event'),{...shared,kind:'event',ownerUid:'bob'}));
+ await assertSucceeds(setDoc(doc(alice,'guilds/test'),old));
+ await assertFails(getDocs(collection(bob,'guilds/test/records')));
+ await assertFails(setDoc(doc(bob,'guilds/test/records/mine'),{...shared,ownerUid:'bob'}));
+});
+test('contributions require evidence and editorial publication; authors cannot self-publish',async()=>{
+ const ref=doc(alice,'contributions/test'),d={authorUid:'alice',authorName:'Alice',type:'loot',title:'Observed item',body:'Evidence from beta',source:'https://example.com/evidence',target:'item:2770',build:'test',status:'pending',createdAt:serverTimestamp(),updatedAt:serverTimestamp()};
+ await assertSucceeds(setDoc(ref,d));await assertSucceeds(getDoc(ref));
+ await assertFails(getDoc(doc(bob,'contributions/test')));await assertFails(getDoc(doc(guest,'contributions/test')));
+ await assertFails(setDoc(ref,{...d,status:'published'}));
+ await assertFails(setDoc(doc(bob,'contributions/forged'),d));
+ await assertFails(setDoc(doc(alice,'contributions/unsafe'),{...d,source:'javascript:alert(1)'}));
+ const ed=env.authenticatedContext('editor',{firebase:{sign_in_provider:'google.com'},editor:true}).firestore();
+ const existing=(await getDoc(doc(ed,'contributions/test'))).data();
+ await assertSucceeds(setDoc(doc(ed,'contributions/test'),{...existing,status:'published',updatedAt:serverTimestamp()}));
+ await assertSucceeds(getDoc(doc(guest,'contributions/test')));
+ await assertFails(setDoc(doc(ed,'contributions/test'),{...existing,body:'secret rewrite',status:'published',updatedAt:serverTimestamp()}));
+ await assertSucceeds(deleteDoc(ref));
+});
+
+test('community client creates guilds, approves requests, shares records and queries published content',async()=>{
+ const F=await import('firebase/firestore'),{communityClient}=await import('../../site/community.js');
+ const a=communityClient(F,alice,{currentUser:{uid:'alice',displayName:'Alice',getIdTokenResult:async()=>({claims:{}})}});
+ const b=communityClient(F,bob,{currentUser:{uid:'bob',displayName:'Bob',getIdTokenResult:async()=>({claims:{}})}});
+ const id=await a.createGuild({name:'Client integration',description:'Test',faction:'Horde',playStyle:'Normal'});
+ await b.requestJoin(id);assert.equal((await a.requests(id)).length,1);
+ await a.membership(id,'bob','approve');assert.ok((await a.guild(id)).memberUids.includes('bob'));
+ await b.record(id,'roster',{name:'Bob Hero'},'bob');assert.equal((await a.guildRecords(id)).length,1);
+ const contribution=await a.contribute({type:'tip',title:'Client test',body:'Observed evidence',source:'https://example.com/evidence',target:'quest',build:'test'});
+ assert.ok((await a.myContributions()).some(x=>x.id===contribution.id));assert.ok(!(await a.published()).some(x=>x.id===contribution.id));
+ await a.withdraw(contribution.id);
+});

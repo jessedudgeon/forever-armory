@@ -1,3 +1,4 @@
+import {inventoryRows} from './inventory.js';
 import {normalizeIcon,iconUrl,parseItemGoalNotes,encodeItemGoalNotes,progressPercent,compactItem} from './item-core.js';
 
 const CATALOG_URL='https://unpkg.com/wow-classic-items@2.0.1/data/json/data.json';
@@ -12,31 +13,16 @@ let catalogPromise=null,catalog=null,lastQuery='',renderNonce=0;
 
 function readJSON(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'')||fallback;}catch{return fallback;}}
 function writeJSON(key,value){try{localStorage.setItem(key,JSON.stringify(value));}catch{}}
-function customItems(){return readJSON(CUSTOM_KEY,{});}
-function importedInventories(){return readJSON(INVENTORY_KEY,{});}
+let sessionItems={};
+export function setItemContext(state){sessionItems={};for(const row of inventoryRows(state))sessionItems[row.id]={...row,itemId:row.id};}
+function customItems(){return sessionItems;}
+function importedInventories(){return {};}
 function normalizeLocalItem(raw){const item=compactItem(raw);if(!item)return null;item.count=Math.max(0,Number(raw.count)||0);return item;}
 
-function rememberItems(items=[]){
- const cache=customItems();let changed=false;
- for(const raw of items){const item=normalizeLocalItem(raw);if(!item)continue;const prev=cache[item.id]||{};cache[item.id]={...prev,...item,name:item.name||prev.name,icon:item.icon||prev.icon,quality:item.quality||prev.quality};changed=true;}
- if(changed)writeJSON(CUSTOM_KEY,cache);
-}
-
-function captureImport(form){
- const text=form.querySelector('#import-text')?.value?.trim();if(!text||!text.startsWith('{'))return;
- try{
-  const payload=JSON.parse(text),character=payload?.character;
-  if(payload?.format!=='forever-armory'||!character)return;
-  const gear=(character.gear||[]).map(g=>({...g,itemId:g.id,count:1}));
-  const inventory=(character.inventory||[]).map(i=>({...i,itemId:i.id}));
-  rememberItems([...gear,...inventory]);
-  if(inventory.length){
-   const all=importedInventories(),key=[character.name||'Character',character.realm||character.playStyle||''].join(' · ');
-   all[key]={observedAt:character.observedAt||new Date().toISOString(),items:inventory.map(normalizeLocalItem).filter(Boolean)};
-   writeJSON(INVENTORY_KEY,all);
-  }
- }catch{}
-}
+// Legacy browser-wide import caches are no longer read or written. Imports are
+// committed through the private armory model only, after the review dialog.
+function rememberItems(){}
+function captureImport(){}
 
 async function fetchCatalogResponse(){
  if('caches'in window){
@@ -118,10 +104,7 @@ function bindItemResults(root,items){
  const map=new Map(items.map(i=>[Number(i.id),i]));root.querySelectorAll('[data-open-item]').forEach(el=>el.onclick=()=>openItem(map.get(Number(el.dataset.openItem))));root.querySelectorAll('[data-goal-item]').forEach(el=>el.onclick=()=>queueItemGoal(map.get(Number(el.dataset.goalItem))));refreshWowhead();
 }
 
-function inventoryHTML(){
- const inventories=importedInventories(),entries=Object.entries(inventories);if(!entries.length)return '<p class="muted">Import a character with the updated companion addon to capture bag contents here.</p>';
- return entries.map(([character,data])=>`<div class="inventory-block"><div class="section-row"><h3>${esc(character)}</h3><small>${data.observedAt?new Date(data.observedAt).toLocaleString():''}</small></div><div class="inventory-grid">${(data.items||[]).slice().sort((a,b)=>b.count-a.count).map(item=>`<button type="button" class="inventory-item" data-inventory-item="${item.id}" title="${esc(item.name)} × ${item.count}">${itemIconHTML(item,'medium')}<span>${esc(item.name)}</span><b>${item.count}</b></button>`).join('')}</div></div>`).join('');
-}
+function inventoryHTML(){return '<p>Inventories now sync with your private armory. <a href="#inventory">Search all characters and storage locations</a>.</p>';}
 function inventoryItems(){return Object.values(importedInventories()).flatMap(x=>x.items||[]).map(normalizeLocalItem).filter(Boolean);}
 
 function renderItemsPage(){

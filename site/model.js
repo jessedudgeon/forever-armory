@@ -1,3 +1,4 @@
+import {normalizeInventories} from './inventory.js';
 import {CHALLENGES,PERK_KEYS} from './legacy.js';
 export const newId=()=>Array.from(crypto.getRandomValues(new Uint8Array(16)),b=>b.toString(16).padStart(2,"0")).join("");
 export const CLASSES={WARRIOR:['Warrior','#cba57f'],PALADIN:['Paladin','#e8a6c6'],HUNTER:['Hunter','#b5d28f'],ROGUE:['Rogue','#e6d37c'],PRIEST:['Priest','#e5e4da'],SHAMAN:['Shaman','#80b4e6'],MAGE:['Mage','#8ccee3'],WARLOCK:['Warlock','#b9a1e1'],DRUID:['Druid','#e6ad79']};
@@ -20,7 +21,7 @@ export function normalize(o){
  if(new Set(gear.map(g=>g.slot)).size!==gear.length)throw new Error('Duplicate equipment slots in this export.');
  const talents=bounded(o.talents,300).map(t=>typeof t==='string'?str(t,120):`${str(t?.name,100)}${t?.rank!=null?' · '+num(t.rank,0,100):''}`).filter(Boolean);
  const observedAt=o.observedAt?new Date(o.observedAt).toISOString():new Date().toISOString();
- return {name,realm,...(mainName?{mainName}:{}),...(secondaryName?{secondaryName}:{}),...(playStyle?{playStyle}:{}),...(o.accountId&&o.accountId!=='default'?{accountId:str(o.accountId,100)}:{}),class:cls,race:str(o.race,40),faction:str(o.faction,20),level:num(o.level,1,100),xp:num(o.xp,0,1e10,true),xpMax:num(o.xpMax,0,1e10,true),money:num(o.money,0,1e14,true),zone:str(o.zone,100),professions:prof,gear,talents,observedAt,source:str(o.source,40)||'Manual',warnings:bounded(o.warnings,30).map(x=>str(x,200))};
+ return {name,realm,...(mainName?{mainName}:{}),...(secondaryName?{secondaryName}:{}),...(playStyle?{playStyle}:{}),...(o.accountId&&o.accountId!=='default'?{accountId:str(o.accountId,100)}:{}),class:cls,race:str(o.race,40),faction:str(o.faction,20),level:num(o.level,1,100),xp:num(o.xp,0,1e10,true),xpMax:num(o.xpMax,0,1e10,true),money:num(o.money,0,1e14,true),zone:str(o.zone,100),professions:prof,gear,talents,inventories:normalizeInventories(o,observedAt),spells:bounded(o.spells,2000).map(x=>({id:num(x.id,1,100000000),name:str(x.name,150),description:str(x.description,2000)})),quests:bounded(o.quests,500).map(x=>({id:num(x.id,1,100000000),name:str(x.name,150),description:str(x.description,2000)})),observedAt,source:str(o.source,40)||'Manual',warnings:bounded(o.warnings,30).map(x=>str(x,200))};
 }
 export function parseImport(text){
  if(typeof text!=='string'||text.length>1e6)throw new Error('Use an export smaller than 1 MB.');

@@ -1,4 +1,4 @@
--- Forever Armory: user-initiated, read-only character export. No SavedVariables or network.
+-- Forever Armory: user-initiated, read-only character export. Local storage cache; no network.
 local function safe(fn, ...)
     if type(fn) ~= "function" then return nil end
     local ok, a, b, c, d, e, f = pcall(fn, ...)
@@ -54,8 +54,8 @@ local function itemInfo(id, link, quality, icon, count)
     return {id=id,name=name or (id and ("Item " .. id) or "Unknown item"),link=link,quality=quality,icon=icon,count=count or 1}
 end
 local function containerSlots(bag)
-    if C_Container and C_Container.GetContainerNumSlots then return safe(C_Container.GetContainerNumSlots, bag) or 0 end
-    return safe(GetContainerNumSlots, bag) or 0
+    if C_Container and C_Container.GetContainerNumSlots then return safe(C_Container.GetContainerNumSlots, bag) end
+    return safe(GetContainerNumSlots, bag)
 end
 local function containerEntry(bag, slot)
     if C_Container and C_Container.GetContainerItemInfo then
@@ -72,29 +72,103 @@ local function containerEntry(bag, slot)
     if not id and GetContainerItemID then id = plain(safe(GetContainerItemID, bag, slot)) end
     return id and itemInfo(id, link, plain(quality), plain(texture), plain(count) or 1) or nil
 end
-local function readInventory(out)
-    if not ((C_Container and C_Container.GetContainerNumSlots) or GetContainerNumSlots) then
-        out.warnings[#out.warnings + 1] = "Bag inventory APIs unavailable in this client."
-        return
-    end
-    local aggregated = {}
-    for bag = 0, 4 do
-        for slot = 1, containerSlots(bag) do
-            local item = containerEntry(bag, slot)
-            if item and item.id then
-                if aggregated[item.id] then
-                    aggregated[item.id].count = aggregated[item.id].count + (item.count or 1)
-                    if not aggregated[item.id].icon then aggregated[item.id].icon = item.icon end
-                    if not aggregated[item.id].link then aggregated[item.id].link = item.link end
-                else aggregated[item.id] = item end
-            end
+-- Storage snapshots are retained locally per character and exported only at the player's request.
+-- Unknown APIs or unopened storage are never reported as an empty container.
+local bankOpen, mailOpen, auctionOpen, guildOpen = false, false, false, false
+local function stamp() return date("!%Y-%m-%dT%H:%M:%SZ") end
+local function cache()
+    ForeverArmoryStorage = ForeverArmoryStorage or {}
+    local key = tostring(safe(UnitName,"player")) .. ":" .. tostring(safe(GetRealmName))
+    ForeverArmoryStorage[key] = ForeverArmoryStorage[key] or {}
+    return ForeverArmoryStorage[key]
+end
+local function containerSnapshot(location, bags)
+    if not ((C_Container and C_Container.GetContainerNumSlots) or GetContainerNumSlots) then return nil end
+    local snapshot={location=location,observedAt=stamp(),complete=true,source="Forever Armory addon",items=array()}
+    for _,bag in ipairs(bags) do
+        local slots=containerSlots(bag)
+        if type(slots)~="number" then return nil end
+        for slot=1,slots do
+            local item=containerEntry(bag,slot)
+            if item then item.bag=bag;item.slot=slot;snapshot.items[#snapshot.items+1]=item end
         end
     end
-    local ids = {}
-    for id in pairs(aggregated) do ids[#ids + 1] = id end
-    table.sort(ids)
-    for _, id in ipairs(ids) do out.inventory[#out.inventory + 1] = aggregated[id] end
+    return snapshot
 end
+local function captureStorage()
+    local saved=cache()
+    if bankOpen then saved.bank=containerSnapshot("bank",{-1,5,6,7,8,9,10,11}) or saved.bank end
+    if mailOpen and GetInboxNumItems and GetInboxItemLink and GetInboxItem then
+        local count=safe(GetInboxNumItems)
+        if type(count)=="number" then
+            local snapshot={location="mail",observedAt=stamp(),complete=false,source="Loaded mailbox attachments",items=array()}
+            for message=1,count do
+                for attachment=1,(ATTACHMENTS_MAX_RECEIVE or 12) do
+                    local link=plain(safe(GetInboxItemLink,message,attachment))
+                    local _,_,_,quantity=safe(GetInboxItem,message,attachment)
+                    local id=idFromLink(link)
+                    if id then local item=itemInfo(id,link,nil,nil,plain(quantity) or 1);item.slot=attachment;item.bag=message;snapshot.items[#snapshot.items+1]=item end
+                end
+            end
+            saved.mail=snapshot
+        end
+    end
+    if auctionOpen and GetNumAuctionItems and GetAuctionItemLink and GetAuctionItemInfo then
+        local count=safe(GetNumAuctionItems,"owner")
+        if type(count)=="number" then
+            local snapshot={location="auction",observedAt=stamp(),complete=false,source="Loaded owner auctions",items=array()}
+            for index=1,count do
+                local link=plain(safe(GetAuctionItemLink,"owner",index))
+                local _,_,quantity,quality=safe(GetAuctionItemInfo,"owner",index)
+                local id=idFromLink(link)
+                if id then snapshot.items[#snapshot.items+1]=itemInfo(id,link,plain(quality),nil,plain(quantity) or 1) end
+            end
+            saved.auction=snapshot
+        end
+    end
+    if guildOpen and GetCurrentGuildBankTab and GetGuildBankItemLink and GetGuildBankItemInfo then
+        local tab=safe(GetCurrentGuildBankTab)
+        local guild=plain(safe(GetGuildInfo,"player"))
+        if type(tab)=="number" and tab>0 and guild then
+            local snapshot={location="guild-bank",scopeId=guild..":"..tostring(safe(GetRealmName))..":tab-"..tab,observedAt=stamp(),complete=false,source="Viewed guild-bank tab",items=array()}
+            for slot=1,98 do
+                local link=plain(safe(GetGuildBankItemLink,tab,slot))
+                local _,quantity=safe(GetGuildBankItemInfo,tab,slot)
+                local id=idFromLink(link)
+                if id then local item=itemInfo(id,link,nil,nil,plain(quantity) or 1);item.slot=slot;snapshot.items[#snapshot.items+1]=item end
+            end
+            saved["guild-tab-"..tab]=snapshot
+        end
+    end
+    return saved
+end
+local function readInventory(out)
+    local bags=containerSnapshot("bags",{0,1,2,3,4})
+    out.inventories=array()
+    if bags then out.inventories[#out.inventories+1]=bags
+    else out.warnings[#out.warnings+1]="Bag APIs unavailable; no bag snapshot exported." end
+    local saved=captureStorage()
+    -- SavedVariables lose array metatables across sessions; restore them before serializing.
+    for _,snapshot in pairs(saved) do
+        if snapshot.items then setmetatable(snapshot.items,arrayMeta);out.inventories[#out.inventories+1]=snapshot end
+    end
+    if not saved.bank then out.warnings[#out.warnings+1]="Bank not captured. Visit the bank and export while it is open." end
+    if not saved.mail then out.warnings[#out.warnings+1]="Mailbox not captured or API unavailable." end
+    if not saved.auction then out.warnings[#out.warnings+1]="Auctions not captured or owner-auction API unavailable." end
+    out.warnings[#out.warnings+1]="Shared account-bank API not implemented. Cached storage retains its original observation time; mailbox, auctions and guild tabs may be partial."
+end
+local events=CreateFrame("Frame")
+for _,event in ipairs({"BANKFRAME_OPENED","BANKFRAME_CLOSED","MAIL_SHOW","MAIL_CLOSED","AUCTION_HOUSE_SHOW","AUCTION_HOUSE_CLOSED","GUILDBANKFRAME_OPENED","GUILDBANKFRAME_CLOSED"}) do pcall(events.RegisterEvent,events,event) end
+events:SetScript("OnEvent",function(_,event)
+    if event=="BANKFRAME_OPENED" then bankOpen=true end
+    if event=="BANKFRAME_CLOSED" then bankOpen=false end
+    if event=="MAIL_SHOW" then mailOpen=true end
+    if event=="MAIL_CLOSED" then mailOpen=false end
+    if event=="AUCTION_HOUSE_SHOW" then auctionOpen=true end
+    if event=="AUCTION_HOUSE_CLOSED" then auctionOpen=false end
+    if event=="GUILDBANKFRAME_OPENED" then guildOpen=true end
+    if event=="GUILDBANKFRAME_CLOSED" then guildOpen=false end
+end)
 local function readTalents(out)
     if C_ClassTalents and C_Traits then
         local configID = safe(C_ClassTalents.GetActiveConfigID)
@@ -197,4 +271,5 @@ local function showExport()
     frame:Show();frame.box:SetText(text);frame.box:SetFocus();frame.box:HighlightText()
 end
 SLASH_FOREVERARMORY1="/farmory"
+SLASH_FOREVERARMORY2="/fa"
 SlashCmdList.FOREVERARMORY=showExport
