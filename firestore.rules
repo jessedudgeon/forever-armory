@@ -29,6 +29,73 @@ service cloud.firestore {
           && request.resource.data.payload.size() <= 180000;
       }
     }
+    function signedIn() { return request.auth != null && request.auth.token.firebase.sign_in_provider == 'google.com'; }
+    function editor() { return signedIn() && request.auth.token.get('editor', false) == true; }
+    function guildMember(gid) { return signedIn() && request.auth.uid in get(/databases/$(database)/documents/guilds/$(gid)).data.memberUids; }
+    function guildOfficer(gid) { let g = get(/databases/$(database)/documents/guilds/$(gid)).data; return signedIn() && (g.ownerUid == request.auth.uid || request.auth.uid in g.officerUids); }
+    function guildOwner(gid) { return signedIn() && get(/databases/$(database)/documents/guilds/$(gid)).data.ownerUid == request.auth.uid; }
+    function validGuild(g) {
+      return g.keys().hasOnly(['name','description','faction','playStyle','ownerUid','memberUids','officerUids','createdAt'])
+        && g.name is string && g.name.size() > 0 && g.name.size() <= 80
+        && g.description is string && g.description.size() <= 1000
+        && g.faction in ['Horde','Alliance','Both'] && g.playStyle in ['Normal','PvP','Roleplaying','Hardcore']
+        && g.memberUids is list && g.memberUids.size() <= 100 && g.memberUids.size() == g.memberUids.toSet().size()
+        && g.officerUids is list && g.officerUids.size() <= 20
+        && g.memberUids.hasAll(g.officerUids) && g.ownerUid in g.memberUids;
+    }
+    match /guilds/{gid} {
+      // The guild directory is public; member IDs are opaque Firebase IDs, never emails.
+      allow read: if true;
+      allow create: if signedIn() && validGuild(request.resource.data)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid]
+        && request.resource.data.officerUids == [] && request.resource.data.createdAt == request.time;
+      allow update: if signedIn() && resource.data.ownerUid == request.auth.uid
+        && validGuild(request.resource.data) && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+      match /requests/{uid} {
+        allow read: if signedIn() && (request.auth.uid == uid || guildOfficer(gid));
+        allow create, update: if signedIn() && request.auth.uid == uid && !guildMember(gid)
+          && request.resource.data.keys().hasOnly(['uid','name','createdAt'])
+          && request.resource.data.uid == uid && request.resource.data.name is string
+          && request.resource.data.name.size() <= 80 && request.resource.data.createdAt == request.time;
+        allow delete: if signedIn() && (request.auth.uid == uid || guildOwner(gid));
+      }
+      match /records/{rid} {
+        allow read: if guildMember(gid);
+        function validRecord() {
+          let d = request.resource.data;
+          return d.keys().hasOnly(['kind','ownerUid','payload','updatedAt'])
+            && d.ownerUid == request.auth.uid && d.kind in ['roster','event','rsvp','bank','announcement']
+            && d.payload is string && d.payload.size() <= 100000 && d.updatedAt == request.time
+            && (d.kind in ['roster','rsvp'] || guildOfficer(gid));
+        }
+        allow create: if guildMember(gid) && validRecord();
+        allow update: if guildMember(gid) && resource.data.ownerUid == request.auth.uid
+          && validRecord() && request.resource.data.kind == resource.data.kind;
+        allow delete: if guildMember(gid) && (resource.data.ownerUid == request.auth.uid || guildOfficer(gid));
+      }
+    }
+    match /contributions/{cid} {
+      function validContribution(d) {
+        return d.keys().hasOnly(['authorUid','authorName','type','title','body','source','target','build','status','createdAt','updatedAt'])
+          && d.authorName is string && d.authorName.size() <= 80
+          && d.type in ['correction','tip','guide','build','quest','spell','loot']
+          && d.title is string && d.title.size() > 0 && d.title.size() <= 150
+          && d.body is string && d.body.size() > 0 && d.body.size() <= 12000
+          && d.source is string && d.source.size() <= 1000 && d.source.matches('https://.*')
+          && d.target is string && d.target.size() <= 250 && d.build is string && d.build.size() <= 100;
+      }
+      allow read: if resource.data.status == 'published' || editor() || (signedIn() && resource.data.authorUid == request.auth.uid);
+      allow create: if signedIn() && validContribution(request.resource.data)
+        && request.resource.data.authorUid == request.auth.uid && request.resource.data.status == 'pending'
+        && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+      allow update: if editor() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt'])
+        && request.resource.data.status in ['published','rejected','pending'] && request.resource.data.updatedAt == request.time;
+      allow delete: if editor() || (signedIn() && resource.data.authorUid == request.auth.uid);
+    }
+
     // Everything outside a user's own armory remains private by default.
     match /{document=**} { allow read, write: if false; }
   }
