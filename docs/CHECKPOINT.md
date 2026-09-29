@@ -4,13 +4,19 @@ Continued from live commit `513ad0c`; preserved the private RP/story release and
 
 - Completed this continuation: private event creation/editing, raid/dungeon/RP/social/PvP/custom types, character hosts, optional guild plan and shared Journal links, UTC times with local display, character RSVPs with roles/notes, capacity enforcement, cancel/complete/reopen, private calendar export, guild event cards and completed-event character history.
 - Data changes: separate event/RSVP cloud records and additive backup collections; rename/delete handling keeps references valid; addon imports cannot overwrite plans.
-- Validation: 76 application/model/release tests and 9 Firestore emulator tests pass, including actual event/RSVP save/read and denied cross-owner access. Packaging, syntax and diff checks pass. Live browser acceptance follows deployment; no claim of a new production Google login or mobile pass yet.
+- Validation: 76 application/model/release tests and 9 Firestore emulator tests pass, including actual event/RSVP save/read and denied cross-owner access. Packaging, syntax and diff checks pass. Pages and validation workflows for release 21a40f7 succeeded. Live event creation was verified; remaining browser checks are limited as described below.
 - Blocked by access: Firebase CLI reports no authenticated deployment session. Public profiles, cross-user feeds/following, shared guild invites/memberships and remote RSVPs cannot be enabled safely without the new shared authorization layer and its deployment.
 - Blocked by raw export: inventory/bank/recipes/talents/progress collector verification remains listed in EXPORT-FOLLOWUP.md; it did not block event development.
 - Incomplete: public social/guild platform, portraits/gallery, relationships/guestbook/reactions, shared scheduling, full verified Forever datasets. Private events are not presented as a shared calendar.
 - Known limits: local DST fall-back ambiguity (browser chooses first repeated hour); full owner collections still load together; large restore limits remain. Existing untracked race-banners.jpg is excluded, untouched.
 - Next highest priority: obtain authenticated Firebase deployment access, then implement stable public character identities and opt-in audience projections, followed by character-specific guild invitations. See SOCIAL-ARCHITECTURE.md and EVENTS.md.
 - Files: site/event-model.js, site/events.js, site/model.js, site/cloud-model.js, site/app.js, site/features.js, site/index.html, site/expansion.css, tests/events.test.mjs, tests/security/firestore.test.mjs, docs/EVENTS.md.
+
+## Event release acceptance and limitations
+
+Release `21a40f7` deployed successfully. The production browser loaded Events & gatherings, opened the form, selected Dungeon → Shadowfang Keep, and created a dated event with capacity, location and preparation notes in the isolated example roster. The resulting event card displayed the correct host, time and attendance count. No private user data was changed.
+
+The browser service then timed out opening the event; documentation and reset calls also timed out. Stop repeating browser recovery attempts. Event detail interaction, live RSVP/capacity/cancel/complete/reopen/calendar-download, new mobile layout and production Google login remain browser-acceptance tasks for the next session. These model operations and real Firestore emulator save/read/isolation passed automated tests (76 application/release + 9 security). The production homepage was also retrieved over HTTP after deployment and checked for versioned assets and event navigation. No application failure was observed before the browser service failure.
 
 ## Current requirement status
 
