@@ -4,7 +4,7 @@ Mocks verify branches and serialization, not actual Forever API availability.
 import json
 from pathlib import Path
 from lupa.lua51 import LuaRuntime
-source=Path('addon/ForeverArmory/Collectors.lua').read_text()+'\n'+Path('addon/ForeverArmory/ForeverArmory.lua').read_text()
+source='\n'.join(Path('addon/ForeverArmory/'+name).read_text() for name in ['Collectors.lua','Sessions.lua','ForeverArmory.lua'])
 setup=r'''
 SlashCmdList={};UISpecialFrames={};UIParent={};ChatFontNormal={}
 function print(...) end
@@ -97,9 +97,57 @@ lua.globals().SlashCmdList.FOREVERARMORY('export');c=json.loads(lua.globals().Ca
 assert isinstance(c['inventory'][0]['gems'],list) and isinstance(c['recipes'][0]['reagents'],list)
 assert c['inventory'][0]['enchantments']==['1'] and c['inventory'][0]['gemEnchantIDs']==[2]
 assert c['recipeScans'][0]['observedAt']=='2026-09-29T21:22:36Z'
-assert json.loads(lua.globals().CapturedJSON)['addonVersion']=='0.2.0'
+assert json.loads(lua.globals().CapturedJSON)['addonVersion']=='0.3.0'
 print('SavedVariables reload serialization, recipe scan timestamps and version metadata checks passed.')
 lua=client("C_Container.GetContainerItemInfo=function(bag,slot)if slot==1 then return {itemID=2840,hyperlink='[Copper Bar]',stackCount=20}end return nil end")
 lua.globals().SlashCmdList.FOREVERARMORY('export');c=json.loads(lua.globals().CapturedJSON)['character']
 assert len(c['inventory'])==1 and c['storageStatus']['backpack']['captured'] is True
 print('Modern empty slots remain valid captured inventory.')
+
+# Persistent quest journal and logout exports, without manually opening export UI.
+lua=client("Tick=1;function GetTime()return Tick end;C_QuestLog.GetAllCompletedQuestIDs=function()return {456}end")
+lua.execute("SessionFrame=Frames[2];SessionFrame.OnEvent(SessionFrame,'PLAYER_LOGIN');SessionFrame.OnEvent(SessionFrame,'QUEST_TURNED_IN',123,100,20);SessionFrame.OnEvent(SessionFrame,'QUEST_TURNED_IN',123,100,20);Tick=2;SessionFrame.OnEvent(SessionFrame,'QUEST_TURNED_IN',123,100,20);SessionFrame.OnEvent(SessionFrame,'PLAYER_LOGOUT')")
+payload=json.loads(lua.globals().ForeverArmorySessionExport);c=payload['character']
+assert payload['addonVersion']=='0.3.0' and c['session']['status']=='ended'
+assert c['metadata']['exportReason']=='session-end'
+assert c['completedQuestIDs']==[123,456] and len(c['questHistory'])==2
+assert c['questHistory'][0]['name']=='Test quest' and c['questHistory'][0]['xpReward']==100
+assert c['questHistory'][0]['eventId']!=c['questHistory'][1]['eventId']
+assert c['questHistoryStatus']['totalEvents']==2 and c['questHistoryStatus']['status']=='tracking'
+saved=lua.globals().ForeverArmorySessionExport
+# Same runtime simulates restored SavedVariables without metatables; new session starts on PLAYER_LOGIN.
+lua.execute("function plainCopy(v)if type(v)~='table'then return v end local copy={};for k,x in pairs(v)do copy[k]=plainCopy(x)end return copy end;ForeverArmoryJournal=plainCopy(ForeverArmoryJournal)")
+lua.execute(source)
+lua.execute("SessionFrame=Frames[#Frames];SessionFrame.OnEvent(SessionFrame,'PLAYER_LOGIN')")
+lua.globals().SlashCmdList.FOREVERARMORY('last');assert lua.globals().CapturedJSON==saved
+lua.execute("Tick=3;SessionFrame.OnEvent(SessionFrame,'QUEST_TURNED_IN',789,50,10);function InCombatLockdown()return true end;SessionFrame.OnEvent(SessionFrame,'PLAYER_LOGOUT')")
+c=json.loads(lua.globals().ForeverArmorySessionExport)['character']
+assert len(c['questHistory'])==3 and c['completedQuestIDs']==[123,456,789]
+assert c['session']['id']!=payload['character']['session']['id']
+# Failed core data read retains previous valid export rather than writing empty data.
+saved=lua.globals().ForeverArmorySessionExport
+lua.execute("UnitClass=nil;SessionFrame.OnEvent(SessionFrame,'PLAYER_LOGOUT')")
+assert lua.globals().ForeverArmorySessionExport==saved
+lua.execute("local _,j=next(ForeverArmoryJournal.characters);assert(j.lastExportError)")
+# Character-keyed journal isolation, missing quest API, rejected event, bounded wire history.
+lua=client("function GetTime()return 1 end;C_QuestLog=nil")
+lua.execute("Frames[2].OnEvent(Frames[2],'QUEST_TURNED_IN',123);Frames[2].OnEvent(Frames[2],'PLAYER_LOGOUT')")
+c=json.loads(lua.globals().ForeverArmorySessionExport)['character'];assert len(c['questHistory'])==1 and 'name' not in c['questHistory'][0]
+lua.execute("UnitGUID=function()return 'Player-OTHER'end;Frames[2].OnEvent(Frames[2],'PLAYER_LOGOUT')")
+c=json.loads(lua.globals().ForeverArmorySessionExport)['character'];assert c['questHistory']==[] and c['completedQuestIDs']==[]
+lua=client("local old=CreateFrame;function CreateFrame(...)local f=old(...);function f:RegisterEvent(e)if e=='QUEST_TURNED_IN'then error('unsupported')end end;return f end")
+lua.globals().SlashCmdList.FOREVERARMORY('export');assert json.loads(lua.globals().CapturedJSON)['character']['questHistoryStatus']['status']=='unavailable'
+lua=client("function GetTime()return Tick end")
+lua.execute("for i=1,2001 do Tick=i;Frames[2].OnEvent(Frames[2],'QUEST_TURNED_IN',i)end;Frames[2].OnEvent(Frames[2],'PLAYER_LOGOUT')")
+c=json.loads(lua.globals().ForeverArmorySessionExport)['character']
+assert len(c['questHistory'])==2000 and c['questHistoryStatus']['truncated'] and len(c['completedQuestIDs'])==2001
+lua.execute("local _,j=next(ForeverArmoryJournal.characters);assert(#j.events==2001)")
+# Generate actual addon JSON and WoW-style quoted SavedVariables string for downstream tests.
+if __name__=='__main__' and len(sys.argv)>1:
+    lua=client("function GetTime()return 1 end")
+    lua.execute("Frames[2].OnEvent(Frames[2],'PLAYER_LOGIN');Frames[2].OnEvent(Frames[2],'QUEST_TURNED_IN',123,100,20);Frames[2].OnEvent(Frames[2],'PLAYER_LOGOUT')")
+    raw=lua.globals().ForeverArmorySessionExport
+    Path(sys.argv[1]).write_text(raw)
+    encoded=lua.eval('string.format')("%q",raw)
+    Path(sys.argv[1]+'.lua').write_text('ForeverArmorySessionExport = '+encoded+'\n')
+print('Quest journal, repeatable quests, duplicate events, reloads, failed logout, unavailable APIs and session isolation passed.')

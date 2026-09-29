@@ -1,4 +1,5 @@
 import { IMPORT_ADAPTERS } from "./import-schema.js";
+import { sessionExportText } from "./session-import.js";
 import { normalizeEvents, rekeyEvents } from "./event-model.js";
 import { normalizeSocial, rekeySocial } from "./social-model.js";
 import {
@@ -168,6 +169,7 @@ export function normalize(o) {
   };
 }
 export function parseImport(text) {
+  if(typeof text==='string' && /^\s*ForeverArmorySessionExport\s*=/m.test(text))text=sessionExportText(text);
   if (typeof text !== "string" || text.length > 1e6)
     throw new Error("Use an export smaller than 1 MB.");
   text = text.trim();
@@ -272,7 +274,7 @@ export function addSnapshot(state, c, {targetId} = {}) {
     if(c.rawAddon)for(const field of ['gear','professions','talents']) {
       if(c.rawAddon.character[field]===undefined) {
         c[field]=structuredClone(last[field]);
-        if(field==='gear')c.gearObservedAt=last.gearObservedAt||last.observedAt;
+        if(field==='gear' && (last.gear?.length || last.gearObservedAt))c.gearObservedAt=last.gearObservedAt||last.observedAt;
       }
     }
     for (const key of [
@@ -288,6 +290,9 @@ export function addSnapshot(state, c, {targetId} = {}) {
       "gameIdentity",
       "talentDetails",
       "quests",
+      "questHistory",
+      "completedQuestIDs",
+      "questHistoryStatus",
       "reputations",
       "location",
     ])
@@ -298,6 +303,12 @@ export function addSnapshot(state, c, {targetId} = {}) {
       for(const r of c.recipes)recipes.set(r.profession+':'+r.id,r);
       c.recipes=[...recipes.values()];
     }
+    if(c.questHistory && last.questHistory) {
+      const events=new Map(last.questHistory.map(e=>[e.eventId,e]));
+      for(const e of c.questHistory)if(!events.has(e.eventId))events.set(e.eventId,e);
+      c.questHistory=[...events.values()].sort((a,b)=>a.completedAt.localeCompare(b.completedAt)||a.eventId.localeCompare(b.eventId));
+    }
+    if(c.completedQuestIDs && last.completedQuestIDs)c.completedQuestIDs=[...new Set([...last.completedQuestIDs,...c.completedQuestIDs])].sort((a,b)=>a-b);
     if (c.inventory && incomingCoverage && last.inventory) {
       const captured = new Set(
         Object.entries(incomingCoverage)

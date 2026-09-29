@@ -2,9 +2,10 @@
 ## Title: Forever Armory
 ## Notes: Export your own character to forever.dudgeon.io with /farmory.
 ## Author: Dudgeon
-## Version: 0.2.0
+## Version: 0.3.0
 ## AllowLoadGameType: camelot
 ## SavedVariables: ForeverArmoryCache
-## SavedVariablesPerCharacter: ForeverArmoryRecipes, ForeverArmoryRecipeMigrationDone
+## SavedVariablesPerCharacter: ForeverArmoryRecipes, ForeverArmoryRecipeMigrationDone, ForeverArmoryJournal, ForeverArmorySessionExport
 Collectors.lua
+Sessions.lua
 ForeverArmory.lua

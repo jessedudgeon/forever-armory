@@ -1,5 +1,6 @@
 import { storageView, bindStorage } from "./storage.js";
 import { progressChanges } from "./import-schema.js";
+import { sessionExportText } from "./session-import.js";
 import { communityView, bindCommunity } from "./community.js";
 import { eventsView, bindEvents, eventSection } from "./events.js";
 import { removeCharacterEvents } from "./event-model.js";
@@ -486,6 +487,11 @@ function equipment(c) {
       : "<p>No equipment captured yet. Use the included Forever Armory addon to export your equipped items.</p>"
   }</section><div><section class="panel"><h2>Talents</h2><p><a class="button" href="#talents/${s.class.toLowerCase()}/${Math.min(60, s.level)}">Plan a talent build ↗</a></p>${s.talents.length ? s.talents.map((t) => `<div class="gear-row"><span>${esc(t)}</span></div>`).join("") : "<p>No talent data in this snapshot.</p>"}</section><section class="panel"><h2>Professions & purse</h2>${s.professions.map((p) => `<div class="gear-row"><span>${esc(p.name)}</span><strong>${p.rank == null ? "Rank not captured" : p.rank + (p.max ? "/" + p.max : "")}</strong></div>`).join("") || "<p>Professions not captured.</p>"}<div class="gear-row"><span>Gold</span><strong>${money(s.money)}</strong></div></section></div></div>${s.warnings.length ? `<div class="note">${s.warnings.map(esc).join("<br>")}</div>` : ""}`;
 }
+function questJournal(s) {
+  if(!s.questHistory && !s.completedQuestIDs)return '';
+  const events=(s.questHistory||[]).slice(-50).reverse();
+  return `<section class="panel"><h2>Completed quest journal</h2><p>${s.completedQuestIDs?.length||0} known completed quest IDs · ${s.questHistory?.length||0} recorded turn-ins. Backfilled IDs have no invented completion time.</p>${events.length?`<p><small>Latest ${events.length} turn-ins. The full imported journal is included in your backup.</small></p><div class="table-wrap"><table><thead><tr><th>Turned in</th><th>Quest</th><th>Level</th><th>Zone</th></tr></thead><tbody>${events.map(e=>`<tr><td>${date(e.completedAt)}</td><td>${esc(e.name)||'Quest '+e.questId}</td><td>${e.level??'—'}</td><td>${esc(e.zone)||'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p>No timed turn-ins imported yet. Install addon 0.3.0, complete a quest, then import the saved session.</p>'}</section>`;
+}
 function history(c) {
   const ss = c.snapshots,
     max = Math.max(...ss.map((s) => s.level)),
@@ -500,12 +506,12 @@ function history(c) {
     .map((s, i) => {
       const p = ss[i - 1];
       const changes = progressChanges(p,s);
-      return `<tr><td>${date(s.observedAt)}</td><td>${s.level}</td><td>${esc(s.zone) || "—"}</td><td>${money(s.money)}</td><td>${i ? changes.join(" · ") || "Snapshot saved" : "First snapshot"}</td></tr>`;
+      return `<tr><td>${date(s.observedAt)}</td><td>${s.level}</td><td>${esc(s.zone) || "—"}</td><td>${money(s.money)}</td><td>${i ? changes.map(esc).join(" · ") || "Snapshot saved" : "First snapshot"}</td></tr>`;
     })
     .reverse()
     .join(
       "",
-    )}</tbody></table></div><p style="margin-top:16px"><small>History begins with your first import. Each row reflects only the fields that export captured.</small></p></section>`;
+    )}</tbody></table></div><p style="margin-top:16px"><small>History begins with your first import. Each row reflects only the fields that export captured.</small></p></section>${questJournal(ss.at(-1))}`;
 }
 function taskHTML(t) {
   const c = current().characters.find((c) => c.id === t.characterId);
@@ -540,7 +546,7 @@ function guideView() {
       "Import & backups",
       "Bring your character home after every session.",
     ) +
-    `<div class="two-col"><section class="panel"><h2>From Azeroth to your armory</h2><ol class="steps"><li><strong>Install the companion addon.</strong><br>Extract the download into your Forever client’s <code>Interface/AddOns</code> folder. The folder should be named <code>ForeverArmory</code>.</li><li><strong>Capture your character.</strong><br>Log in and type <code>/farmory</code>. Copy the selected export text.</li><li><strong>Save a snapshot.</strong><br>Choose Import character, paste the text, and review before saving.</li></ol><div class="actions"><a class="button" href="./downloads/ForeverArmory.zip?v=0.2.0" download>↓ Download addon</a>${action("import", "Import character", true)}</div><div class="note">Addon 0.2.0: open your bank to cache it; open each profession and run /farmory recipes, then /farmory export. /farmory help explains the commands. The new collectors still need in-game verification; unavailable APIs produce warnings.</div><h3>Already using WoW Forever Builds?</h3><p>Paste its <code>/wfb</code> export to import basic character details, professions, and talent-tree totals. Gear and gold are not included in that format.</p><p><small>MythicSim exports are not supported in this version.</small></p></section><div><section class="panel"><h2>A backup for every adventure</h2><p>${account ? "Your data is saved privately in your account and syncs across signed-in devices. Backups give you an extra copy." : "This local roster is stored only in this browser. Clearing browser data removes it. Sign in to start a synced account armory."}</p><p>Download a backup after playing. Restore it to merge characters, snapshots, and goals into your ${account ? "signed-in account" : "local roster"}.</p><div class="actions">${action("backup", "↓ Download backup")}${action("restore", "Restore backup")}</div><p style="margin-top:18px"><small>Your roster is private. Other users cannot read or edit your characters.</small></p></section><section class="panel"><h2>Start without an addon</h2><p>Add a character manually, then import game data later using the same full name and play style.</p>${action("add-manual", "+ Add character")}<p style="margin-top:18px"><button class="text-button" id="demo">Explore example roster</button></p></section>${storageBlocked ? `<section class="panel"><h2>Recover browser data</h2><p>Save the original data before resetting this browser’s armory.</p>${action("recover", "Download recovery file")}${action("reset", "Reset unreadable storage")}</section>` : ""}</div></div>`
+    `<div class="two-col"><section class="panel"><h2>From Azeroth to your armory</h2><ol class="steps"><li><strong>Install the companion addon.</strong><br>Extract the download into your Forever client’s <code>Interface/AddOns</code> folder. The folder should be named <code>ForeverArmory</code>.</li><li><strong>Capture your character.</strong><br>Log in and type <code>/farmory</code>. Copy the selected export text.</li><li><strong>Save a snapshot.</strong><br>Choose Import character, paste the text, and review before saving.</li></ol><div class="actions"><a class="button" href="./downloads/ForeverArmory.zip?v=0.3.0" download>↓ Download addon</a>${action("import", "Import character", true)}</div><div class="note">Addon 0.3.0 saves a session export automatically on normal logout, exit or /reload. Upload your character SavedVariables/ForeverArmory.lua here after logout, or use /farmory last next login. Quest turn-ins persist between sessions. Open your bank and each profession to populate caches. /farmory help explains the commands. The new collectors still need in-game verification; unavailable APIs produce warnings.</div><h3>Already using WoW Forever Builds?</h3><p>Paste its <code>/wfb</code> export to import basic character details, professions, and talent-tree totals. Gear and gold are not included in that format.</p><p><small>MythicSim exports are not supported in this version.</small></p></section><div><section class="panel"><h2>A backup for every adventure</h2><p>${account ? "Your data is saved privately in your account and syncs across signed-in devices. Backups give you an extra copy." : "This local roster is stored only in this browser. Clearing browser data removes it. Sign in to start a synced account armory."}</p><p>Download a backup after playing. Restore it to merge characters, snapshots, and goals into your ${account ? "signed-in account" : "local roster"}.</p><div class="actions">${action("backup", "↓ Download backup")}${action("restore", "Restore backup")}</div><p style="margin-top:18px"><small>Your roster is private. Other users cannot read or edit your characters.</small></p></section><section class="panel"><h2>Start without an addon</h2><p>Add a character manually, then import game data later using the same full name and play style.</p>${action("add-manual", "+ Add character")}<p style="margin-top:18px"><button class="text-button" id="demo">Explore example roster</button></p></section>${storageBlocked ? `<section class="panel"><h2>Recover browser data</h2><p>Save the original data before resetting this browser’s armory.</p>${action("recover", "Download recovery file")}${action("reset", "Reset unreadable storage")}</section>` : ""}</div></div>`
   );
 }
 function bindCommon() {
@@ -666,14 +672,18 @@ function bindGuide() {
 function importDialog() {
   modal(
     "Import a character",
-    `<p>Paste a <code>/farmory</code> or <code>/wfb</code> export. You’ll review it before saving.</p><form id="import-form"><label>Character export<textarea id="import-text" class="import-text" required spellcheck="false" placeholder="Paste your character export here…"></textarea></label><label>Or choose a character JSON file<input type="file" id="import-file" accept=".json,.txt" class="file-input"></label><p id="form-error" class="error" role="alert"></p><div class="modal-actions"><button class="primary" type="submit">Review import</button></div></form>`,
+    `<p>Paste a <code>/farmory</code> or <code>/wfb</code> export, or choose your character’s <code>SavedVariables/ForeverArmory.lua</code> after logging out. Addon 0.3.0 saves a session export automatically. You’ll review it before saving.</p><form id="import-form"><label>Character export<textarea id="import-text" class="import-text" required spellcheck="false" placeholder="Paste your character export here…"></textarea></label><label>Or choose a character JSON or saved session file<input type="file" id="import-file" accept=".json,.txt,.lua" class="file-input"></label><p id="form-error" class="error" role="alert"></p><div class="modal-actions"><button class="primary" type="submit">Review import</button></div></form>`,
     () => {
       $("#import-file").onchange = async (e) => {
         const f = e.target.files[0];
         if (f) {
-          if (f.size > 1e6)
-            return fail(new Error("Choose a file smaller than 1 MB."));
-          $("#import-text").value = await f.text();
+          try {
+            const savedFile=/\.lua$/i.test(f.name);
+            if(f.size>(savedFile?20e6:1e6))throw Error(savedFile?'Choose a SavedVariables file smaller than 20 MB.':'Choose a file smaller than 1 MB.');
+            const text=await f.text();
+            $("#import-text").value=savedFile?sessionExportText(text):text;
+            $("#form-error").textContent='';
+          } catch(err) { $("#import-text").value='';fail(err); }
         }
       };
       $("#import-form").onsubmit = async (e) => {

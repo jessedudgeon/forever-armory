@@ -142,6 +142,18 @@ export function characterExtras(o, at) {
     return row;
   });
   if(o.quests!==undefined) out.quests=list(o.quests,500).map(q=>({id:integer(q.id??q.questID,1),title:text(q.title??q.name,200),level:q.level==null?null:integer(q.level,-1,1000),completed:q.completed===true||q.isComplete===true||q.isComplete===1}));
+  if(o.completedQuestIDs!==undefined)out.completedQuestIDs=[...new Set(list(o.completedQuestIDs,20000).map(id=>integer(id,1)))].sort((a,b)=>a-b);
+  if(o.questHistory!==undefined) {
+    out.questHistory=list(o.questHistory,20000).map(e=>{
+      if(!e || e.type!=='quest-turned-in' || !text(e.eventId,500) || (e.characterGuid && o.gameIdentity?.guid && e.characterGuid!==o.gameIdentity.guid))throw Error('Invalid quest history event.');
+      return {eventId:text(e.eventId,500),type:e.type,questId:integer(e.questId,1),name:text(e.name,200),completedAt:validProgressDate(e.completedAt),
+        sessionId:text(e.sessionId,500),characterGuid:text(e.characterGuid,150),level:e.level==null?null:integer(e.level,1,100),zone:text(e.zone,100),
+        xpReward:e.xpReward==null?null:integer(e.xpReward),moneyReward:e.moneyReward==null?null:integer(e.moneyReward)};
+    });
+    if(new Set(out.questHistory.map(e=>e.eventId)).size!==out.questHistory.length)throw Error('Duplicate quest history event IDs.');
+  }
+  if(o.questHistoryStatus)out.questHistoryStatus={status:text(o.questHistoryStatus.status,30),totalEvents:integer(o.questHistoryStatus.totalEvents),exportedEvents:integer(o.questHistoryStatus.exportedEvents),truncated:o.questHistoryStatus.truncated===true,...(o.questHistoryStatus.backfilledAt?{backfilledAt:validProgressDate(o.questHistoryStatus.backfilledAt)}:{})};
+  if(o.session)out.session={id:text(o.session.id,500),startedAt:validProgressDate(o.session.startedAt),status:text(o.session.status,30),...(o.session.endedAt?{endedAt:validProgressDate(o.session.endedAt)}:{})};
   if(o.reputations!==undefined) {if(JSON.stringify(o.reputations).length>200000)throw Error('Reputation data is too large.');out.reputations=structuredClone(list(o.reputations,500));}
   if (o.inventory !== undefined)
     out.inventory = normalizeInventory(o.inventory, at);

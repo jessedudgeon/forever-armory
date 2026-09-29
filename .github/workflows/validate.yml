@@ -28,4 +28,5 @@ jobs:
           /tmp/forever-lua/bin/pip install lupa==2.8
           /tmp/forever-lua/bin/python tests/addon-smoke.py /tmp/forever-addon-test.json
           node scripts/verify-addon-export.mjs /tmp/forever-addon-test.json
+          node scripts/verify-addon-export.mjs /tmp/forever-addon-test.json.lua
       - run: python3 scripts/package.py

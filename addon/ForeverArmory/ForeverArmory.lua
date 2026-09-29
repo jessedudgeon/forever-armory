@@ -1,5 +1,5 @@
--- Forever Armory: user-initiated read-only export. Recipe cache is per character; no network.
-local VERSION="0.2.0"
+-- Forever Armory: manual and automatic session export; no network.
+local VERSION="0.3.0"
 local function safe(fn, ...)
     if type(fn) ~= "function" then return nil end
     -- Preserve older APIs' long tuples (item info, faction info, skill lines).
@@ -237,7 +237,8 @@ local function scanRecipes(quiet)
     end
     if not quiet then print("Forever Armory: scanned "..count.." known recipes. Open each profession, scan again, then /farmory export. Zero means no readable recipes; cached recipes are retained.") end
 end
-local function capture()
+local sessions
+local function capture(reason)
     local _, class = safe(UnitClass, "player")
     local race = safe(UnitRace, "player")
     local out = {
@@ -297,13 +298,21 @@ local function capture()
     for key,points in pairs(totals)do out.talentSummary.trees[#out.talentSummary.trees+1]={tree=key,points=points} end
     table.sort(out.talentSummary.trees,function(a,b)return tostring(a.tree)<tostring(b.tree)end)
     end
-    out.metadata={addonVersion=VERSION,schemaVersion=1,exportedAt=out.observedAt}
+    sessions.augment(out)
+    if reason=='session-end' then out.session.status='ended';out.session.endedAt=out.observedAt end
+    out.metadata={addonVersion=VERSION,schemaVersion=1,exportedAt=out.observedAt,exportReason=reason or 'manual'}
     return json({format="forever-armory",version=1,schemaVersion=1,addonVersion=VERSION,character=out}),out
 end
 local frame
-local function showExport()
+sessions=ForeverArmorySessions({safe=safe,plain=plain,array=array,stamp=function()return date("!%Y-%m-%dT%H:%M:%SZ")end,capture=capture})
+local function showExport(previousSession)
     if InCombatLockdown and InCombatLockdown() then print("Forever Armory: export after leaving combat.") return end
-    local ok, text, observation = pcall(capture)
+    local ok, text, observation
+    if previousSession then
+        local saved=sessions.last()
+        if not saved then print('Forever Armory: no saved session yet. Log out normally or /reload, then /farmory last.') return end
+        ok,text,observation=true,saved.json,{name=saved.name,observedAt=saved.observedAt,bank={status=saved.bank},recipes={},savedRecipeCount=saved.recipes}
+    else ok,text,observation=pcall(capture) end
     if not ok then print("Forever Armory: " .. tostring(text)) return end
     if not frame then
         frame=CreateFrame("Frame","ForeverArmoryExportFrame",UIParent,"BackdropTemplate")
@@ -319,9 +328,9 @@ local function showExport()
         box:SetScript("OnEscapePressed",function() frame:Hide() end);scroll:SetScrollChild(box);frame.box=box
         table.insert(UISpecialFrames,"ForeverArmoryExportFrame")
     end
-    frame.help:SetText(observation.name.." · Bank: "..(observation.bank and observation.bank.status or "unavailable").." · Recipes: "..#(observation.recipes or {}).." cached\n"..observation.observedAt.." · Copy to forever.dudgeon.io")
+    frame.help:SetText(observation.name.." · Bank: "..(observation.bank and observation.bank.status or "unavailable").." · Recipes: "..(observation.savedRecipeCount or #(observation.recipes or {})).." cached\n"..observation.observedAt..(previousSession and " · Last saved session" or " · Current snapshot"))
     frame:Show();frame.box:SetText(text);frame.box:SetFocus();frame.box:HighlightText()
-    print("Forever Armory: snapshot captured "..date("!%Y-%m-%d %H:%M UTC")..". Copy the selected JSON to Import & backups; review capture warnings there.")
+    print("Forever Armory: "..(previousSession and 'saved session' or 'snapshot').." captured "..observation.observedAt..". Copy the selected JSON to Import & backups; review capture warnings there.")
 end
 SLASH_FOREVERARMORY1="/farmory"
 SlashCmdList.FOREVERARMORY=function(message)
@@ -330,8 +339,10 @@ SlashCmdList.FOREVERARMORY=function(message)
         if InCombatLockdown and InCombatLockdown() then print("Forever Armory: scan recipes after combat.") return end
         local ok,err=pcall(scanRecipes);if not ok then print("Forever Armory: recipe scan unavailable: "..tostring(err)) end
     elseif command=="bank" then print(collectors.scanBank() and "Forever Armory: bank scanned." or "Forever Armory: open the bank out of combat; this client must expose a supported bank layout.")
+    elseif command=="last" then showExport(true)
     elseif command=="" or command=="export" then showExport()
-    else print("Forever Armory: /farmory or /farmory export opens a snapshot to copy. /farmory recipes scans the open profession. Scan every profession, then export. Open the bank to cache it; /farmory bank retries while open. Bank/reputation may be unavailable; review warnings. /farmory help shows this help.") end
+    else print("Forever Armory: exports automatically on normal logout, exit or /reload. /farmory last copies your last saved session; /farmory export captures now. /farmory recipes scans the open profession; /farmory bank scans the open bank. Upload your character SavedVariables/ForeverArmory.lua to Import character after closing the game. /farmory help shows this help.") end
 end
 
 collectors.install(scanRecipes)
+sessions.install()

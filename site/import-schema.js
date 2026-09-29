@@ -41,5 +41,7 @@ export function progressChanges(previous, current) {
     if(!old)changes.push(`Quest added: ${q.title}`);
     else if(q.completed&&!old.completed)changes.push(`Quest ready to turn in: ${q.title}`);
   }
+  const priorEvents=new Set((previous.questHistory||[]).map(e=>e.eventId));
+  for(const e of current.questHistory||[])if(!priorEvents.has(e.eventId))changes.push(`Quest completed: ${e.name || `Quest ${e.questId}`}`);
   return changes;
 }

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 — 2026-09-29
+
+- Save a JSON session export automatically on normal logout, exit and reload; retain the previous valid export if capture fails.
+- Add `/farmory last` to retrieve the exact last saved session without refreshing its timestamp or inventory.
+- Persist confirmed quest turn-ins per character, with stable event/session IDs, dates, readable names, level, zone and available rewards. Keep repeatable completions distinct and ignore same-tick duplicate notifications.
+- Backfill completed quest IDs where supported without inventing completion dates; never infer a turn-in from a quest disappearing.
+- Bound wire history to the latest 2000 events with an explicit truncation status while retaining the full local journal.
+- Support safe website import of the character SavedVariables file, cumulative event/ID merging and a completed-quest journal in Progress. Uploaded Lua is never executed.
+- Preserve all 0.2.0 collectors, caches and version-1 JSON imports. Add mocked session lifecycle and SavedVariables → website round-trip validation.
+
 ## 0.2.0 — 2026-09-29
 
 - Preserve per-slot inventory instead of collapsing duplicate stacks.

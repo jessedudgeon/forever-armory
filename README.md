@@ -70,7 +70,7 @@ git push -u origin main
 ## Addon installation
 Download `ForeverArmory.zip` from the site’s Import & backups page. Extract into your actual Forever game client’s `Interface/AddOns` directory, leaving `ForeverArmory/ForeverArmory.toc` directly inside it. Restart or reload the game. Enable the addon in the character-selection AddOns menu; if marked out of date, confirm the client version before enabling.
 
-Log into each character and run `/farmory` outside combat. Copy the text and paste it into Import character. Review both names, play style, game account, level, and equipment count; save the snapshot.
+Addon 0.3.0 automatically saves an export at normal logout, exit or `/reload` and persists quest turn-ins across sessions. Upload the character's `SavedVariables/ForeverArmory.lua` to Import character after logout, or use `/farmory last` at next login. `/farmory` still captures a current snapshot outside combat. Review both names, play style, game account, level, and equipment count before saving. See [session export details](docs/ADDON-0.3.md).
 
 ## Export schema
 ```json
