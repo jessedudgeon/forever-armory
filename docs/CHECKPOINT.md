@@ -4,10 +4,11 @@ The prior reference/Armory release was merged as `9ba3ca9` (PR #6); Pages deploy
 
 - Completed: optional RP profiles, private IC/OOC and other journal entries with editing, character-filtered owner feed, story display alongside history, private main/alt links, rename/delete migration, additive backup/cloud persistence.
 - Security: unchanged owner-only Firestore rules; 8 emulator tests pass, including new profile/post cross-owner denial tests. No public publishing or new database access granted.
-- Tests: 67 Node tests pass; addon packaging and syntax/diff checks pass. Cloud browser cannot reach localhost (`ERR_BLOCKED_BY_CLIENT`); live UI verification follows publishing. Prior responsive smoke is recorded below and must not be confused with new social UI coverage.
+- Tests: 68 Node tests pass; addon packaging and syntax/diff checks pass. Cloud browser cannot reach localhost (`ERR_BLOCKED_BY_CLIENT`); live UI verification follows publishing. Prior responsive smoke is recorded below and must not be confused with new social UI coverage.
 - Incomplete: cross-user profiles/posts/following, character guild invitations, shared guild hub, events/RSVPs, mutual relationships, guestbooks/reactions and media. Next highest-value task is stable public character IDs plus opt-in profile projection and tested audience authorization; see SOCIAL-ARCHITECTURE.md.
 - Export-blocked tasks: unchanged; see EXPORT-FOLLOWUP.md. Tonight's raw addon export is still needed for inventory/bank/recipe/talent/progress collector verification, not for RP authoring.
 - Files: site/social-model.js, site/social.js, site/model.js, site/cloud-model.js, site/app.js, site/index.html, site/expansion.css, tests/social.test.mjs, tests/security/firestore.test.mjs, docs/SOCIAL-ARCHITECTURE.md.
+- Production QA found stale module caching after deploy. Added scripts/build-site.py and a release graph test; Pages now uploads .pages-dist with content-versioned JS/CSS URLs. Sources stay unchanged.
 - Existing untracked `site/assets/race-banners.jpg` was not introduced by this change and is excluded from the release.
 
 ---

@@ -3,3 +3,5 @@ node_modules/
 site/downloads/*.zip
 *-debug.log
 .firebase/
+
+.pages-dist/

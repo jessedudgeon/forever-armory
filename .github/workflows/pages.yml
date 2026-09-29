@@ -24,10 +24,12 @@ jobs:
       - run: npm test
       - name: Package companion addon
         run: python3 scripts/package.py
+      - name: Stage versioned site assets
+        run: python3 scripts/build-site.py
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: .pages-dist
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
