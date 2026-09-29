@@ -1,0 +1,39 @@
+import {readFile} from 'node:fs/promises';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
+import * as F from 'firebase/firestore';
+import {communityService} from '../../site/community-service.js';
+import {demoState} from '../../site/model.js';
+test('public character → posts → follow → merged feed → reaction → unpublish with cross-user authorization',async()=>{
+ const env=await initializeTestEnvironment({projectId:'demo-forever-community',firestore:{rules:await readFile('firestore.rules','utf8')}});
+ try {
+  const a=env.authenticatedContext('alice',{firebase:{sign_in_provider:'google.com'}}).firestore(),b=env.authenticatedContext('bob',{firebase:{sign_in_provider:'google.com'}}).firestore(),guest=env.unauthenticatedContext().firestore();
+  const alice=communityService(F,a,{currentUser:{uid:'alice'}}),bob=communityService(F,b,{currentUser:{uid:'bob'}}),publicReader=communityService(F,guest,{currentUser:null});
+  await env.withSecurityRulesDisabled(c=>F.setDoc(F.doc(c.firestore(),'communityConfig/status'),{enabled:true}));
+  const c=demoState().characters[0];await alice.publish('alice-character',c,{fields:{atAGlance:'Hello',secrets:'NEVER PUBLIC'}});await bob.publish('bob-character',c,{fields:{}});
+  assert.equal((await publicReader.directory()).rows.length,2);assert.equal((await publicReader.profile('alice-character')).bio,'Hello');assert.equal((await alice.owned()).length,1);
+  await assertFails(F.getDoc(F.doc(b,'communityOwners/alice-character')));await assertFails(F.getDocs(F.collection(guest,'communityOwners')));
+  await assert.rejects(()=>bob.publish('alice-character',c,{fields:{}}));
+  await assertFails(F.updateDoc(F.doc(a,'communityCharacters/alice-character'),{secrets:'LEAK'}));
+  await assertFails(F.updateDoc(F.doc(a,'communityOwners/alice-character'),{uid:'bob'}));
+  await alice.post('alice-character','ic','The road calls.','one');await bob.post('bob-character','ooc','Hello travelers.','two');
+  await assert.rejects(()=>bob.post('alice-character','ic','Forged','evil'));
+  await alice.follow('alice-character','bob-character',true);assert.deepEqual(await alice.following('alice-character'),['bob-character']);assert.equal(await alice.isFollowing('alice-character','bob-character'),true);
+  await assertFails(F.setDoc(F.doc(a,'communityOwners/alice-character/following/alice-character'),{createdAt:F.serverTimestamp()}));
+  await assert.rejects(()=>bob.follow('alice-character','bob-character',false));
+  await assert.rejects(()=>alice.follow('alice-character','missing-character',true));
+  const feed=await publicReader.feed(['alice-character','bob-character']).next();assert.equal(feed.rows.length,2);assert.ok(feed.rows[0].sortTime>=feed.rows[1].sortTime);
+  await alice.react('bob-character','two','alice-character',true);assert.equal(await alice.reactions('bob-character','two','alice-character'),true);
+  await assert.rejects(()=>bob.react('bob-character','two','alice-character',false));
+  await alice.react('bob-character','two','alice-character',false);assert.equal(await alice.reactions('bob-character','two','alice-character'),false);
+  await assert.rejects(()=>bob.deletePost('alice-character','one'));await alice.post('alice-character','ic','Edited road story','one');
+  await alice.unpublish('alice-character');assert.equal(await publicReader.profile('alice-character'),null);await assertFails(F.getDocs(F.collection(guest,'communityCharacters/alice-character/posts')));
+  assert.equal((await publicReader.feed(['alice-character','bob-character']).next()).rows.length,1);
+  await alice.follow('alice-character','bob-character',false);assert.deepEqual(await alice.following('alice-character'),[]);
+  await assertFails(F.setDoc(F.doc(a,'communityConfig/status'),{enabled:false}));
+  await assertFails(F.setDoc(F.doc(guest,'communityOwners/guest'),{uid:'guest',characterKey:'x',createdAt:F.serverTimestamp()}));
+  await env.withSecurityRulesDisabled(c=>F.setDoc(F.doc(c.firestore(),'communityConfig/status'),{enabled:false}));
+  assert.equal(await publicReader.available(),false);await assert.rejects(()=>bob.post('bob-character','ic','Disabled','disabled'));
+ } finally {await env.cleanup();}
+});

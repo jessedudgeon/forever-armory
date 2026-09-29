@@ -33,6 +33,83 @@ service cloud.firestore {
           && request.resource.data.payload.size() <= 180000;
       }
     }
+    // Shared community is opt-in and independently provisioned. Never expose armories.
+    function communityLive() {
+      return exists(/databases/$(database)/documents/communityConfig/status)
+        && get(/databases/$(database)/documents/communityConfig/status).data.enabled == true;
+    }
+    function googleUser() {
+      return request.auth != null && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+    function characterOwner(id) {
+      return googleUser() && get(/databases/$(database)/documents/communityOwners/$(id)).data.uid == request.auth.uid;
+    }
+    function published(id) { return exists(/databases/$(database)/documents/communityCharacters/$(id)); }
+    function shortText(value, max) { return value is string && value.size() <= max; }
+    match /communityConfig/status {
+      allow get: if true;
+      allow list, write: if false;
+    }
+    match /communityOwners/{id} {
+      allow get: if googleUser() && (!exists(/databases/$(database)/documents/communityOwners/$(id)) || owner(resource.data.uid));
+      allow list: if owner(resource.data.uid);
+      allow create: if communityLive() && googleUser() && id.matches('^[a-zA-Z0-9-]{1,80}$')
+        && request.resource.data.keys().hasOnly(['uid','characterKey','createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && shortText(request.resource.data.characterKey,500)
+        && request.resource.data.createdAt == request.time;
+      allow update: if communityLive() && owner(resource.data.uid)
+        && request.resource.data.keys().hasOnly(['uid','characterKey','createdAt'])
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && shortText(request.resource.data.characterKey,500);
+      allow delete: if false;
+      match /following/{target} {
+        allow read: if characterOwner(id);
+        allow create, update: if communityLive() && characterOwner(id) && id != target
+          && published(id) && published(target)
+          && request.resource.data.keys().hasOnly(['createdAt'])
+          && request.resource.data.createdAt == request.time;
+        allow delete: if characterOwner(id);
+      }
+    }
+    match /communityCharacters/{id} {
+      allow read: if communityLive();
+      allow create, update: if communityLive() && googleUser()
+        && getAfter(/databases/$(database)/documents/communityOwners/$(id)).data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['name','class','race','faction','level','playStyle','title','bio','status','createdAt','updatedAt'])
+        && shortText(request.resource.data.name,150) && request.resource.data.name.size() > 0
+        && shortText(request.resource.data.class,30) && shortText(request.resource.data.race,80)
+        && shortText(request.resource.data.faction,30) && shortText(request.resource.data.playStyle,40)
+        && request.resource.data.level is int && request.resource.data.level >= 1 && request.resource.data.level <= 60
+        && shortText(request.resource.data.title,120) && shortText(request.resource.data.bio,500)
+        && shortText(request.resource.data.status,300)
+        && request.resource.data.updatedAt == request.time
+        && ((!exists(/databases/$(database)/documents/communityCharacters/$(id)) && request.resource.data.createdAt == request.time)
+          || (exists(/databases/$(database)/documents/communityCharacters/$(id)) && request.resource.data.createdAt == resource.data.createdAt));
+      allow delete: if characterOwner(id);
+      match /posts/{post} {
+        allow read: if communityLive() && published(id);
+        allow create, update: if communityLive() && characterOwner(id) && published(id)
+          && post.matches('^[a-zA-Z0-9-]{1,80}$')
+          && request.resource.data.keys().hasOnly(['type','body','createdAt','updatedAt'])
+          && request.resource.data.type in ['ic','ooc','adventure','journal','profession','progression']
+          && shortText(request.resource.data.body,6000) && request.resource.data.body.size() > 0
+          && request.resource.data.updatedAt == request.time
+          && ((!exists(/databases/$(database)/documents/communityCharacters/$(id)/posts/$(post)) && request.resource.data.createdAt == request.time)
+            || (exists(/databases/$(database)/documents/communityCharacters/$(id)/posts/$(post)) && request.resource.data.createdAt == resource.data.createdAt));
+        allow delete: if characterOwner(id);
+        match /reactions/{actor} {
+          allow read: if communityLive() && published(id) && published(actor)
+            && exists(/databases/$(database)/documents/communityCharacters/$(id)/posts/$(post));
+          allow create, update: if communityLive() && characterOwner(actor) && published(actor) && published(id)
+            && exists(/databases/$(database)/documents/communityCharacters/$(id)/posts/$(post))
+            && request.resource.data.keys().hasOnly(['kind','createdAt'])
+            && request.resource.data.kind == 'appreciate' && request.resource.data.createdAt == request.time;
+          allow delete: if characterOwner(actor);
+        }
+      }
+    }
     // Everything outside a user's own armory remains private by default.
     match /{document=**} { allow read, write: if false; }
   }

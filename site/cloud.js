@@ -1,3 +1,4 @@
+import {communityService} from './community-service.js';
 import {firebaseConfig} from './firebase-config.js';
 import {recordsFor,stateFromRecords,diffRecords} from './cloud-model.js';
 import {emptyState} from './model.js';
@@ -47,6 +48,7 @@ export async function connectCloud(callback){
   },e=>{if(epoch===session){loaded=false;emit('error',{error:friendlyError(e)});}});
  },e=>emit('error',{error:friendlyError(e)}));
  return {
+  community:communityService(F,db,auth),
   signIn:()=>{const provider=new A.GoogleAuthProvider();provider.setCustomParameters({prompt:'select_account'});return A.signInWithPopup(auth,provider);},
   async signOut(){if(saving)throw new Error('Wait for your current save to finish before signing out.');await A.signOut(auth);},
   refresh,

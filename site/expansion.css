@@ -532,3 +532,8 @@ td {
 #event-form textarea, #rsvp-form textarea { width: 100%; box-sizing: border-box; }
 .event-attendees { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); margin-bottom: 20px; }
 .event-attendees article { padding: 12px; border: 1px solid var(--line); overflow-wrap: anywhere; }
+
+#community-root label { display: block; margin: 14px 0; }
+#community-root textarea { width: 100%; box-sizing: border-box; }
+#community-root dd { margin: 4px 0 12px; overflow-wrap: anywhere; }
+#community-root .actions { flex-wrap: wrap; }

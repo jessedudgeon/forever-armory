@@ -17,10 +17,8 @@ Profiles and posts currently support **private only**. The UI states this plainl
 
 Limits: one profile per owned character, 2,000 posts per Armory, 6,000 characters per post, individual profile-field bounds; existing 450-record/7 MB atomic write limits still apply to bulk restore. Feed pagination is future work; these collections are an owner authoring workspace, not a global feed store.
 
-## Next shared-community milestone (not enabled)
+## Shared-community continuation (implemented, activation pending)
 
-Before publishing shared profiles, introduce immutable public character IDs with verified owner claims, independent of names/play style. Build an explicit opt-in projection with a narrow field allowlist, separate audience documents, owner-only secret fields and authorization tests for public/authenticated/guild/relationship audiences. Do not broaden the private Armory rules.
+An independent opt-in shared layer now provides stable public IDs, allowlisted profiles, directory, public posts, following, paginated feeds and reactions. See [COMMUNITY.md](COMMUNITY.md) for the exact schema, privacy contract, tests, activation gates and remaining limits. Private profiles/posts described above remain private; only explicit publication creates a separate public projection.
 
-Shared posts should be individual documents keyed by stable activity IDs and verified author ownership; source/event IDs should deduplicate future addon-generated events. Shared guild membership and invitations must target character IDs with validated officer authority, recipient acceptance, and atomic membership transitions. An officer string in today's private guild plan is not a role grant. Main/alt relationships remain private unless separately opted in. Event RSVPs likewise require author ownership of the selected character. Public feeds need indexed, bounded queries and moderation before launch.
-
-Not implemented: public profiles, remote character discovery, following, shared posts, invites, shared guild hubs, events/RSVPs, mutual RP relationships, guestbook, reactions, galleries. These require a deployed/tested shared authorization layer, not the pending addon export. Export-specific gaps remain in EXPORT-FOLLOWUP.md.
+Shared guild invitations/membership, shared events/RSVPs, mutual RP relationships, guestbooks and galleries remain unimplemented. Private event planning is complete; see EVENTS.md. These shared features require the new authorization layer to be deployed, not the pending raw addon export.

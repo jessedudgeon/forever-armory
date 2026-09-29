@@ -32,11 +32,12 @@ export function normalizeSocial(input = {}, characters = []) {
   const owned = id => { if (!ids.has(id)) throw Error('Social record belongs to an unavailable character.'); return id; };
   const cleanProfiles = profiles.map(p => {
     if (p.visibility !== 'private') throw Error('Only private profiles are supported in this release.');
+    if(p.publicId && !/^[a-zA-Z0-9-]{1,80}$/.test(p.publicId)) throw Error('Invalid public identity.');
     const fields = {};
     for (const [key, [,max]] of Object.entries(PROFILE_FIELDS)) fields[key] = text(p.fields?.[key],max);
     const mainCharacterId = p.mainCharacterId ? owned(p.mainCharacterId) : '';
     if (mainCharacterId === p.characterId) throw Error('A character cannot be its own alt.');
-    return {characterId:owned(p.characterId), visibility:'private', fields, mainCharacterId, updatedAt:date(p.updatedAt)};
+    return {characterId:owned(p.characterId), visibility:'private', publicId:p.publicId||'', fields, mainCharacterId, updatedAt:date(p.updatedAt)};
   });
   if (new Set(cleanProfiles.map(p=>p.characterId)).size !== cleanProfiles.length) throw Error('Duplicate RP profile.');
   for (const p of cleanProfiles) {
@@ -54,8 +55,9 @@ export function normalizeSocial(input = {}, characters = []) {
 export function saveProfile(state, characterId, fields, mainCharacterId='') {
   const next=structuredClone(state);
   next.social ??= {profiles:[],posts:[]};
+  const publicId=next.social.profiles.find(p=>p.characterId===characterId)?.publicId||'';
   next.social.profiles=next.social.profiles.filter(p=>p.characterId!==characterId);
-  next.social.profiles.push({characterId,fields,mainCharacterId,visibility:'private',updatedAt:new Date().toISOString()});
+  next.social.profiles.push({characterId,publicId,fields,mainCharacterId,visibility:'private',updatedAt:new Date().toISOString()});
   next.social=normalizeSocial(next.social,next.characters);
   return next;
 }

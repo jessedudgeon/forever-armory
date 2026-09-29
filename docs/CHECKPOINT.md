@@ -1,3 +1,28 @@
+# Latest checkpoint — staged character community, September 29
+
+Continued from `ca2d99f`; existing private events, social authoring and reference/Armory systems preserved.
+
+- Completed: opt-in public profile projection/preview, stable private ownership claims, directory, independent public post creation/editing, following/unfollowing as a character, chronological paginated feeds, appreciation reactions and unpublishing. Website integration is ready for Pages deployment; shared functionality remains disabled in production.
+- Fixed: asynchronous feed retries now restore all source cursors after failures, without losing posts; actor switching is disabled during loading/writes; public IDs survive private edits/renames; private character removal requires unpublishing.
+- Security: separate narrowly validated shared collections, immutable Google owner claims, no public UID/account/alt/secrets/inventory projection, forged author/reaction/follow rejection, unpublish read denial, admin-only availability switch. Existing private rules unchanged. Rules/indexes committed, **not deployed**: Firebase authentication unavailable.
+- Tests: 82 application/model/release tests and 10 Firestore emulator tests passed; actual shared service tested with two users and anonymous readers. Addon packaging, versioned Pages build, syntax and diff checks passed. Enabled community browser flows and production OAuth remain pending activation/staging access.
+- Still incomplete: character guild invitations/shared roles, guild feeds/shared scheduling, relationships/guestbook/gallery, moderation/reporting/blocking, complete following-list pagination and shared-data export/erasure. Current feed includes first 20 follows, explicitly labeled.
+- Export blocked: inventory/bank/recipes/talent/progress collector verification remains in EXPORT-FOLLOWUP.md; unrelated website work continued.
+- Next highest priority: deploy/verify shared rules in staging, complete enabled UI acceptance and launch controls, then character-specific guild invitations with recipient acceptance and authoritative membership.
+- Important files: site/community-model.js, community-service.js, community.js; site/app.js, cloud.js, social-model.js, social.js, index.html, expansion.css; firestore.rules/indexes.json; tests/community.test.mjs, tests/security/community.test.mjs; docs/COMMUNITY.md, SOCIAL-ARCHITECTURE.md and this checkpoint.
+- Existing untracked site/assets/race-banners.jpg preserved and excluded. No character backup or generated files added.
+
+| Area | Current status |
+|---|---|
+| Accounts/characters, private persistence, Armory | Working core; production Google acceptance remains |
+| Inventory/items/talents/professions/PvE Journal | Working foundations; verified data and collector coverage partial |
+| Private RP stories and event planning | Complete core; shared counterparts separate |
+| Public profiles/posts/following/reactions | Implemented and emulator-tested; activation and browser acceptance blocked |
+| Shared guild membership/feed/events, RP relationships | Not started |
+| Raw addon verification | Waiting on raw export |
+
+---
+
 # Latest checkpoint — character event planning, September 29
 
 Continued from live commit `513ad0c`; preserved the private RP/story release and all prior reference/Armory work.

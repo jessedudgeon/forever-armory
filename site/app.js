@@ -1,3 +1,4 @@
+import { communityView, bindCommunity } from "./community.js";
 import { eventsView, bindEvents, eventSection } from "./events.js";
 import { removeCharacterEvents } from "./event-model.js";
 import { socialProfile, socialFeed, bindSocial, activityCards } from "./social.js";
@@ -183,6 +184,7 @@ function render() {
   const [rawRoute, id, encounterId] = route(),
     r = rawRoute === "pve" ? "dungeons" : rawRoute,
     views = [
+      "community",
       "events",
       "activity",
       "home",
@@ -201,6 +203,7 @@ function render() {
     ],
     view = views.includes(r) ? r : "not-found";
   const publicView = [
+    "community",
     "home",
     "items",
     "dungeons",
@@ -223,6 +226,7 @@ function render() {
   });
   $("#section-label").textContent =
     {
+      community: "Character community",
       events: "Events & gatherings",
       activity: "Character activity",
       home: "Home",
@@ -259,6 +263,7 @@ function render() {
     );
   else
     content = {
+      community: communityView,
       events: () => eventsView(current(), id),
       activity: () => socialFeed(current()),
       home: () => homeView(visible),
@@ -288,6 +293,7 @@ function render() {
     render();
   });
   bindCommon();
+  if (view === "community") void bindCommunity($("#community-root"), cloudClient?.community, visible, demo ? null : account, id, commit, render, toast);
   if (view === "events") bindEvents($("#main"), current(), id, commit, render);
   if (view === "activity") bindSocial($("#main"), current(), "", commit, render);
   if (view === "roster") bindRoster();
@@ -570,6 +576,9 @@ function bindCharacter(id) {
         $("#save-first").onclick = backup;
         $("#confirm-delete").onclick = async () => {
           try {
+            const publicId=current().social?.profiles.find(p=>p.characterId===c.id)?.publicId;
+            if(publicId && (!cloudClient?.community || await cloudClient.community.profile(publicId)))
+              throw Error("Unpublish this character in Community before removing its private record.");
             const n = structuredClone(current());
             removeSocialCharacter(n, c.id);
             removeCharacterEvents(n, c.id);
