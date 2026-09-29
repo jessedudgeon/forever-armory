@@ -1,4 +1,4 @@
-import { referenceItems } from "./pve-data.js";
+import { referenceItems, itemSources } from "./pve-data.js";
 import { inventoryFor } from "./character-data.js";
 import {
   normalizeIcon,
@@ -122,6 +122,27 @@ async function loadCatalog() {
   return catalogPromise;
 }
 
+// Journal and item dialogs share this catalog; imported inventory never becomes a global definition.
+export async function referenceItemsById(ids) {
+  const wanted = new Set(ids.map(Number)),
+    local = new Map(referenceItems().map((i) => [i.id, i]));
+  try {
+    for (const raw of await loadCatalog())
+      if (wanted.has(Number(raw.itemId ?? raw.id))) {
+        const item = compactItem(raw);
+        if (item) local.set(item.id, { ...local.get(item.id), ...item });
+      }
+  } catch {
+    /* Offline journal keeps canonical names, IDs and source links. */
+  }
+  return local;
+}
+function journalSourcesHTML(id) {
+  const sources = itemSources(id);
+  return sources.length
+    ? `<section class="item-source"><h3>Journal sources</h3>${sources.map((s) => `<p><a href="#pve/${s.instanceId}/${s.encounterId}" data-journal-source>${esc(s.encounter)}</a> · <a href="#pve/${s.instanceId}" data-journal-source>${esc(s.instance)}</a> <small>(Classic reference)</small></p>`).join("")}</section>`
+    : "";
+}
 function localMatches(query) {
   const q = query.trim().toLowerCase(),
     items = Object.values(customItems())
@@ -264,7 +285,7 @@ export async function openItem(item) {
       .filter(Boolean)
       .join(" · ");
   dialog.querySelector("#item-detail-content").innerHTML =
-    `<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details ? `<p>${esc(details)}</p>` : ""}${level ? `<small>${esc(level)}</small>` : ""}</div><button class="item-modal-close" aria-label="Close">×</button></div><p class="reference-label">Classic reference stats; Forever values may differ. Imported item names are preserved.</p>${tooltipHTML(item)}${source ? `<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>` : ""}<div class="item-modal-actions"><a href="#items/${item.id}" data-item-permalink>Item permalink</a>${wowheadLink(item, "Classic reference ↗")}<button class="primary" type="button" data-item-goal>Add as goal</button></div>`;
+    `<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details ? `<p>${esc(details)}</p>` : ""}${level ? `<small>${esc(level)}</small>` : ""}</div><button class="item-modal-close" aria-label="Close">×</button></div><p class="reference-label">Classic reference stats; Forever values may differ. Imported item names are preserved.</p>${tooltipHTML(item)}${journalSourcesHTML(item.id)}${source ? `<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>` : ""}<div class="item-modal-actions"><a href="#items/${item.id}" data-item-permalink>Item permalink</a>${wowheadLink(item, "Classic reference ↗")}<button class="primary" type="button" data-item-goal>Add as goal</button></div>`;
   dialog.querySelector("[data-item-permalink]").onclick = () => dialog.close();
   dialog.querySelector(".item-modal-close").onclick = () => dialog.close();
   dialog.querySelector("[data-item-goal]").onclick = () => {
@@ -597,6 +618,10 @@ function enhanceDynamic() {
   openPendingGoal();
 }
 export function initializeItemUI() {
+  document.addEventListener("click", (event) => {
+    if (event.target.closest("[data-journal-source]"))
+      document.querySelector("#item-detail-modal")?.close();
+  });
   document.addEventListener("click", (e) => {
     const button = e.target.closest("[data-item-detail]");
     if (button)

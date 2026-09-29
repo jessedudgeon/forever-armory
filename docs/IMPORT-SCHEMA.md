@@ -78,3 +78,7 @@ Exports are limited to 1 MB; inventories to 2,000 observations, recipes to 2,000
 Encounter progress can include a stable `bosses[].id` matching `site/data/pve.js`, for example `progress: [{id: "onyxias-lair", type: "raid", name: "Onyxia’s Lair", bosses: [{id: "onyxia", name: "Onyxia", completed: true}]}]`. Old name-only bosses remain accepted. Both dungeons and raids use this structure. Whole-instance completion is explicit; a partial catalog cannot infer a full clear.
 
 All text is escaped at display boundaries. Arrays, IDs, timestamps, slot uniqueness, numbers, and account relationships are validated before saving. Server rules enforce ownership, not trust in addon claims. These private observations must never be treated as authoritative public rankings or verified logs.
+
+### Encounter history and access progress
+
+Each instance progress record may now include `quests: [{id, name, completed}]` and `attunements: [{id, name, status, completed}]`. Each boss may include `kills` (nonnegative integer) and `lastKilledAt` (parseable timestamp normalized to UTC ISO). Fields are optional for backward compatibility. Manual checklist changes preserve imported kill totals and timestamps; they do not fabricate kill events. The Armory displays these fields from the same normalized snapshots used by imports and cloud storage.

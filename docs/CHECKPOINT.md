@@ -2,18 +2,16 @@
 
 Branch: `codex/armory-reference-expansion` · PR: https://github.com/jessedudgeon/forever-armory/pull/6
 
-This work extends the prior expansion commit `b78a7a1`; do not restart the audit. The PR is not merged or deployed. Firebase production rules/configuration were not changed; the rule comment documents the existing private envelope policy.
+This work extends the prior Journal/storage commit `5563543`; do not restart the audit. The PR is not merged or deployed. Firebase production rules/configuration were not changed; the rule comment documents the existing private envelope policy.
 
-## Completed this resumed session
+## Completed this resumed session (continuation from `5563543`)
 
-- Recovered and compared the existing branch, PR, previous QA notes, and passing CI checks.
-- Removed the 180 KB single-snapshot bottleneck: manifest + Unicode-safe private fragments, 3 MB normalized snapshot cap, atomic revision writes, fail-closed integrity checks, and full fragment cleanup.
-- Fixed cloud save/delete diffs to use actual stored document IDs, preventing stale hashes after schema normalization.
-- Unified **Dungeon/Raid → Encounter → Loot** in one catalog/service/UI. Added stable encounter permalinks, shared item references, source links, raid rosters, selected sourced raid loot, and private per-character boss checklists.
-- Preserved old dungeon URLs, name-only progress, manual instance statuses, existing notes and other milestones. Empty tables explicitly mean missing data, not no loot.
-- Connected global boss search directly to encounter pages and Armory milestones to the journal.
-- Consolidated duplicate CI workflows; existing validation also checks addon packaging.
-- Passed 58 Node tests, 7 Firestore security tests, local browser smoke across 23 flows and four widths, and browser Auth/Firestore tests including 2,000-slot import/reload and cross-user isolation. See `QA.md`.
+- Confirmed clean repository and successful CI for the previous commit; retained all prior account/Armory/inventory work.
+- Expanded the shared dungeon/raid content contract with access, preparation, group size, lockout, wings, strategy/role notes, quest links, and licensed local artwork hooks. Unknown game facts remain explicitly unknown.
+- Moved item definitions into `data/items.js`; added Journal loot filtering through the existing item catalog service, character class selection, and inverse item → boss → instance navigation.
+- Added optional imported kill counts/timestamps, quest completion and attunement progress; displayed them on the Armory and preserved them through manual boss edits/cloud round trips.
+- Added content-contract documentation and focused filtering/history tests. No Firebase rule or authentication changes.
+- Passed 60 Node tests and 25 Chromium browser flows at 390/768/1280/1440, including loot search, inverse source links, and responsive instance/encounter pages. No page errors, failed requests, broken images or overflow in these checks. Packaging and diff checks passed. The previous commit’s GitHub model/security CI was also confirmed successful.
 
 ## Master priority status
 
@@ -26,7 +24,7 @@ This work extends the prior expansion commit `b78a7a1`; do not restart the audit
 | Complete inventory | Model/UI/cloud foundation complete; collector coverage and large-history pagination remain |
 | Item database/tooltips | Shared foundation complete; verified Forever stats/effects/sources and full catalog remain partial |
 | Talents | Functional three-tree calculator/build saving; inferred beta ranks/icons need game verification |
-| PvE Journal | Shared dungeon/raid architecture complete; loot/mechanics/quests and additional encounter coverage partial |
+| PvE Journal | Shared architecture, metadata hooks, loot filters and cross-links implemented; verified loot/mechanics/quest content remains partial |
 | Professions | Character crafts/reagents and import model complete; complete recipe catalog/unknown comparisons partial |
 | Guilds | Private planning and owned-character roster complete; cross-user membership/invites/public recruitment not started |
 | Legacy accounts | Multi-account model/status/perk plans complete; future verified perks/status need data |
@@ -45,12 +43,12 @@ This work extends the prior expansion commit `b78a7a1`; do not restart the audit
 4. Validate real Google OAuth on the deployed origin and verify production Firestore rules. Emulators prove application behavior, not live provider configuration. No production database writes were made.
 5. No verified full Forever catalog, combat logs, complete recipe database, or automatic bank/recipe/encounter addon collectors yet.
 
-## Relevant changed files
+## Relevant changed files this continuation
 
-- Storage: `site/cloud-model.js`, `site/cloud.js`, `site/character-data.js`, `firestore.rules` (comment only).
-- Journal: `site/data/pve.js`, `site/pve-data.js`, `site/pve.js`, compatibility `site/dungeons.js`.
-- Integration: `site/app.js`, `site/features.js`, `site/items.js`, `site/index.html`, `site/expansion.css`.
-- Tests: `tests/cloud-model.test.mjs`, `tests/pve.test.mjs`, `tests/security/firestore.test.mjs`, `tests/browser/{smoke,cloud}.cjs`.
-- Operations/docs: `.github/workflows/validate.yml`; removed duplicate `checks.yml`; `ARCHITECTURE.md`, `IMPORT-SCHEMA.md`, `QA.md`, this checkpoint.
+- `site/data/items.js`, `site/data/pve.js`, `site/pve-data.js`, `site/pve.js`, new `site/pve-loot.js`.
+- `site/items.js`, `site/item-core.js`, `site/character-data.js`, `site/features.js`, `site/expansion.css`.
+- `tests/pve.test.mjs`, `tests/browser/smoke.cjs`; `docs/PVE-CONTENT.md`, `IMPORT-SCHEMA.md`, `ARCHITECTURE.md`, `QA.md`, this checkpoint.
 
-Reproduce with `npm test`, `npm run test:security`, `python3 scripts/package.py`; browser setup/commands are in `QA.md`. This remains a static GitHub Pages site with hash routes and no required bundler.
+Class filtering uses explicit restrictions only; unknown restrictions remain visible. It does not infer trained weapon/armor proficiency or calculate upgrades. Metadata hooks are not a populated strategy/quest database. Manual editing of quest/attunement details, tier-set relationships, public/community features, and full addon collectors remain incomplete.
+
+Reproduce with `npm test`, `npm run test:security`, `python3 scripts/package.py`; browser setup is in `QA.md`. The site remains static GitHub Pages with hash routes.

@@ -136,7 +136,7 @@ export function professionsView(state) {
   );
 }
 export function progressSection(s, editable = false) {
-  return `<section class="panel"><div class="section-row"><h2>Dungeons, raids & milestones</h2>${editable ? '<button id="edit-progress">Record progress</button>' : ""}</div>${(s.progress || []).length ? s.progress.map((p) => `<article class="progress-entry"><strong>${findInstance(p.id) ? `<a href="#pve/${encodeURIComponent(p.id)}">${esc(p.name || p.id)}</a>` : esc(p.name || p.id)}</strong><span class="chip">${esc(p.type)} · ${p.completed ? "Complete" : esc(p.status) || "In progress"}</span>${p.bosses.map((b) => `<small class="block">${b.completed ? "✓" : "○"} ${esc(b.name)}</small>`).join("")}${p.notes ? `<p>${esc(p.notes)}</p>` : ""}</article>`).join("") : "<p>No encounter progress captured yet. Use the journal to record a dungeon or raid objective.</p>"}</section>`;
+  return `<section class="panel"><div class="section-row"><h2>Dungeons, raids & milestones</h2>${editable ? '<button id="edit-progress">Record progress</button>' : ""}</div>${(s.progress || []).length ? s.progress.map((p) => `<article class="progress-entry"><strong>${findInstance(p.id) ? `<a href="#pve/${encodeURIComponent(p.id)}">${esc(p.name || p.id)}</a>` : esc(p.name || p.id)}</strong><span class="chip">${esc(p.type)} · ${p.completed ? "Complete" : esc(p.status) || "In progress"}</span>${p.bosses.map((b) => `<small class="block">${b.completed ? "✓" : "○"} ${esc(b.name)}${b.kills !== undefined ? ` · ${b.kills} kills` : ""}${b.lastKilledAt ? ` · Last kill ${esc(b.lastKilledAt.slice(0, 10))}` : ""}</small>`).join("")}${(p.quests || []).map((q) => `<small class="block">${q.completed ? "✓" : "○"} Quest: ${esc(q.name || q.id)}</small>`).join("")}${(p.attunements || []).map((a) => `<small class="block">${a.completed ? "✓" : "○"} Attunement: ${esc(a.name || a.id)} · ${esc(a.status)}</small>`).join("")}${p.notes ? `<p>${esc(p.notes)}</p>` : ""}</article>`).join("") : "<p>No encounter progress captured yet. Use the journal to record a dungeon or raid objective.</p>"}</section>`;
 }
 export function armorySummary(c, state) {
   const s = latest(c),
@@ -212,6 +212,12 @@ export async function bindSearch(root, state) {
         meta: d.zone,
         href: "#pve/" + d.id,
       },
+      ...d.quests.map((q) => ({
+        type: "Quest",
+        name: typeof q === "string" ? q : q.name,
+        meta: d.name,
+        href: "#pve/" + d.id,
+      })),
       ...d.encounters.map(({ id, name }) => ({
         type: "Boss",
         name,

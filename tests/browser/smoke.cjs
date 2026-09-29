@@ -235,15 +235,24 @@ const assert = require("node:assert/strict");
     await page.locator("#dungeon-filter").selectOption("raids");
     assert.equal(await page.locator(".dungeon-card").count(), 3);
     await page.goto("http://localhost:4173/#dungeons/shadowfang-keep");
-    await page.locator('[data-item-detail="6220"]').click();
+    await page.locator('[data-item-detail="6220"]').first().click();
     await page.locator("#item-detail-content h2").waitFor();
     assert.match(
       await page.locator("#item-detail-content").innerText(),
       /Meteor Shard/,
     );
     await page.locator(".item-modal-close").click();
+    await page.goto("http://localhost:4173/#pve/onyxias-lair");
+    await page.locator("#loot-rows tr").first().waitFor();
+    assert.equal(await page.locator("#loot-rows tr").count(), 2);
+    await page.locator('[data-loot-filter="query"]').fill("Deathbringer");
+    assert.equal(await page.locator("#loot-rows tr").count(), 1);
+    await page.locator('#loot-rows [data-item-detail="17068"]').click();
+    await page.locator("[data-journal-source]").first().click();
+    await page.locator("#item-detail-modal").waitFor({ state: "hidden" });
+    await page.waitForFunction(()=>document.querySelector("h1")?.textContent==="Onyxia");
     await page.goto("http://localhost:4173/#pve/onyxias-lair/onyxia");
-    assert.equal(await page.locator("h1").innerText(), "Onyxia");
+    await page.waitForFunction(()=>document.querySelector("h1")?.textContent==="Onyxia");
     await page.locator('[data-encounter="onyxia"]').check();
     await page.reload();
     await page.locator('[data-encounter="onyxia"]').waitFor();
@@ -293,6 +302,7 @@ const assert = require("node:assert/strict");
         "items",
         "dungeons",
         "pve/blackwing-lair/nefarian",
+        "pve/onyxias-lair",
         charHash.slice(1),
       ]) {
         await page.goto("http://localhost:4173/#" + route);
@@ -329,7 +339,7 @@ const assert = require("node:assert/strict");
       JSON.stringify(
         {
           result: "PASS",
-          flows: 23,
+          flows: 25,
           viewports: [390, 768, 1280, 1440],
           pageErrors: errors,
           failedRequests: failed,

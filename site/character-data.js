@@ -81,6 +81,11 @@ export function recipe(raw) {
     source: text(raw.source, 400),
   };
 }
+function validProgressDate(value) {
+  if (typeof value !== "string" || !Number.isFinite(Date.parse(value)))
+    throw Error("Invalid boss kill timestamp.");
+  return new Date(value).toISOString();
+}
 export function progression(raw) {
   return list(raw, 500).map((x) => ({
     id: text(String(x.id ?? x.name ?? ""), 150),
@@ -96,7 +101,30 @@ export function progression(raw) {
       ...(b.id ? { id: text(b.id, 150) } : {}),
       name: text(b.name, 150),
       completed: b.completed === true,
+      ...(b.kills !== undefined ? { kills: integer(b.kills, 0, 1000000) } : {}),
+      ...(b.lastKilledAt
+        ? { lastKilledAt: validProgressDate(b.lastKilledAt) }
+        : {}),
     })),
+    ...(x.quests !== undefined
+      ? {
+          quests: list(x.quests, 200).map((q) => ({
+            id: text(String(q.id ?? ""), 150),
+            name: text(q.name, 150),
+            completed: q.completed === true,
+          })),
+        }
+      : {}),
+    ...(x.attunements !== undefined
+      ? {
+          attunements: list(x.attunements, 100).map((a) => ({
+            id: text(String(a.id ?? ""), 150),
+            name: text(a.name, 150),
+            status: text(a.status, 100),
+            completed: a.completed === true,
+          })),
+        }
+      : {}),
     notes: text(x.notes, 1000),
   }));
 }

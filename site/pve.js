@@ -5,6 +5,7 @@ import {
   searchInstances,
   lootFor,
 } from "./pve-data.js";
+import { lootPanel, bindLoot } from "./pve-loot.js";
 import { itemButton } from "./items.js";
 const esc = (v) =>
   String(v ?? "").replace(
@@ -25,8 +26,27 @@ function cards() {
   const matches = searchInstances(query, filter);
   return `<p class="muted">${matches.length} of ${instances.length} instances</p><div class="dungeon-grid">${matches.map((d) => `<a class="dungeon-card" href="#pve/${d.id}"><small>${d.kind.toUpperCase()} · ${d.new ? "FOREVER LISTING" : "CLASSIC REFERENCE"}</small><strong>${esc(d.name)}</strong><span>${esc(d.zone)} · Level ${esc(d.level)}</span><em>${d.encounters.length} listed encounters · Partial coverage</em></a>`).join("") || "<p>No instances match this search.</p>"}</div>`;
 }
+function notes(title, values) {
+  return values?.length
+    ? `<h3>${esc(title)}</h3><ul>${values.map((v) => `<li>${esc(typeof v === "string" ? v : v.name || v.description)}</li>`).join("")}</ul>`
+    : "";
+}
+function questsHTML(d, ids) {
+  const quests = ids ? d.quests.filter((q) => ids.includes(q.id)) : d.quests;
+  return quests.length
+    ? `<section class="panel"><h2>Related quests</h2>${quests.map((q) => (typeof q === "string" ? `<p>${esc(q)}</p>` : `<article><h3>${esc(q.name)}</h3><p>${esc(q.description || "")}</p><p>${esc(q.requirements || "")}</p>${q.rewardItemIds?.map((id) => itemButton({ id })).join(" ") || ""}</article>`)).join("")}</section>`
+    : "";
+}
+function artworkHTML(art) {
+  return art && typeof art.src === "string" && /^\.\/assets\//.test(art.src)
+    ? `<figure><img class="pve-art" src="${esc(art.src)}" alt="${esc(art.alt || "")}" loading="lazy">${art.credit ? `<figcaption>${esc(art.credit)}</figcaption>` : ""}</figure>`
+    : "";
+}
+function instanceDetails(d) {
+  return `<section class="panel"><h2>Access & preparation</h2>${artworkHTML(d.map)}<p>Minimum level: ${esc(d.minimumLevel ?? "Not documented")} · Group size: ${esc(d.playerSize ?? "Not documented")}</p><p>Lockout / reset: ${esc(d.lockout || "Not documented")}</p>${notes("Keys & access", d.accessRequirements)}${notes("Attunement", d.attunement)}${notes("Preparation", d.preparation)}${notes("Instance mechanics", d.mechanics)}${notes("Wings / sections", d.wings)}</section>`;
+}
 function encounterCard(d, e, detail = false) {
-  return `<section class="panel dungeon-boss"><div class="section-row"><h2>${detail ? esc(e.name) : `<a href="#pve/${d.id}/${e.id}">${esc(e.name)}</a>`}</h2><span class="muted">${e.loot.length} reference items</span></div>${e.description ? `<p>${esc(e.description)}</p>` : ""}${detail ? `<h3>Mechanics</h3>${e.mechanics.length ? `<ul>${e.mechanics.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : '<p class="muted">Verified Forever mechanics have not been documented yet.</p>'}<h3>Loot</h3>` : ""}${
+  return `<section class="panel dungeon-boss"><div class="section-row"><h2>${detail ? esc(e.name) : `<a href="#pve/${d.id}/${e.id}">${esc(e.name)}</a>`}</h2><span class="muted">${e.loot.length} reference items</span></div>${artworkHTML(e.artwork)}${e.description ? `<p>${esc(e.description)}</p>` : ""}${detail ? `${e.strategy ? `<h3>Strategy</h3><p>${esc(e.strategy)}</p>` : ""}${notes("Abilities", e.abilities)}${notes("Tank notes", e.tankNotes)}${notes("Healer notes", e.healerNotes)}${notes("DPS notes", e.dpsNotes)}${notes("Prerequisites", e.prerequisites)}` : ""}${detail ? `<h3>Mechanics</h3>${e.mechanics.length ? `<ul>${e.mechanics.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : '<p class="muted">Verified Forever mechanics have not been documented yet.</p>'}<h3>Loot</h3>` : ""}${
     e.loot.length
       ? `<ul class="dungeon-loot">${lootFor(e)
           .map(
@@ -79,9 +99,10 @@ export function pveView(id, encounterId, state) {
       heading("Encounter not found", d.name) +
       `<a href="#pve/${d.id}">Back to instance</a>`
     );
-  return `<a href="#pve">← All instances</a>${heading(e?.name || d.name, `${d.kind === "raid" ? "Raid" : "Dungeon"} · ${d.zone} · Level ${d.level}`)}${e ? `<p><a href="#pve/${d.id}">${esc(d.name)} · All encounters</a></p>` : ""}${warning}${d.description ? `<p>${esc(d.description)}</p>` : ""}${!e ? `<section class="panel"><h2>Visit & prepare</h2><p><strong>Location:</strong> ${esc(d.zone)}</p><p><strong>Entrance:</strong> ${esc(d.entrance) || "Exact entrance not documented."}</p><p><strong>Quests:</strong> ${d.quests.length ? d.quests.map(esc).join(", ") : "Quest coverage pending."}</p><p>${d.encounters.length} encounters listed · Coverage: ${esc(d.coverage)}</p></section>` : ""}${d.encounters.length ? `<nav class="encounter-nav" aria-label="Encounters">${d.encounters.map((b) => `<a href="#pve/${d.id}/${b.id}" ${b.id === encounterId ? 'aria-current="page"' : ""}>${esc(b.name)}</a>`).join("")}</nav><div class="dungeon-bosses">${(e ? [e] : d.encounters).map((b) => encounterCard(d, b, !!e)).join("")}</div>${tracker(d, state)}` : '<section class="panel"><p>Encounters and loot await verified reports.</p></section>'}${d.source ? `<p>Reference: <a href="${esc(d.source)}" target="_blank" rel="noopener">${d.new ? "Listing" : "Classic guide"} ↗</a></p>` : ""}`;
+  return `<a href="#pve">← All instances</a>${heading(e?.name || d.name, `${d.kind === "raid" ? "Raid" : "Dungeon"} · ${d.zone} · Level ${d.level}`)}${e ? `<p><a href="#pve/${d.id}">${esc(d.name)} · All encounters</a></p>` : ""}${warning}${d.description ? `<p>${esc(d.description)}</p>` : ""}${!e ? `<section class="panel"><h2>Visit & prepare</h2><p><strong>Location:</strong> ${esc(d.zone)}</p><p><strong>Entrance:</strong> ${esc(d.entrance) || "Exact entrance not documented."}</p><p><strong>Quests:</strong> ${d.quests.length ? d.quests.map((q) => esc(typeof q === "string" ? q : q.name)).join(", ") : "Quest coverage pending."}</p><p>${d.encounters.length} encounters listed · Coverage: ${esc(d.coverage)}</p></section>` : ""}${!e ? instanceDetails(d) + questsHTML(d) + lootPanel() : questsHTML(d, e.questIds)}${d.encounters.length ? `<nav class="encounter-nav" aria-label="Encounters">${d.encounters.map((b) => `<a href="#pve/${d.id}/${b.id}" ${b.id === encounterId ? 'aria-current="page"' : ""}>${b.order}. ${esc(b.name)}</a>`).join("")}</nav><div class="dungeon-bosses">${(e ? [e] : d.encounters).map((b) => encounterCard(d, b, !!e)).join("")}</div>${tracker(d, state)}` : '<section class="panel"><p>Encounters and loot await verified reports.</p></section>'}${d.source ? `<p>Reference: <a href="${esc(d.source)}" target="_blank" rel="noopener">${d.new ? "Listing" : "Classic guide"} ↗</a></p>` : ""}`;
 }
 export function bindPve(root, id, getState, onProgress) {
+  void bindLoot(root, id, getState());
   root.querySelector("#dungeon-search")?.addEventListener("input", (e) => {
     query = e.target.value;
     root.querySelector("#dungeon-results").innerHTML = cards();

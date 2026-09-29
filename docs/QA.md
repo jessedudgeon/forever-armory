@@ -42,3 +42,10 @@ The cloud test substitutes only a demo Firebase configuration, locally bundled S
 - Raid coverage is an initial, clearly labeled Classic reference directory. Full Classic Molten Core and Blackwing Lair rosters are present; additional instances, loot, quests, and verified Forever mechanics are needed. Existing inferred talent ranks still require client verification.
 - Public armories, shared guild invitations/roles/events, combat logs, and a verified full Forever catalog are not implemented.
 - Large cloud snapshots now use fragments up to 3 MB. Very large multi-character/history backups can still exceed the atomic 450-record / 7 MB change limit; they are rejected intact. A paginated history/archive strategy is future work.
+
+## Journal continuation — 2026-09-29
+
+- 60 Node tests passed, adding combined loot filters, unknown eligibility behavior, reverse sources, kill-count/timestamp validation, quest/attunement cloud round trips, and preservation through manual boss edits.
+- 25 browser flows passed at 390/768/1280/1440, including instance loot search and item-dialog → encounter navigation. Instance loot tables and encounter routes passed responsive checks; no page errors, failed requests, broken images or document overflow.
+- Addon packaging, JavaScript syntax and git diff checks passed. No Firebase rules/auth changes in this continuation; the previous commit's GitHub security/model validation succeeded.
+- No verified new game facts were invented. Class filters intentionally retain unknown restrictions and do not establish equipment proficiency or upgrade value. Full catalogs, quest editing, tier-set relationships and live OAuth validation remain incomplete.

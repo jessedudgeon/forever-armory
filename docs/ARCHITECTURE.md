@@ -11,7 +11,8 @@ Static ES modules, no production build dependency, GitHub Pages hash routing. `a
 - `features.js`: Armory sections, private guild views, profession/craftbook views, and available-data search.
 - `items.js` / `item-core.js`: shared item lookup, optional Classic catalog enrichment, modal tooltips and permalinks. Character equipment, inventory, recipe items, dungeon loot, and search use the same detail view.
 - `talents.js` / `data/talents`: calculator rules and existing community dataset. Builds save to the Armory rather than encoding new plans as generic goal notes. Older goal-note links still open.
-- `data/pve.js`: canonical item definitions and dungeon/raid encounter references with stable IDs, source URLs, and coverage.
+- `data/items.js`: central reference item definitions.
+- `data/pve.js`: dungeon/raid encounter references with stable IDs, source URLs, and coverage.
 - `pve-data.js`: shared catalog lookups, item source indexing, search, and non-destructive encounter progress updates.
 - `pve.js`: directory, instance and encounter views, private per-character boss tracking. `#pve/{instance}/{encounter}` is canonical; old `#dungeons/...` routes and `dungeons.js` exports remain compatible.
 - `ads.js`: disabled placements; no ad network, remote script, or fake advertisements.
@@ -57,3 +58,5 @@ Previous item enhancement code captured imports before confirmation into global 
 Snapshots whose encoded envelope exceeds 170 KB are split by Unicode code point into 24,000-character chunks. Version-1 manifests store count, byte length, original snapshot hash ID, and an integrity checksum. Reading rejects missing, duplicate, orphaned, mixed or corrupt parts before accepting any state. The checksum detects accidental corruption; Firestore ownership is the security boundary. Limits remain 3 MB normalized snapshot, 128 parts, 180 KB record, and 450 changed records / 7 MB per atomic transaction. Small records remain compatible.
 
 `cloud.js` diffs against the actual fetched document IDs, not regenerated hashes of normalized old data. Schema normalization therefore cannot leave old observations orphaned on save or deletion. Writes and deletions, including every fragment, share the existing revision transaction. No production rule expansion or data migration is required. Older clients must reload after the new format is written; they fail closed on unknown records.
+
+Journal loot filtering, optional metadata and strategy fields are documented in [PVE-CONTENT.md](PVE-CONTENT.md). `pve-loot.js` enriches rows through the shared item service; item dialogs provide inverse Journal source links.
