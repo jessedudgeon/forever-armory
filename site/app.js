@@ -544,7 +544,7 @@ function bindCommon() {
 function bindCharacter(id) {
   const c = findChar(id);
   if (!c) return;
-  bindSocial($("#main"), current(), id, commit, render);
+  bindSocial($("#main"), current(), c.id, commit, render);
   if ($("#inventory-search")) bindInventory($("#main"), c);
   $("#edit-notes")?.addEventListener("click", () => notesDialog(c));
   $("#edit-progress")?.addEventListener("click", () => progressDialog(c));
