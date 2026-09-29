@@ -1,3 +1,5 @@
+import { storageView, bindStorage } from "./storage.js";
+import { progressChanges } from "./import-schema.js";
 import { communityView, bindCommunity } from "./community.js";
 import { eventsView, bindEvents, eventSection } from "./events.js";
 import { removeCharacterEvents } from "./event-model.js";
@@ -51,6 +53,7 @@ import {
   saveManualCharacter,
   keyOf,
   parseImport,
+  importMatch,
   normalize,
   emptyState,
   addSnapshot,
@@ -184,6 +187,7 @@ function render() {
   const [rawRoute, id, encounterId] = route(),
     r = rawRoute === "pve" ? "dungeons" : rawRoute,
     views = [
+      "storage",
       "community",
       "events",
       "activity",
@@ -226,6 +230,7 @@ function render() {
   });
   $("#section-label").textContent =
     {
+      storage: "Find my items",
       community: "Character community",
       events: "Events & gatherings",
       activity: "Character activity",
@@ -263,6 +268,7 @@ function render() {
     );
   else
     content = {
+      storage: () => storageView(current()),
       community: communityView,
       events: () => eventsView(current(), id),
       activity: () => socialFeed(current()),
@@ -293,6 +299,7 @@ function render() {
     render();
   });
   bindCommon();
+  if(view === "storage") bindStorage($("#main"),current());
   if (view === "community") void bindCommunity($("#community-root"), cloudClient?.community, visible, demo ? null : account, id, commit, render, toast);
   if (view === "events") bindEvents($("#main"), current(), id, commit, render);
   if (view === "activity") bindSocial($("#main"), current(), "", commit, render);
@@ -462,7 +469,7 @@ function characterView(id) {
     );
   const s = latest(c),
     [cn, color] = CLASSES[s.class];
-  return `<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${["profile", "social", "equipment", "inventory", "professions", "encounters", "progress", "plans", "legacy"].map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Profile", social: "RP & story", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "Dungeons & raids", progress: "Progress history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "social" ? socialProfile(c, current()) : tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "progress" ? history(c) + '<h2>Character stories</h2>' + activityCards(current(), c.id) + eventSection(current(), {characterId:c.id,completedOnly:true}) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest snapshot: ${date(s.observedAt)} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
+  return `<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${["profile", "social", "equipment", "inventory", "professions", "encounters", "progress", "plans", "legacy"].map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Profile", social: "RP & story", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "Dungeons & raids", progress: "Progress history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "social" ? socialProfile(c, current()) : tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "progress" ? history(c) + '<h2>Character stories</h2>' + activityCards(current(), c.id) + eventSection(current(), {characterId:c.id,completedOnly:true}) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest observation: ${esc(new Date(s.observedAt).toLocaleString())}${s.importedAt ? ` · Imported: ${esc(new Date(s.importedAt).toLocaleString())}` : ""} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
 }
 function equipment(c) {
   const s = latest(c);
@@ -492,20 +499,7 @@ function history(c) {
   return `<section class="panel"><div class="section-row"><h2>The journey so far</h2><span class="muted">${ss.length} snapshots</span></div>${ss.length > 1 ? `<svg class="history-chart" viewBox="0 0 610 155" role="img" aria-label="Level increased from ${ss[0].level} to ${ss.at(-1).level} across ${ss.length} snapshots"><path d="M45 20V120H565" stroke="#4a5c4b" fill="none"/><text x="8" y="35">${max}</text><text x="8" y="120">${min}</text><polyline points="${points}" fill="none" stroke="#d9b777" stroke-width="2.5"/><text x="45" y="147">First snapshot</text><text x="495" y="147">Latest</text></svg>` : "<p>Import after your next session to start seeing changes.</p>"}<div class="table-wrap"><table><thead><tr><th>Recorded</th><th>Level</th><th>Zone</th><th>Gold</th><th>Changes from prior snapshot</th></tr></thead><tbody>${ss
     .map((s, i) => {
       const p = ss[i - 1];
-      let changes = [];
-      if (p) {
-        if (s.level !== p.level)
-          changes.push(
-            `${s.level - p.level > 0 ? "+" : ""}${s.level - p.level} levels`,
-          );
-        if (s.gear.length && p.gear.length) {
-          const changed = s.gear.filter((g) => {
-            const old = p.gear.find((x) => x.slot === g.slot);
-            return !old || old.id !== g.id || old.link !== g.link;
-          });
-          if (changed.length) changes.push(`${changed.length} gear changes`);
-        }
-      }
+      const changes = progressChanges(p,s);
       return `<tr><td>${date(s.observedAt)}</td><td>${s.level}</td><td>${esc(s.zone) || "—"}</td><td>${money(s.money)}</td><td>${i ? changes.join(" · ") || "Snapshot saved" : "First snapshot"}</td></tr>`;
     })
     .reverse()
@@ -546,7 +540,7 @@ function guideView() {
       "Import & backups",
       "Bring your character home after every session.",
     ) +
-    `<div class="two-col"><section class="panel"><h2>From Azeroth to your armory</h2><ol class="steps"><li><strong>Install the companion addon.</strong><br>Extract the download into your Forever client’s <code>Interface/AddOns</code> folder. The folder should be named <code>ForeverArmory</code>.</li><li><strong>Capture your character.</strong><br>Log in and type <code>/farmory</code>. Copy the selected export text.</li><li><strong>Save a snapshot.</strong><br>Choose Import character, paste the text, and review before saving.</li></ol><div class="actions"><a class="button" href="./downloads/ForeverArmory.zip" download>↓ Download addon</a>${action("import", "Import character", true)}</div><div class="note">The companion addon is an initial beta build. In-game compatibility still needs verification. Missing API data is reported in the export.</div><h3>Already using WoW Forever Builds?</h3><p>Paste its <code>/wfb</code> export to import basic character details, professions, and talent-tree totals. Gear and gold are not included in that format.</p><p><small>MythicSim exports are not supported in this version.</small></p></section><div><section class="panel"><h2>A backup for every adventure</h2><p>${account ? "Your data is saved privately in your account and syncs across signed-in devices. Backups give you an extra copy." : "This local roster is stored only in this browser. Clearing browser data removes it. Sign in to start a synced account armory."}</p><p>Download a backup after playing. Restore it to merge characters, snapshots, and goals into your ${account ? "signed-in account" : "local roster"}.</p><div class="actions">${action("backup", "↓ Download backup")}${action("restore", "Restore backup")}</div><p style="margin-top:18px"><small>Your roster is private. Other users cannot read or edit your characters.</small></p></section><section class="panel"><h2>Start without an addon</h2><p>Add a character manually, then import game data later using the same full name and play style.</p>${action("add-manual", "+ Add character")}<p style="margin-top:18px"><button class="text-button" id="demo">Explore example roster</button></p></section>${storageBlocked ? `<section class="panel"><h2>Recover browser data</h2><p>Save the original data before resetting this browser’s armory.</p>${action("recover", "Download recovery file")}${action("reset", "Reset unreadable storage")}</section>` : ""}</div></div>`
+    `<div class="two-col"><section class="panel"><h2>From Azeroth to your armory</h2><ol class="steps"><li><strong>Install the companion addon.</strong><br>Extract the download into your Forever client’s <code>Interface/AddOns</code> folder. The folder should be named <code>ForeverArmory</code>.</li><li><strong>Capture your character.</strong><br>Log in and type <code>/farmory</code>. Copy the selected export text.</li><li><strong>Save a snapshot.</strong><br>Choose Import character, paste the text, and review before saving.</li></ol><div class="actions"><a class="button" href="./downloads/ForeverArmory.zip?v=0.2.0" download>↓ Download addon</a>${action("import", "Import character", true)}</div><div class="note">Addon 0.2.0: open your bank to cache it; open each profession and run /farmory recipes, then /farmory export. /farmory help explains the commands. The new collectors still need in-game verification; unavailable APIs produce warnings.</div><h3>Already using WoW Forever Builds?</h3><p>Paste its <code>/wfb</code> export to import basic character details, professions, and talent-tree totals. Gear and gold are not included in that format.</p><p><small>MythicSim exports are not supported in this version.</small></p></section><div><section class="panel"><h2>A backup for every adventure</h2><p>${account ? "Your data is saved privately in your account and syncs across signed-in devices. Backups give you an extra copy." : "This local roster is stored only in this browser. Clearing browser data removes it. Sign in to start a synced account armory."}</p><p>Download a backup after playing. Restore it to merge characters, snapshots, and goals into your ${account ? "signed-in account" : "local roster"}.</p><div class="actions">${action("backup", "↓ Download backup")}${action("restore", "Restore backup")}</div><p style="margin-top:18px"><small>Your roster is private. Other users cannot read or edit your characters.</small></p></section><section class="panel"><h2>Start without an addon</h2><p>Add a character manually, then import game data later using the same full name and play style.</p>${action("add-manual", "+ Add character")}<p style="margin-top:18px"><button class="text-button" id="demo">Explore example roster</button></p></section>${storageBlocked ? `<section class="panel"><h2>Recover browser data</h2><p>Save the original data before resetting this browser’s armory.</p>${action("recover", "Download recovery file")}${action("reset", "Reset unreadable storage")}</section>` : ""}</div></div>`
   );
 }
 function bindCommon() {
@@ -694,14 +688,16 @@ function importDialog() {
   );
 }
 function previewImport(s) {
-  const selected = accountFilter !== "all" ? accountFilter : "default";
-  const existing = current().characters.find(
-    (c) => c.id === keyOf({ ...s, accountId: selected }),
-  );
+  const guidMatches=s.gameIdentity?.guid ? current().characters.filter(c=>c.snapshots.some(x=>x.gameIdentity?.guid===s.gameIdentity.guid&&x.gameIdentity?.realm===s.gameIdentity.realm)) : [];
+  const selected=guidMatches.length===1 ? (guidMatches[0].snapshots.at(-1).accountId||'default') : accountFilter!=='all' ? accountFilter : current().gameAccounts.length===1 ? current().gameAccounts[0].id : '';
   modal(
     "Review character snapshot",
-    `<p>${existing ? "A new snapshot will be added to this character." : "This character will be added to your roster."}</p><label>WoW game account<select id="import-account">${accountOptions(selected)}</select></label><div class="preview-grid"><div><small>Character</small>${esc(s.name)}</div><div><small>Play style</small>${esc(playStyleLabel(s))}</div><div><small>Class & level</small>${CLASSES[s.class][0]} · ${s.level}</div><div><small>Equipment</small>${s.gear.length} slots captured</div></div><p style="margin-top:16px"><small>Use both character names and the correct play style to identify a character. Older exports may not include this information. Imported fields reflect this export only.</small></p>${s.warnings.length ? `<div class="note">${s.warnings.map(esc).join("<br>")}</div>` : ""}<p id="form-error" class="error" role="alert"></p><div class="modal-actions">${action("back-import", "Back")}${action("save-import", "Save snapshot", true)}</div>`,
+    `<p><span id="import-match">Choose the WoW account to check character matching.</span></p><label>WoW game account<select id="import-account"><option value="">Choose account…</option>${accountOptions(selected)}</select></label><label>Match an existing character (optional)<select id="import-target"><option value="">Automatic matching / new character</option></select></label><p><small>Use an explicit match for an older manual character whose full name differs. Check the name and account carefully; history and the profile link will be retained.</small></p><div class="preview-grid"><div><small>Character</small>${esc(s.name)}</div><div><small>Play style</small>${esc(playStyleLabel(s))}</div><div><small>Class & level</small>${CLASSES[s.class][0]} · ${s.level}</div><div><small>Equipment</small>${s.gear.length} slots captured</div></div><p style="margin-top:16px"><small>${s.gameIdentity?.guid ? "Stable game GUID captured. Renames will update the existing character." : "No game GUID captured. Matching uses the full name and server/play style within your selected account; a rename requires a GUID to link automatically."} Captured ${date(s.observedAt)}. ${s.inventory?.length || 0} storage stacks · ${s.quests?.length || 0} quests · ${s.talentDetails?.length || 0} talent ranks. Raw export fields are preserved privately.</small></p>${s.warnings.length ? `<div class="note">${s.warnings.map(esc).join("<br>")}</div>` : ""}<p id="form-error" class="error" role="alert"></p><div class="modal-actions">${action("back-import", "Back")}${action("save-import", "Save snapshot", true)}</div>`,
     () => {
+      const matchPreview=()=>{const accountId=$("#import-account").value;$("#save-import").disabled=!accountId;if(!accountId)return;try{const found=importMatch(current(),{...s,accountId});$("#import-match").textContent=found?`Update ${found.snapshots.at(-1).name}; keep its history and RP profile.`:'Create a new character in this account.';$("#form-error").textContent='';}catch(e){$("#save-import").disabled=true;fail(e);}};
+      $("#import-account").value=selected;
+      const targets=()=>{const a=$("#import-account").value;$("#import-target").innerHTML='<option value="">Automatic matching / new character</option>'+current().characters.filter(c=>{const x=c.snapshots.at(-1);return (x.accountId||'default')===a&&x.class===s.class;}).map(c=>`<option value="${esc(c.id)}">${esc(c.snapshots.at(-1).name)}</option>`).join('');matchPreview();};
+      $("#import-account").onchange=targets;targets();
       $("#back-import").onclick = importDialog;
       $("#save-import").onclick = async () => {
         try {
@@ -709,7 +705,7 @@ function previewImport(s) {
           const snapshot = normalize({ ...s, accountId });
           if (!current().gameAccounts.some((a) => a.id === accountId))
             throw Error("Choose a game account.");
-          const result = addSnapshot(current(), snapshot);
+          const result = addSnapshot(current(), snapshot, {targetId:$("#import-target").value || undefined});
           await commit(result.state);
           $("#modal").close();
           tab = "profile";

@@ -31,12 +31,13 @@ export function itemInstance(raw, defaultLocation = "bags") {
     );
   const item = {
     id,
-    name: text(raw.name, 150) || `Item ${id}`,
+    name: text(raw.name, 150) || text((raw.link || raw.itemLink || "").match(/\[([^\]]+)\]/)?.[1],150) || `Item ${id}`,
     quantity: integer(raw.quantity ?? raw.count ?? 1, 1, 1000000),
     location,
     container: text(String(raw.container ?? raw.bag ?? ""), 60),
     slot: raw.slot == null ? null : integer(raw.slot, 0, 10000),
     quality: raw.quality == null ? null : integer(raw.quality, 0, 8),
+    ...(raw.itemLevel!=null?{itemLevel:integer(raw.itemLevel,0,10000)}:{}),
     binding: text(raw.binding, 80),
     enchantments: list(raw.enchantments, 10).map((x) => text(String(x), 150)),
     gems: list(raw.gems, 10).map((x) => integer(x, 1)),
@@ -73,7 +74,7 @@ export function recipe(raw) {
     skill: raw.skill == null ? null : integer(raw.skill, 0, 10000),
     known: raw.known !== false,
     craftedItem: raw.craftedItem == null ? null : integer(raw.craftedItem, 1),
-    quantity: integer(raw.quantity ?? 1, 1, 1000),
+    quantity: raw.quantity == null ? null : integer(raw.quantity, 1, 1000),
     reagents: list(raw.reagents, 30).map((x) => ({
       id: integer(x.id, 1),
       quantity: integer(x.quantity, 1, 10000),
@@ -130,6 +131,18 @@ export function progression(raw) {
 }
 export function characterExtras(o, at) {
   const out = {};
+  if(o.recordKey !== undefined) {if(typeof o.recordKey !== 'string'||!o.recordKey||o.recordKey.length>500)throw Error('Invalid stored character identity.');out.recordKey=o.recordKey;}
+  if(o.rawAddon !== undefined) {if(!o.rawAddon || o.rawAddon.format!=='forever-armory'||JSON.stringify(o.rawAddon).length>1000000)throw Error('Invalid raw addon observation.');out.rawAddon=structuredClone(o.rawAddon);}
+  if(o.importedAt) out.importedAt=validProgressDate(o.importedAt);
+  if(o.gameIdentity?.guid) {if(typeof o.gameIdentity.guid!=='string'||o.gameIdentity.guid.length>150)throw Error('Invalid game GUID.');out.gameIdentity={guid:o.gameIdentity.guid,realm:text(o.gameIdentity.realm||o.realm,100)};}
+  if(o.location) out.location={zone:text(o.location.zone,100),subZone:text(o.location.subZone,100),mapID:o.location.mapID==null?null:integer(o.location.mapID,1)};
+  if(o.talentDetails!==undefined) out.talentDetails=list(o.talentDetails,300).map(t=>{
+    const row={name:text(t.name,150),rank:integer(t.rank,0,100)};
+    for(const k of ['treeID','nodeID','entryID','spellID','treeIndex','talentIndex','tier','column','maxRank'])if(t[k]!=null)row[k]=integer(t[k],1);
+    return row;
+  });
+  if(o.quests!==undefined) out.quests=list(o.quests,500).map(q=>({id:integer(q.id??q.questID,1),title:text(q.title??q.name,200),level:q.level==null?null:integer(q.level,-1,1000),completed:q.completed===true||q.isComplete===true||q.isComplete===1}));
+  if(o.reputations!==undefined) {if(JSON.stringify(o.reputations).length>200000)throw Error('Reputation data is too large.');out.reputations=structuredClone(list(o.reputations,500));}
   if (o.inventory !== undefined)
     out.inventory = normalizeInventory(o.inventory, at);
   if (o.storageStatus !== undefined) {
@@ -138,6 +151,7 @@ export function characterExtras(o, at) {
       if (!LOCATIONS.includes(key)) throw Error("Invalid storage coverage.");
       out.storageStatus[key] = {
         captured: value?.captured === true,
+        ...(typeof value?.status==='string' ? {status:text(value.status,30)} : {}),
         observedAt: value?.observedAt
           ? new Date(value.observedAt).toISOString()
           : at,
@@ -218,7 +232,7 @@ export function inventoryFor(character) {
   return [
     ...(character.gear || []).map((g) => ({
       ...g,
-      quantity: 1,
+      quantity: g.quantity || 1,
       location: "equipment",
       container: "",
       observedAt: character.gearObservedAt || character.observedAt,

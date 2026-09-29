@@ -1,3 +1,4 @@
+import { IMPORT_ADAPTERS } from "./import-schema.js";
 import { normalizeEvents, rekeyEvents } from "./event-model.js";
 import { normalizeSocial, rekeySocial } from "./social-model.js";
 import {
@@ -69,9 +70,9 @@ function num(v, min, max, optional = false) {
   return v;
 }
 export const keyOf = (c) =>
-  c.accountId && c.accountId !== "default"
+  c.recordKey || (c.accountId && c.accountId !== "default"
     ? JSON.stringify([c.accountId, c.name.toLowerCase(), c.realm.toLowerCase()])
-    : JSON.stringify([c.name.toLowerCase(), c.realm.toLowerCase()]);
+    : JSON.stringify([c.name.toLowerCase(), c.realm.toLowerCase()]));
 export function normalize(o) {
   if (!o || typeof o !== "object" || Array.isArray(o))
     throw new Error("Expected one character object.");
@@ -109,8 +110,10 @@ export function normalize(o) {
   const gear = bounded(o.gear, 30).map((g) => ({
     slot: num(g.slot, 1, 19),
     id: num(g.id, 1, 100000000),
-    name: str(g.name, 150) || `Item ${g.id}`,
+    ...(g.quantity!=null||g.count!=null?{quantity:num(g.quantity??g.count,1,1000000)}:{}),
+    name: str(g.name, 150) || str((g.link || "").match(/\[([^\]]+)\]/)?.[1],150) || `Item ${g.id}`,
     quality: num(g.quality, 0, 8, true),
+    ...(g.itemLevel!=null?{itemLevel:num(g.itemLevel,0,10000)}:{}),
     link: str(g.link, 700),
     ...(g.enchantments
       ? {
@@ -201,15 +204,15 @@ export function parseImport(text) {
       "Paste a Forever Armory JSON export or a WFB1 export from /wfb.",
     );
   }
-  if (o.format === "forever-armory-backup")
+  if (o?.format === "forever-armory-backup")
     throw new Error(
       "This is a backup. Use Restore backup on the Import & backups page.",
     );
-  if (o.format !== "forever-armory" || o.version !== 1)
+  if (o?.format !== "forever-armory" || !IMPORT_ADAPTERS.has(o.version))
     throw new Error(
       "Unsupported export. Use /farmory in the included addon, /wfb, or add a character manually.",
     );
-  return normalize({ ...o.character, source: "Forever Armory addon" });
+  return normalize({ ...IMPORT_ADAPTERS.get(o.version)(o), source: "Forever Armory addon" });
 }
 export const emptyState = () => ({
   version: 1,
@@ -221,20 +224,57 @@ export const emptyState = () => ({
   gameAccounts: [{ id: "default", name: "WoW 1" }],
   legacy: { challenges: [], perks: {} },
 });
-export function addSnapshot(state, c) {
-  const id = keyOf(c);
+export function importMatch(state, snapshot) {
+  const account=snapshot.accountId||'default', guid=snapshot.gameIdentity?.guid;
+  if(guid) {
+    const matches=state.characters.filter(c=>c.snapshots.some(s=>s.gameIdentity?.guid===guid && s.gameIdentity?.realm===snapshot.gameIdentity.realm));
+    if(matches.length>1)throw Error('More than one character has this game GUID. Resolve the duplicate before importing.');
+    if(matches.length) {
+      if((matches[0].snapshots.at(-1).accountId||'default')!==account)throw Error('This GUID belongs to another WoW account in your roster. Select that account before importing.');
+      return matches[0];
+    }
+  }
+  const exact=state.characters.find(c=>c.id===keyOf(snapshot));
+  if(exact) {
+    const old=exact.snapshots.find(s=>s.gameIdentity?.guid)?.gameIdentity;
+    if(guid&&old?.guid&&old.guid!==guid)throw Error('A different game GUID already uses this character name. Resolve the identity conflict first.');
+    return exact;
+  }
+  // Safe fallback is a full name plus known play style in the selected account.
+  const candidates=state.characters.filter(c=>{const s=c.snapshots.at(-1);return (s.accountId||'default')===account && s.name.toLowerCase()===snapshot.name.toLowerCase() && s.class===snapshot.class && playStyleOf(s) && playStyleOf(s)===playStyleOf(snapshot) && (!guid||!s.gameIdentity?.guid||s.gameIdentity.guid===guid);});
+  if(candidates.length>1)throw Error('Character matching is ambiguous. Keep the full game name and choose the correct account.');
+  return candidates[0]||null;
+}
+export function addSnapshot(state, c, {targetId} = {}) {
+  let match = importMatch(state,c);
+  if(targetId) {
+    const target=state.characters.find(x=>x.id===targetId),latest=target?.snapshots.at(-1);
+    if(!target || (latest.accountId||'default')!==(c.accountId||'default') || latest.class!==c.class)throw Error('Choose an existing character of the same class in this WoW account.');
+    if(match && match.id!==targetId)throw Error('This export already matches another character.');
+    if(c.gameIdentity?.guid && target.snapshots.some(s=>s.gameIdentity?.guid && (s.gameIdentity.guid!==c.gameIdentity.guid || s.gameIdentity.realm!==c.gameIdentity.realm)))throw Error('The selected character has a different game GUID.');
+    match=target;
+  }
+  const id = match?.id || keyOf(c);
+  if(match && keyOf(c)!==id)c={...c,recordKey:id};
   const copy = structuredClone(state);
   let found = copy.characters.find((x) => x.id === id);
   if (!found) {
     found = { id, snapshots: [] };
     copy.characters.push(found);
   }
+  const incomingCoverage=c.storageStatus;
   const last = found.snapshots
     .filter((s) => s.observedAt <= c.observedAt)
     .at(-1);
   // A partial export must not erase a bank captured earlier or website-only plans.
   if (last) {
     c = { ...c };
+    if(c.rawAddon)for(const field of ['gear','professions','talents']) {
+      if(c.rawAddon.character[field]===undefined) {
+        c[field]=structuredClone(last[field]);
+        if(field==='gear')c.gearObservedAt=last.gearObservedAt||last.observedAt;
+      }
+    }
     for (const key of [
       "inventory",
       "storageStatus",
@@ -245,24 +285,34 @@ export function addSnapshot(state, c) {
       "guildId",
       "guildRank",
       "builds",
+      "gameIdentity",
+      "talentDetails",
+      "quests",
+      "reputations",
+      "location",
     ])
       if (c[key] === undefined && last[key] !== undefined)
         c[key] = structuredClone(last[key]);
-    if (c.inventory && c.storageStatus && last.inventory) {
+    if(c.rawAddon && c.recipes && last.recipes) {
+      const recipes=new Map(last.recipes.map(r=>[r.profession+':'+r.id,r]));
+      for(const r of c.recipes)recipes.set(r.profession+':'+r.id,r);
+      c.recipes=[...recipes.values()];
+    }
+    if (c.inventory && incomingCoverage && last.inventory) {
       const captured = new Set(
-        Object.entries(c.storageStatus)
-          .filter(([, v]) => v.captured && v.observedAt === c.observedAt)
+        Object.entries(incomingCoverage)
+          .filter(([key, v]) => v.captured && (!last.storageStatus?.[key]?.observedAt || v.observedAt >= last.storageStatus[key].observedAt))
           .map(([k]) => k),
       );
-      if (captured.size)
-        c.inventory = [
+      c.inventory = [
           ...last.inventory.filter((i) => !captured.has(i.location)),
           ...c.inventory.filter((i) => captured.has(i.location)),
         ];
-      c.storageStatus = { ...last.storageStatus, ...c.storageStatus };
+      c.storageStatus = { ...last.storageStatus };
+      for(const [key,value]of Object.entries(incomingCoverage))if(captured.has(key)||!c.storageStatus[key])c.storageStatus[key]=value;
     }
   }
-  const meaningful = (x) => JSON.stringify({ ...x, observedAt: undefined });
+  const meaningful = (x) => JSON.stringify({ ...x, observedAt: undefined, importedAt: undefined });
   if (last && meaningful(last) === meaningful(c))
     return { state, duplicate: true, id };
   found.snapshots.push(c);
@@ -535,12 +585,14 @@ export function saveManualCharacter(state, fields, existingId) {
   if (!next.gameAccounts.some((a) => a.id === accountId))
     throw new Error("Choose a game account first.");
   const prior = existing?.snapshots.at(-1),
+    knownGameIdentity = existing?.snapshots.find(s=>s.gameIdentity?.guid)?.gameIdentity,
     identity = {
+      ...(knownGameIdentity && existing ? {recordKey:existing.id,gameIdentity:knownGameIdentity} : {}),
       mainName,
       secondaryName,
       name: mainName + " " + secondaryName,
       playStyle,
-      realm: playStyle,
+      realm: knownGameIdentity ? knownGameIdentity.realm : playStyle,
       ...(accountId !== "default" ? { accountId } : {}),
     };
   const snapshot = normalize({
@@ -572,7 +624,7 @@ export function saveManualCharacter(state, fields, existingId) {
     rekeyEvents(next, existingId, id);
     existing.id = id;
     existing.snapshots = existing.snapshots.map((s) => {
-      const updated = { ...s, ...identity };
+      const updated = knownGameIdentity ? {...s,recordKey:existing.id,accountId} : { ...s, ...identity };
       if (accountId === "default") delete updated.accountId;
       return updated;
     });

@@ -1,3 +1,18 @@
+# Latest checkpoint — addon import pipeline, September 29
+
+Continued from live `11671f7` and the owner's 21:31 UTC import handoff. Prior community and Journal work preserved.
+
+- Completed: versioned raw-data adapter; retained raw exports, realm and game IDs; bag/slot normalization and link-derived item names; GUID+realm matching with stable existing profile routes; explicit manual-record linking; account selection/conflict prevention; distinct observation/import times; structured talents/quests/stats/location/reputations; recipe merging and partial-capture preservation; meaningful history; cross-character/account “Find my items”; Armory imported talents, quests and warnings.
+- Addon: 0.2.0 exports individual bag slots and containers, guarded GUID/stats/location/quests/reputation/skills/legacy spells, rich item data, trait IDs/totals, character-isolated bank and recipe caches with timestamps and `/farmory export`, `/farmory recipes`, `/farmory help`. Commands also include /farmory bank. Packaged README/changelog and Lua mock → JSON → importer tests are included in CI. Real-client validation remains required.
+- Security: imported raw data remains in existing private owner envelopes; RP/social records and website notes/guild/build plans are not overwritten. No Firestore rules/auth changes are needed for imports. Shared community activation remains disabled and independently blocked by Firebase deployment access.
+- Tests: 94 Node tests and 11 Firestore emulator tests passed; Lua mock collector checks passed. New tests cover Lasmus representative values, 33 Copper Bars/two slots, exact re-import, GUID rename, explicit linking, two accounts, historical manual corrections, missing APIs, raw/cloud/backup preservation and forbidden cross-owner reads/writes.
+- Migration: additive fields only; no bulk migration. recordKey anchors a renamed GUID-linked character to its old route. Refresh old browser tabs. Raw payload retention increases backup/cloud sizes; existing bounds/fragmentation remain enforced.
+- Still incomplete: full raw-export verification, actual client collector acceptance, verified talent-ID calculator mapping, actual bank/reputation API acceptance and additional-storage/encounter collectors, modern recipe reagents/yields, quest/dungeon mappings, explicit account-transfer reconciliation and very large roster paging. See EXPORT-FOLLOWUP.md and ADDON-0.2.md. Shared guild/social backlog remains unchanged.
+- Next highest priority: validate the complete real export and addon 0.2 inside Forever, especially recipe schema and stable game IDs; then map verified talent IDs and extend collectors. Shared community requires its separate secure activation process.
+- Important files: site/import-schema.js, model.js, character-data.js, storage.js, features.js, app.js, index.html; addon/ForeverArmory/*; tests/import-pipeline.test.mjs, addon-smoke.py, security/firestore.test.mjs; scripts/verify-addon-export.mjs; .github/workflows/validate.yml; docs/IMPORT-SCHEMA.md, ADDON-0.2.md, EXPORT-FOLLOWUP.md and this checkpoint.
+
+---
+
 # Latest checkpoint — staged character community, September 29
 
 Continued from `ca2d99f`; existing private events, social authoring and reference/Armory systems preserved.

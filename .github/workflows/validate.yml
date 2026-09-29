@@ -22,4 +22,10 @@ jobs:
       - run: node --check site/app.js && node --check site/cloud.js
       - run: npm test
       - run: npm run test:security
+      - name: Verify guarded addon collectors with Lua mocks
+        run: |
+          python3 -m venv /tmp/forever-lua
+          /tmp/forever-lua/bin/pip install lupa==2.8
+          /tmp/forever-lua/bin/python tests/addon-smoke.py /tmp/forever-addon-test.json
+          node scripts/verify-addon-export.mjs /tmp/forever-addon-test.json
       - run: python3 scripts/package.py

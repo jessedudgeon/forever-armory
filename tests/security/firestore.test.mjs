@@ -52,3 +52,12 @@ test('event and RSVP records persist for Google owner and cannot be read or edit
  if(restored.calendar.rsvps[0].role!=='Healer'||restored.calendar.events[0].title!=='Guild night')throw Error('Event persistence failed');
  for(const [id,data]of records)if(id.startsWith('event-')||id.startsWith('rsvp-'))for(const db of[bob,guest,nonGoogle]){const path='armories/events-owner/records/'+id;await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),data));await assertFails(deleteDoc(doc(db,path)));}
 });
+test('raw addon observations, stable identity, quests and inventory remain private through actual Firestore storage',async()=>{
+ const {parseImport,addSnapshot,emptyState}=await import('../../site/model.js');
+ const {recordsFor,stateFromRecords}=await import('../../site/cloud-model.js');
+ const raw={format:'forever-armory',version:1,character:{name:'Importer Test',realm:'Classic Beta PvE',class:'PALADIN',level:15,observedAt:'2026-09-29T21:22:36Z',gameIdentity:{guid:'Player-TEST-PRIVATE',realm:'Classic Beta PvE'},bags:[{id:2840,count:33,bag:0,slot:1,link:'[Copper Bar]'}],quests:[{id:1,title:'Test quest'}],talents:[{name:'Test talent',rank:1,nodeID:2}]}};
+ const state=addSnapshot(emptyState(),parseImport(JSON.stringify(raw))).state,records=await recordsFor(state),owner=env.authenticatedContext('import-owner',{firebase:{sign_in_provider:'google.com'}}).firestore();
+ for(const[id,data]of records){const path='armories/import-owner/records/'+id;await assertSucceeds(setDoc(doc(owner,path),data));for(const db of[bob,guest]){await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),data));}}
+ const stored=await getDocs(collection(owner,'armories/import-owner/records')),snapshot=stateFromRecords(stored.docs.map(d=>d.data())).characters[0].snapshots[0];
+ if(snapshot.inventory[0].quantity!==33||snapshot.talentDetails[0].nodeID!==2||snapshot.rawAddon.character.gameIdentity.guid!=='Player-TEST-PRIVATE')throw Error('Import data was lost');
+});

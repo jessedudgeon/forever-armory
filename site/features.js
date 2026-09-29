@@ -116,7 +116,7 @@ export function professionSection(s) {
 }
 function recipeCards(recipes) {
   return recipes.length
-    ? `<div class="recipe-list">${recipes.map((r) => `<article class="recipe-card"><div class="section-row"><h3>${esc(r.name || r.id)}</h3><span class="chip">${r.known ? "Known" : "Not learned"}</span></div><small>${esc(r.profession)}${r.skill != null ? ` · Skill ${r.skill}` : ""}</small>${r.craftedItem ? `<p>Creates ${r.quantity} × ${itemButton({ id: r.craftedItem })}</p>` : ""}${r.reagents.length ? `<p>Reagents: ${r.reagents.map((i) => `${i.quantity} × ${itemButton(i)}`).join(" · ")}</p>` : ""}${r.source ? `<p>${esc(r.source)}</p>` : ""}</article>`).join("")}</div>`
+    ? `<div class="recipe-list">${recipes.map((r) => `<article class="recipe-card"><div class="section-row"><h3>${esc(r.name || r.id)}</h3><span class="chip">${r.known ? "Known" : "Not learned"}</span></div><small>${esc(r.profession)}${r.skill != null ? ` · Skill ${r.skill}` : ""}</small>${r.craftedItem ? `<p>Creates ${r.quantity == null ? "" : r.quantity + " × "}${itemButton({ id: r.craftedItem })}</p>` : ""}${r.reagents.length ? `<p>Reagents: ${r.reagents.map((i) => `${i.quantity} × ${itemButton(i)}`).join(" · ")}</p>` : ""}${r.source ? `<p>${esc(r.source)}</p>` : ""}</article>`).join("")}</div>`
     : "<p>No recipes captured yet. A profession skill alone does not identify known crafts.</p>";
 }
 export function professionsView(state) {
@@ -149,7 +149,7 @@ export function armorySummary(c, state) {
           .map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${v}</dd></div>`)
           .join("")}</dl>`
       : ""
-  }</section>${savedBuilds(s)}`;
+  }</section>${importedDetails(s)}${savedBuilds(s)}`;
 }
 export function savedBuilds(s) {
   return `<section class="panel"><h2>Saved talent builds</h2>${s.builds?.length ? s.builds.map((b) => `<p><a href="#talents/${b.code}">${esc(b.name)} ↗</a><small class="block">${date(b.updatedAt)}</small></p>`).join("") : "<p>No saved builds. Choose a character when saving in the talent calculator.</p>"}</section>`;
@@ -275,4 +275,8 @@ export async function bindSearch(root, state) {
       : [],
   );
   if (input.value) run();
+}
+
+export function importedDetails(s) {
+  return `${s.location?.subZone?`<p>Subzone: ${esc(s.location.subZone)}</p>`:''}${s.talentDetails?.length?`<section class="panel"><h2>Current imported talents</h2><p>Observed ranks from the addon. Calculator mapping is unavailable until these game IDs are verified.</p>${s.talentDetails.map(t=>`<p><strong>${esc(t.name)}</strong> · Rank ${t.rank}<small class="block">${['treeID','nodeID','entryID','spellID'].filter(k=>t[k]!=null).map(k=>`${k}: ${t[k]}`).join(' · ')}</small></p>`).join('')}</section>`:''}${s.quests?.length?`<section class="panel"><h2>Quest log</h2>${s.quests.map(q=>`<p><strong>${esc(q.title)}</strong> · ${q.completed?'Ready to turn in':'Active'}<small class="block">Quest ${q.id}${q.level!=null?' · Level '+q.level:''}</small></p>`).join('')}<p><small>A ready quest is not proof of a completed turn-in. Dungeon mappings appear only when verified.</small></p></section>`:''}${s.warnings?.length?`<details class="panel"><summary>Addon capture warnings (${s.warnings.length})</summary>${s.warnings.map(w=>`<p>${esc(w)}</p>`).join('')}</details>`:''}`;
 }

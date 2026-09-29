@@ -1,0 +1,12 @@
+import {readFile} from 'node:fs/promises';
+import assert from 'node:assert/strict';
+import {parseImport,addSnapshot,emptyState,validateBackup} from '../site/model.js';
+import {recordsFor,stateFromRecords} from '../site/cloud-model.js';
+const snapshot=parseImport(await readFile(process.argv[2],'utf8'));
+const state=addSnapshot(emptyState(),snapshot).state;
+const restored=stateFromRecords((await recordsFor(state)).values());
+assert.deepEqual(restored.characters,state.characters);
+assert.deepEqual(validateBackup({format:'forever-armory-backup',...state}).characters,state.characters);
+assert.ok(addSnapshot(state,snapshot).duplicate);
+assert.equal(snapshot.inventory.filter(i=>i.id===2840).reduce((sum,i)=>sum+i.quantity,0),33);
+console.log('Lua-generated version-1 export imports, deduplicates and survives backup/cloud round trips.');
