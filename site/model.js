@@ -1,3 +1,4 @@
+import { normalizeSocial, rekeySocial } from "./social-model.js";
 import {
   characterExtras,
   normalizeGuild,
@@ -214,6 +215,7 @@ export const emptyState = () => ({
   characters: [],
   tasks: [],
   guilds: [],
+  social: { profiles: [], posts: [] },
   gameAccounts: [{ id: "default", name: "WoW 1" }],
   legacy: { challenges: [], perks: {} },
 });
@@ -394,6 +396,7 @@ export function validateBackup(o) {
     characters,
     tasks,
     guilds: cleanGuilds,
+    social: normalizeSocial(o.social, characters),
     gameAccounts: accounts,
     legacy: { challenges: [...legacy.challenges], perks },
   };
@@ -422,6 +425,11 @@ export function mergeBackup(current, incoming) {
   out.guilds ??= [];
   for (const g of incoming.guilds || [])
     if (!out.guilds.some((x) => x.id === g.id)) out.guilds.push(g);
+  out.social ??= {profiles:[],posts:[]};
+  for (const p of incoming.social?.profiles || [])
+    if (!out.social.profiles.some(x=>x.characterId===p.characterId)) out.social.profiles.push(p);
+  for (const p of incoming.social?.posts || [])
+    if (!out.social.posts.some(x=>x.id===p.id)) out.social.posts.push(p);
   out.legacy ??= { challenges: [], perks: {} };
   out.legacy.challenges = [
     ...new Set([
@@ -552,6 +560,7 @@ export function saveManualCharacter(state, fields, existingId) {
       "A character with this full name and play style already exists. Open that profile to update it.",
     );
   if (existing) {
+    rekeySocial(next, existingId, id);
     existing.id = id;
     existing.snapshots = existing.snapshots.map((s) => {
       const updated = { ...s, ...identity };

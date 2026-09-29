@@ -1,3 +1,5 @@
+import { socialProfile, socialFeed, bindSocial, activityCards } from "./social.js";
+import { removeSocialCharacter } from "./social-model.js";
 import {
   configureItems,
   clearItemSession,
@@ -179,6 +181,7 @@ function render() {
   const [rawRoute, id, encounterId] = route(),
     r = rawRoute === "pve" ? "dungeons" : rawRoute,
     views = [
+      "activity",
       "home",
       "roster",
       "character",
@@ -217,6 +220,7 @@ function render() {
   });
   $("#section-label").textContent =
     {
+      activity: "Character activity",
       home: "Home",
       roster: "Characters",
       character: "Character Armory",
@@ -251,6 +255,7 @@ function render() {
     );
   else
     content = {
+      activity: () => socialFeed(current()),
       home: () => homeView(visible),
       account: accountView,
       dungeons: () => pveView(id, encounterId, visible),
@@ -278,6 +283,7 @@ function render() {
     render();
   });
   bindCommon();
+  if (view === "activity") bindSocial($("#main"), current(), "", commit, render);
   if (view === "roster") bindRoster();
   if (view === "legacy") bindLegacy();
   if (view === "character") bindCharacter(id);
@@ -444,7 +450,7 @@ function characterView(id) {
     );
   const s = latest(c),
     [cn, color] = CLASSES[s.class];
-  return `<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${["profile", "equipment", "inventory", "professions", "encounters", "progress", "plans", "legacy"].map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Profile", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "Dungeons & raids", progress: "Progress history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "progress" ? history(c) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest snapshot: ${date(s.observedAt)} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
+  return `<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${["profile", "social", "equipment", "inventory", "professions", "encounters", "progress", "plans", "legacy"].map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Profile", social: "RP & story", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "Dungeons & raids", progress: "Progress history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "social" ? socialProfile(c, current()) : tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "progress" ? history(c) + '<h2>Character stories</h2>' + activityCards(current(), c.id) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest snapshot: ${date(s.observedAt)} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
 }
 function equipment(c) {
   const s = latest(c);
@@ -538,6 +544,7 @@ function bindCommon() {
 function bindCharacter(id) {
   const c = findChar(id);
   if (!c) return;
+  bindSocial($("#main"), current(), id, commit, render);
   if ($("#inventory-search")) bindInventory($("#main"), c);
   $("#edit-notes")?.addEventListener("click", () => notesDialog(c));
   $("#edit-progress")?.addEventListener("click", () => progressDialog(c));
@@ -552,12 +559,13 @@ function bindCharacter(id) {
   $("#delete-character")?.addEventListener("click", () =>
     modal(
       "Remove this character?",
-      `<p>This removes ${esc(latest(c).name)}, their snapshots, and their goals ${account ? "from your account on all devices" : "from this browser"}. Download a backup first if you may want them later.</p><div class="modal-actions">${action("save-first", "Download backup")}${action("confirm-delete", "Remove character")}</div><p id="form-error" class="error" role="alert"></p>`,
+      `<p>This removes ${esc(latest(c).name)}, their snapshots, goals, RP profile, and journal entries ${account ? "from your account on all devices" : "from this browser"}. Download a backup first if you may want them later.</p><div class="modal-actions">${action("save-first", "Download backup")}${action("confirm-delete", "Remove character")}</div><p id="form-error" class="error" role="alert"></p>`,
       () => {
         $("#save-first").onclick = backup;
         $("#confirm-delete").onclick = async () => {
           try {
             const n = structuredClone(current());
+            removeSocialCharacter(n, c.id);
             n.characters = n.characters.filter((x) => x.id !== c.id);
             n.tasks = n.tasks.filter((x) => x.characterId !== c.id);
             delete n.legacy.perks[c.id];

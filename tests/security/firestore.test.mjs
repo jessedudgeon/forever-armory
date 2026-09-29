@@ -30,3 +30,13 @@ test('large snapshot fragments save atomically under existing rules and remain o
  const part=[...records.keys()].find(id=>id.startsWith('p-'));
  for(const db of[bob,guest]){await assertFails(getDoc(doc(db,'armories/large-owner/records/'+part)));await assertFails(deleteDoc(doc(db,'armories/large-owner/records/'+part)));}
 });
+test('RP profiles and character posts never expose private fields or grant another character owner access',async()=>{
+ for(const [id,characterId] of [['rp-test','@rp-profile'],['post-test','@character-post']]) {
+  const path='armories/alice/records/'+id;
+  const data={kind:'task',characterId,payload:JSON.stringify({characterId:'bob-character',visibility:'public',fields:{secrets:'Private'}})};
+  await assertSucceeds(setDoc(doc(alice,path),data));
+  for(const db of [bob,guest,nonGoogle]) {
+   await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),data));await assertFails(deleteDoc(doc(db,path)));
+  }
+ }
+});

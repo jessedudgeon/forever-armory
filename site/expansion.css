@@ -516,3 +516,12 @@ td {
   height: auto;
   border-radius: 6px;
 }
+
+/* Private character storytelling */
+.social-prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+.social-entry { margin-top: 18px; }
+.social-ic { color: #dfbe78; }
+.social-ooc { color: #91c9e8; }
+#rp-form details { margin: 16px 0; }
+#rp-form label, #character-post-form label, [data-edit-post] label { display: block; margin: 14px 0; }
+#rp-form textarea, #character-post-form textarea, [data-edit-post] textarea { width: 100%; box-sizing: border-box; }

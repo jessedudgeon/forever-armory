@@ -99,6 +99,14 @@ export async function recordsFor(state) {
       characterId: "@legacy-progress",
       payload: JSON.stringify(state.legacy),
     });
+  for (const p of state.social?.profiles || []) {
+    const bytes = new TextEncoder().encode(p.characterId);
+    const hash = await crypto.subtle.digest("SHA-256", bytes);
+    const id = Array.from(new Uint8Array(hash), b=>b.toString(16).padStart(2,"0")).join("");
+    records.set("rp-"+id, {kind:"task",characterId:"@rp-profile",payload:JSON.stringify(p)});
+  }
+  for (const p of state.social?.posts || [])
+    records.set("post-"+p.id, {kind:"task",characterId:"@character-post",payload:JSON.stringify(p)});
   return records;
 }
 export function stateFromRecords(records) {
@@ -190,6 +198,10 @@ export function stateFromRecords(records) {
       if (record.payload && payload.id === "default")
         out.gameAccounts[0] = payload;
       else out.gameAccounts.push(payload);
+    } else if (record.kind === "task" && record.characterId === "@rp-profile") {
+      out.social.profiles.push(payload);
+    } else if (record.kind === "task" && record.characterId === "@character-post") {
+      out.social.posts.push(payload);
     } else if (record.kind === "task" && record.characterId === "@guild") {
       out.guilds.push(payload);
     } else if (
