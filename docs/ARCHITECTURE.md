@@ -11,7 +11,9 @@ Static ES modules, no production build dependency, GitHub Pages hash routing. `a
 - `features.js`: Armory sections, private guild views, profession/craftbook views, and available-data search.
 - `items.js` / `item-core.js`: shared item lookup, optional Classic catalog enrichment, modal tooltips and permalinks. Character equipment, inventory, recipe items, dungeon loot, and search use the same detail view.
 - `talents.js` / `data/talents`: calculator rules and existing community dataset. Builds save to the Armory rather than encoding new plans as generic goal notes. Older goal-note links still open.
-- `dungeons.js`: one instance schema with `kind: dungeon | raid`, bosses, item IDs, and provenance.
+- `data/pve.js`: canonical item definitions and dungeon/raid encounter references with stable IDs, source URLs, and coverage.
+- `pve-data.js`: shared catalog lookups, item source indexing, search, and non-destructive encounter progress updates.
+- `pve.js`: directory, instance and encounter views, private per-character boss tracking. `#pve/{instance}/{encounter}` is canonical; old `#dungeons/...` routes and `dungeons.js` exports remain compatible.
 - `ads.js`: disabled placements; no ad network, remote script, or fake advertisements.
 
 ## Ownership and hierarchy
@@ -19,7 +21,8 @@ Static ES modules, no production build dependency, GitHub Pages hash routing. `a
 | Private path under `armories/{uid}` | Purpose |
 | --- | --- |
 | Root document | Revision and server timestamp |
-| `records/s-{snapshot SHA256}` | Immutable character observation |
+| `records/s-{snapshot SHA256}` | Immutable character observation or large-snapshot manifest |
+| `records/p-{snapshot SHA256}-{index}` | Private large-snapshot fragments |
 | `records/t-{goal ID}` | Character goal |
 | `records/a-{game account ID}` | Named game account |
 | `records/g-{guild ID}` | Private guild planning record |
@@ -28,7 +31,7 @@ Static ES modules, no production build dependency, GitHub Pages hash routing. `a
 
 Logical hierarchy is **website user → game accounts → characters → observations**. Snapshots remain keyed by the existing account/name/play-style identity for compatibility. Name/account corrections rekey all histories and goals together. A future immutable game GUID should be added as an alias/migration, not guessed from a name.
 
-The deployed version-1 rules accept `snapshot` and `task` envelopes with `characterId` and serialized `payload`. Account (`@game-account`), Legacy (`@legacy-progress`), and guild (`@guild`) discriminators deliberately keep that protocol compatible. This avoids making a website deployment depend on a live Firestore schema/rules migration. These envelopes are decoded in one service; components do not parse them. Old clients do not understand guild envelopes: refresh old open tabs after upgrading. No automatic destructive database migration is performed.
+The deployed version-1 rules accept `snapshot` and `task` envelopes with `characterId` and serialized `payload`. Account (`@game-account`), Legacy (`@legacy-progress`), guild (`@guild`), and fragment (`@snapshot-part`) discriminators deliberately keep that protocol compatible. This avoids making a website deployment depend on a live Firestore schema/rules migration. These envelopes are decoded in one service; components do not parse them. Old clients do not understand guild envelopes: refresh old open tabs after upgrading. No automatic destructive database migration is performed.
 
 Rules continue to allow only the matching Google-authenticated owner to read or write records. Users cannot list all armories, access another user's records, or publish arbitrary shared documents. An `officers` list in a private guild record confers **no security authority**. There is no public armory directory or cross-user guild membership yet. Future publishing should use sanitized public projections and server-validated membership, never expose this private record collection.
 
@@ -38,7 +41,7 @@ Previous item enhancement code captured imports before confirmation into global 
 
 ## Provenance and limitations
 
-- Existing Classic loot is a reference, never labeled confirmed Forever loot. Three initial raid listings have incomplete boss coverage; no raid loot or drop rates were invented.
+- Existing Classic loot is a reference, never labeled confirmed Forever loot. Molten Core and Blackwing Lair now have full Classic boss rosters; Onyxia and Nefarian have selected sourced loot. Mechanics, quests, and loot coverage remain incomplete; no drop rates are implied.
 - Talent ranks remain the existing video-derived beta dataset, with inferred values clearly labeled. Icons are existing project class/spell illustrations, not verified per-talent icons.
 - Racial banners now use original geometric SVG pennants. The unlicensed Pinterest raster was removed.
 - Private guild editing includes faction, description, recruitment, officers, ranks, and links to owned characters. Progress/events are typed import/backup hooks. Shared membership, invites, calendars, and public recruitment need a backend publishing design.
@@ -48,3 +51,9 @@ Previous item enhancement code captured imports before confirmation into global 
 ## Validation
 
 `npm test` covers models, migration/round trips, inventory filtering, partial captures, all class calculator rules, manual validation, and reference integrity. `npm run test:security` runs against the demo Firestore emulator, never the live project. Browser smoke and emulator sign-in checks are documented in [QA.md](QA.md). Production remains just `site/`; the existing Pages workflow runs tests and packages the addon before uploading it.
+
+## Large snapshot protocol
+
+Snapshots whose encoded envelope exceeds 170 KB are split by Unicode code point into 24,000-character chunks. Version-1 manifests store count, byte length, original snapshot hash ID, and an integrity checksum. Reading rejects missing, duplicate, orphaned, mixed or corrupt parts before accepting any state. The checksum detects accidental corruption; Firestore ownership is the security boundary. Limits remain 3 MB normalized snapshot, 128 parts, 180 KB record, and 450 changed records / 7 MB per atomic transaction. Small records remain compatible.
+
+`cloud.js` diffs against the actual fetched document IDs, not regenerated hashes of normalized old data. Schema normalization therefore cannot leave old observations orphaned on save or deletion. Writes and deletions, including every fragment, share the existing revision transaction. No production rule expansion or data migration is required. Older clients must reload after the new format is written; they fail closed on unknown records.

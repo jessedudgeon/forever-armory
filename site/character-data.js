@@ -93,6 +93,7 @@ export function progression(raw) {
     status: text(x.status, 100),
     completed: x.completed === true,
     bosses: list(x.bosses, 100).map((b) => ({
+      ...(b.id ? { id: text(b.id, 150) } : {}),
       name: text(b.name, 150),
       completed: b.completed === true,
     })),

@@ -1,6 +1,6 @@
 import { inventoryFor, searchInventory, LOCATIONS } from "./character-data.js";
 import { itemButton, discoveredItems } from "./items.js";
-import { DUNGEONS } from "./dungeons.js";
+import { instances, findInstance } from "./pve-data.js";
 import { classes, loadTalents, nodes } from "./talents.js";
 export const esc = (v) =>
   String(v ?? "").replace(
@@ -46,12 +46,7 @@ export function homeView(state) {
         "Three trees. One build. Every point matters.",
         "✦",
       ],
-      [
-        "dungeons",
-        "Dungeons & raids",
-        "Browse encounters and reference loot.",
-        "⚔",
-      ],
+      ["pve", "PvE Journal", "Browse encounters and reference loot.", "⚔"],
       [
         "items",
         "Find an item",
@@ -141,7 +136,7 @@ export function professionsView(state) {
   );
 }
 export function progressSection(s, editable = false) {
-  return `<section class="panel"><div class="section-row"><h2>Dungeons, raids & milestones</h2>${editable ? '<button id="edit-progress">Record progress</button>' : ""}</div>${(s.progress || []).length ? s.progress.map((p) => `<article class="progress-entry"><strong>${esc(p.name || p.id)}</strong><span class="chip">${esc(p.type)} · ${p.completed ? "Complete" : esc(p.status) || "In progress"}</span>${p.bosses.map((b) => `<small class="block">${b.completed ? "✓" : "○"} ${esc(b.name)}</small>`).join("")}${p.notes ? `<p>${esc(p.notes)}</p>` : ""}</article>`).join("") : "<p>No encounter progress captured yet. Use the journal to record a dungeon or raid objective.</p>"}</section>`;
+  return `<section class="panel"><div class="section-row"><h2>Dungeons, raids & milestones</h2>${editable ? '<button id="edit-progress">Record progress</button>' : ""}</div>${(s.progress || []).length ? s.progress.map((p) => `<article class="progress-entry"><strong>${findInstance(p.id) ? `<a href="#pve/${encodeURIComponent(p.id)}">${esc(p.name || p.id)}</a>` : esc(p.name || p.id)}</strong><span class="chip">${esc(p.type)} · ${p.completed ? "Complete" : esc(p.status) || "In progress"}</span>${p.bosses.map((b) => `<small class="block">${b.completed ? "✓" : "○"} ${esc(b.name)}</small>`).join("")}${p.notes ? `<p>${esc(p.notes)}</p>` : ""}</article>`).join("") : "<p>No encounter progress captured yet. Use the journal to record a dungeon or raid objective.</p>"}</section>`;
 }
 export function armorySummary(c, state) {
   const s = latest(c),
@@ -210,18 +205,18 @@ export async function bindSearch(root, state) {
       meta: g.faction,
       href: "#guilds/" + encodeURIComponent(g.id),
     })),
-    ...DUNGEONS.flatMap((d) => [
+    ...instances.flatMap((d) => [
       {
         type: d.kind === "raid" ? "Raid" : "Dungeon",
         name: d.name,
         meta: d.zone,
-        href: "#dungeons/" + d.id,
+        href: "#pve/" + d.id,
       },
-      ...d.bosses.map(([name]) => ({
+      ...d.encounters.map(({ id, name }) => ({
         type: "Boss",
         name,
         meta: d.name,
-        href: "#dungeons/" + d.id,
+        href: "#pve/" + d.id + "/" + id,
       })),
     ]),
     ...discoveredItems().map((i) => ({

@@ -73,6 +73,8 @@ The review screen's selected game account is authoritative. Import payloads cann
 
 ## Bounds and atomicity
 
-Exports are limited to 1 MB; inventories to 2,000 observations, recipes to 2,000, and progress to 500 entries. The existing cloud wire protocol additionally limits **each serialized snapshot to 180,000 bytes** and each atomic change to 450 records / 7 MB. A large import may fit the input limit and still exceed cloud capacity; it is rejected before writes, leaving cloud data unchanged. Splitting a large snapshot into chunked storage documents is future work; do not silently truncate or partially save it.
+Exports are limited to 1 MB; inventories to 2,000 observations, recipes to 2,000, and progress to 500 entries. Normalized snapshots up to **3 MB** can sync: the cloud serializer splits large snapshots into a versioned manifest and bounded fragments under the same private owner path. Each wire record remains below 180,000 bytes. Each atomic change is limited to 450 records / 7 MB; oversize changes fail before writes. No truncation or partial save occurs. Old open clients must refresh before reading the new fragment protocol.
+
+Encounter progress can include a stable `bosses[].id` matching `site/data/pve.js`, for example `progress: [{id: "onyxias-lair", type: "raid", name: "Onyxia’s Lair", bosses: [{id: "onyxia", name: "Onyxia", completed: true}]}]`. Old name-only bosses remain accepted. Both dungeons and raids use this structure. Whole-instance completion is explicit; a partial catalog cannot infer a full clear.
 
 All text is escaped at display boundaries. Arrays, IDs, timestamps, slot uniqueness, numbers, and account relationships are validated before saving. Server rules enforce ownership, not trust in addon claims. These private observations must never be treated as authoritative public rankings or verified logs.

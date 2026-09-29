@@ -18,7 +18,8 @@ service cloud.firestore {
         && request.resource.data.revision == resource.data.revision + 1
         && request.resource.data.updatedAt == request.time;
       allow delete: if false;
-      // Version-1 wire compatibility: @game-account, @legacy-progress and @guild
+      // Version-1 wire compatibility: @game-account, @legacy-progress, @guild,
+      // and @snapshot-part (large observation fragments)
       // use task envelopes. These are all private owner records, never shared roles.
       // Client-side payload validation does not grant public access or authority.
       match /records/{recordId} {

@@ -242,6 +242,29 @@ const assert = require("node:assert/strict");
       /Meteor Shard/,
     );
     await page.locator(".item-modal-close").click();
+    await page.goto("http://localhost:4173/#pve/onyxias-lair/onyxia");
+    assert.equal(await page.locator("h1").innerText(), "Onyxia");
+    await page.locator('[data-encounter="onyxia"]').check();
+    await page.reload();
+    await page.locator('[data-encounter="onyxia"]').waitFor();
+    assert.equal(
+      await page.locator('[data-encounter="onyxia"]').isChecked(),
+      true,
+    );
+    await page.locator('[data-item-detail="17068"]').click();
+    await page.locator("#item-detail-content h2").waitFor();
+    assert.match(
+      await page.locator("#item-detail-content").innerText(),
+      /Deathbringer/,
+    );
+    await page.locator(".item-modal-close").click();
+    await page.goto(
+      "http://localhost:4173/#pve/shadowfang-keep/archmage-arugal",
+    );
+    assert.equal(await page.locator("h1").innerText(), "Archmage Arugal");
+    await page.locator('[data-encounter="archmage-arugal"]').check();
+    await page.goto("http://localhost:4173/#pve/missing/no-boss");
+    assert.match(await page.locator("h1").innerText(), /not found/);
     await page.goto("http://localhost:4173/#search");
     await page.locator("#global-query").fill("Asha");
     await page.waitForFunction(() =>
@@ -269,6 +292,7 @@ const assert = require("node:assert/strict");
         "professions",
         "items",
         "dungeons",
+        "pve/blackwing-lair/nefarian",
         charHash.slice(1),
       ]) {
         await page.goto("http://localhost:4173/#" + route);
@@ -305,7 +329,7 @@ const assert = require("node:assert/strict");
       JSON.stringify(
         {
           result: "PASS",
-          flows: 19,
+          flows: 23,
           viewports: [390, 768, 1280, 1440],
           pageErrors: errors,
           failedRequests: failed,

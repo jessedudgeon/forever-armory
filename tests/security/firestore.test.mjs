@@ -18,3 +18,15 @@ test('account and guild envelopes remain private and cannot grant public access'
   for(const db of [bob,guest]){await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),{kind:'task',characterId,payload:'{}'}));}
  }
 });
+test('large snapshot fragments save atomically under existing rules and remain owner-only',async()=>{
+ const {recordsFor,stateFromRecords}=await import('../../site/cloud-model.js');
+ const {emptyState,normalize,addSnapshot}=await import('../../site/model.js');
+ const state=addSnapshot(emptyState(),normalize({name:'Big Bags',playStyle:'Normal',class:'MAGE',level:60,inventory:Array.from({length:2000},(_,slot)=>({id:2770,name:'Ore',quantity:20,slot,location:'bank'}))})).state;
+ const records=await recordsFor(state),owner=env.authenticatedContext('large-owner',{firebase:{sign_in_provider:'google.com'}}).firestore();
+ await assertSucceeds(runTransaction(owner,async tx=>{tx.set(doc(owner,'armories/large-owner'),{version:1,revision:1,updatedAt:serverTimestamp()});for(const[id,data]of records)tx.set(doc(owner,'armories/large-owner/records/'+id),data);}));
+ const actual=await getDocs(collection(owner,'armories/large-owner/records'));
+ const restored=stateFromRecords(actual.docs.map(d=>d.data()));
+ if(restored.characters[0].snapshots[0].inventory.length!==2000)throw Error('Incomplete inventory');
+ const part=[...records.keys()].find(id=>id.startsWith('p-'));
+ for(const db of[bob,guest]){await assertFails(getDoc(doc(db,'armories/large-owner/records/'+part)));await assertFails(deleteDoc(doc(db,'armories/large-owner/records/'+part)));}
+});

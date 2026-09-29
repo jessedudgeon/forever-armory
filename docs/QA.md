@@ -1,12 +1,12 @@
-# Validation record — 2026-09-28
+# Validation record — 2026-09-29
 
 ## Automated and browser checks
 
-- 52 Node tests: existing imports/backups/accounts/Legacy and nine-class talent rules plus rich-field cloud/backup round trips, slot/count validation, inventory search and duplicates, partial bank capture, historical-import freshness, identity separation, Legacy-save regression, raid filtering, and local asset/module references.
-- 6 Firestore emulator tests: matching Google owner access, other-user read/list/write/delete denial, signed-out/non-Google denial, forbidden account enumeration/public writes, revision checks and invalid payloads, private guild/account envelopes.
-- Local Chromium UI smoke: home/navigation, account creation/status, faction-filtered character creation/editing, notes, confirmed import, inventory filters and item dialog, professions, manual encounter progress, guild creation/association, talent allocation/tooltips/save, raid filtering, shared dungeon loot details, global character/talent search, item permalinks and refresh.
+- 58 Node tests: existing imports/backups/accounts/Legacy and nine-class talent rules plus rich-field cloud/backup round trips, slot/count validation, inventory search and duplicates, partial bank capture, historical-import freshness, identity separation, Legacy-save regression, raid filtering, canonical encounter IDs/shared loot references, per-boss progress preservation, 2,000-slot fragment round trips/corruption/deletion, stored-ID migration, and local asset/module references.
+- 7 Firestore emulator tests: matching Google owner access, other-user read/list/write/delete denial, signed-out/non-Google denial, forbidden account enumeration/public writes, revision checks and invalid payloads, private guild/account envelopes, large snapshot transaction and fragment isolation.
+- Local Chromium UI smoke: home/navigation, account creation/status, faction-filtered character creation/editing, notes, confirmed import, inventory filters and item dialog, professions, manual encounter progress, guild creation/association, talent allocation/tooltips/save, raid filtering, shared dungeon/raid encounter detail routes, persisted boss checklists, raid item dialogs, unknown encounter handling, global character/talent search, item permalinks and refresh.
 - Responsive checks at 390, 768, 1280, and 1440 pixels. Three talent trees share one row at desktop width. No page overflow, broken declared images, or JavaScript page errors. Screenshots inspected for talents, Armory, inventory, and mobile.
-- Auth + Firestore browser emulators: Google-provider credential sign-in, account and character creation, persistence after reload, guild persistence, sign-out clearing, second-user isolation, and absence of private localStorage copies.
+- Auth + Firestore browser emulators: Google-provider credential sign-in, account and character creation, persistence after reload, 2,000-slot inventory import and cloud reload, guild persistence, sign-out clearing, second-user isolation, and absence of private localStorage copies.
 - Addon packaging and Git diff checks. No production build step is required; `site/` is the deployment artifact.
 
 ## Reproduce
@@ -39,6 +39,6 @@ The cloud test substitutes only a demo Firebase configuration, locally bundled S
 - Real Google OAuth popup and live deployed Firestore rule state require an owner sign-in on the deployed site. Existing configuration and ownership rules were retained; no production Firebase deployment was performed.
 - External CDN/catalog outages are handled with local item fallback and cancelable dialogs; the environment's external Firebase CDN requests failed during an initial live-dependency smoke. Emulator tests establish application behavior, not third-party uptime.
 - Companion addon execution inside the actual Forever client, bank API availability, per-slot observations, known recipe extraction, and encounter detection remain unverified. This session prepares the website and documents the import contract; it does not implement those addon collectors.
-- Raid coverage is an initial, clearly labeled Classic reference directory. More bosses, loot, quests, and verified Forever mechanics are needed. Existing inferred talent ranks still require client verification.
+- Raid coverage is an initial, clearly labeled Classic reference directory. Full Classic Molten Core and Blackwing Lair rosters are present; additional instances, loot, quests, and verified Forever mechanics are needed. Existing inferred talent ranks still require client verification.
 - Public armories, shared guild invitations/roles/events, combat logs, and a verified full Forever catalog are not implemented.
-- Cloud snapshot size remains capped at 180 KB under the existing wire protocol; larger inventories need document chunking before raising that limit.
+- Large cloud snapshots now use fragments up to 3 MB. Very large multi-character/history backups can still exceed the atomic 450-record / 7 MB change limit; they are rejected intact. A paginated history/archive strategy is future work.

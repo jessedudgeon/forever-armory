@@ -99,6 +99,45 @@ const assert = require("node:assert/strict"),
     await page.reload();
     await page.locator(".profile-hero").waitFor();
     assert.match(await page.locator("h1").innerText(), /Cloud Keeper/);
+    await page.locator("#import").click();
+    await page.locator("#import-text").fill(
+      JSON.stringify({
+        format: "forever-armory",
+        version: 1,
+        character: {
+          mainName: "Cloud",
+          secondaryName: "Keeper",
+          playStyle: "Normal",
+          class: "PALADIN",
+          faction: "Horde",
+          race: "Undead",
+          level: 60,
+          inventory: Array.from({ length: 2000 }, (_, i) => ({
+            id: 2770,
+            name: "Cloud Ore " + i,
+            quantity: 20,
+            location: i < 1000 ? "bags" : "bank",
+            container: "main",
+            slot: i,
+          })),
+          storageStatus: { bags: { captured: true }, bank: { captured: true } },
+        },
+      }),
+    );
+    await page.locator("#import-form button").click();
+    await page
+      .locator("#import-account")
+      .selectOption({ label: "Cloud WoW 2" });
+    await page.locator("#save-import").click();
+    await page.locator("#modal").waitFor({ state: "hidden" });
+    await page.reload();
+    await page.locator(".profile-hero").waitFor();
+    await page.locator('[data-tab="inventory"]').click();
+    await page.locator("#inventory-location").selectOption("bank");
+    assert.equal(
+      await page.locator("#inventory-results tbody tr").count(),
+      1000,
+    );
     await page.goto("http://localhost:4173/#guilds");
     await page.locator("#new-guild").click();
     await page.locator("#guild-form [name=name]").fill("Private Cloud Guild");
@@ -150,7 +189,7 @@ const assert = require("node:assert/strict"),
     );
     assert.deepEqual(errors, []);
     console.log(
-      "PASS: emulated Google-provider sign-in, private account and character creation, cloud reload, guild save/reload, sign-out clearing and second-user isolation; no local copies or page errors.",
+      "PASS: emulated Google-provider sign-in, private account and character creation, 2,000-slot chunked inventory import/reload, guild save/reload, sign-out clearing and second-user isolation; no local copies or page errors.",
     );
   } finally {
     await browser.close();

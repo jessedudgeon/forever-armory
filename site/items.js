@@ -1,4 +1,4 @@
-import { DUNGEONS } from "./dungeons.js";
+import { referenceItems } from "./pve-data.js";
 import { inventoryFor } from "./character-data.js";
 import {
   normalizeIcon,
@@ -49,13 +49,7 @@ export function configureItems(provider) {
 }
 function customItems() {
   const items = {};
-  for (const d of DUNGEONS)
-    for (const [boss, loot] of d.bosses)
-      for (const i of loot)
-        items[i.id] = {
-          ...i,
-          source: `${d.name} · ${boss} (Classic reference)`,
-        };
+  for (const item of referenceItems()) items[item.id] = item;
   for (const c of getState().characters)
     for (const i of inventoryFor(c.snapshots.at(-1)))
       items[i.id] = { ...items[i.id], ...i };

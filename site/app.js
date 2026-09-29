@@ -3,7 +3,6 @@ import {
   clearItemSession,
   initializeItemUI,
   renderItemsPage,
-  itemButton,
 } from "./items.js";
 import {
   homeView,
@@ -21,7 +20,12 @@ import {
 import { normalizeGuild } from "./character-data.js";
 import { adSlot } from "./ads.js";
 import { mountTalents } from "./talents.js";
-import { DUNGEONS, findDungeon, searchDungeons } from "./dungeons.js";
+import {
+  instances,
+  findInstance,
+  encounterProgress,
+} from "./pve-data.js";
+import { pveView, bindPve } from "./pve.js";
 import {
   CHALLENGES,
   PERKS,
@@ -71,8 +75,6 @@ let state = emptyState(),
   accountFilter = "all",
   legacyCharacter = "",
   toastTimer;
-let dungeonQuery = "",
-  dungeonFilter = "all";
 try {
   const raw = localStorage.getItem(KEY);
   if (raw)
@@ -174,7 +176,8 @@ function route() {
   return (location.hash.slice(1) || "home").split("/");
 }
 function render() {
-  const [r, id] = route(),
+  const [rawRoute, id, encounterId] = route(),
+    r = rawRoute === "pve" ? "dungeons" : rawRoute,
     views = [
       "home",
       "roster",
@@ -218,7 +221,7 @@ function render() {
       roster: "Characters",
       character: "Character Armory",
       journal: "Adventure journal",
-      dungeons: "Dungeons & raids",
+      dungeons: "PvE Journal",
       guide: "Import & backups",
       account: "Your account",
       talents: "Talent calculator",
@@ -250,7 +253,7 @@ function render() {
     content = {
       home: () => homeView(visible),
       account: accountView,
-      dungeons: () => dungeonView(id),
+      dungeons: () => pveView(id, encounterId, visible),
       talents: () => '<div id="talent-root"></div>',
       items: () => '<div id="items-root"></div>',
       legacy: legacyView,
@@ -279,7 +282,35 @@ function render() {
   if (view === "legacy") bindLegacy();
   if (view === "character") bindCharacter(id);
   if (view === "journal") bindJournal();
-  if (view === "dungeons") bindDungeon();
+  if (view === "dungeons")
+    bindPve(
+      $("#main"),
+      id,
+      () => visible,
+      async (characterId, instanceId, encounterId, done) => {
+        const c = current().characters.find((c) => c.id === characterId);
+        if (!c) throw Error("Character is no longer available.");
+        const prior = latest(c);
+        await commit(
+          addSnapshot(
+            current(),
+            normalize({
+              ...prior,
+              progress: encounterProgress(
+                prior.progress,
+                instanceId,
+                encounterId,
+                done,
+              ),
+              gearObservedAt: prior.gearObservedAt || prior.observedAt,
+              observedAt: new Date().toISOString(),
+              source: "Manual encounter progress",
+            }),
+          ).state,
+        );
+        render();
+      },
+    );
   if (view === "guide") bindGuide();
   if (view === "guilds") bindGuilds(id);
   if (view === "search" && $("#global-query"))
@@ -489,41 +520,6 @@ function journalView() {
           '<a class="button primary" href="#roster">Go to characters</a>',
         ))
   );
-}
-function dungeonView(id) {
-  const dungeon = findDungeon(id);
-  if (id && !dungeon)
-    return empty(
-      "Dungeon not found",
-      "Browse the dungeon directory.",
-      '<a class="button" href="#dungeons">All dungeons</a>',
-    );
-  if (!dungeon)
-    return (
-      heading(
-        "BOSS & LOOT DIRECTORY",
-        "Dungeons & raids",
-        "Explore encounters and open their loot in the shared item database.",
-      ) +
-      `<div class="note">Classic loot is a reference only. Forever has changed dungeon itemization; these items and their stats are not confirmed Forever drops. New dungeons and unfilled entries show pending data.</div><section class="panel dungeon-directory"><div class="dungeon-controls"><label>Search dungeons, bosses, or items<input id="dungeon-search" type="search" placeholder="Try Shadowfang or Meteor Shard" value="${esc(dungeonQuery)}"></label><label>Show<select id="dungeon-filter"><option value="all">All instances</option><option value="dungeons" ${dungeonFilter === "dungeons" ? "selected" : ""}>Dungeons</option><option value="raids" ${dungeonFilter === "raids" ? "selected" : ""}>Raids</option><option value="new" ${dungeonFilter === "new" ? "selected" : ""}>New in Forever</option><option value="classic" ${dungeonFilter === "classic" ? "selected" : ""}>Classic returning</option></select></label></div><div id="dungeon-results">${dungeonCards()}</div></section>`
-    );
-  return `<a href="#dungeons" class="text-button">← All dungeons</a>${heading(dungeon.kind === "raid" ? "RAID · CLASSIC REFERENCE" : dungeon.new ? "NEW IN FOREVER" : "CLASSIC RETURNING", esc(dungeon.name), `${esc(dungeon.zone)} · Level ${esc(dungeon.level)} · ${dungeon.bosses.length} listed bosses`)}${dungeon.description ? `<p>${esc(dungeon.description)}</p>` : ""}<div class="note">${dungeon.bosses.length ? "The items below are Classic boss drops for reference. Forever loot and stats may differ. No drop rates are implied." : "Boss and loot information for this dungeon is pending verified Forever reports."}</div>${dungeon.bosses.length ? `<div class="dungeon-bosses">${dungeon.bosses.map(([boss, loot], index) => `<section class="panel dungeon-boss" id="boss-${index}"><div class="section-row"><h2>${esc(boss)}</h2><span class="muted">${loot.length ? `${loot.length} Classic reference items` : "No notable Classic gear listed"}</span></div>${loot.length ? `<ul class="dungeon-loot">${loot.map((item) => `<li><span aria-hidden="true">◆</span>${itemButton(item)}</li>`).join("")}</ul>` : '<p class="muted">No notable gear in the reference table. This is not a claim about Forever drops.</p>'}</section>`).join("")}</div>` : ""}${dungeon.source ? `<p class="dungeon-source">Classic reference: <a href="${dungeon.source}" target="_blank" rel="noopener">Reference source ↗</a></p>` : ""}`;
-}
-function dungeonCards() {
-  const matches = searchDungeons(dungeonQuery, dungeonFilter);
-  return matches.length
-    ? `<p class="muted">${matches.length} of ${DUNGEONS.length} instances</p><div class="dungeon-grid">${matches.map((d) => `<a class="dungeon-card" href="#dungeons/${d.id}"><small>${d.kind === "raid" ? "RAID · CLASSIC REFERENCE" : d.new ? "NEW IN FOREVER" : d.bosses.length ? "CLASSIC REFERENCE" : "CLASSIC RETURNING"}</small><strong>${esc(d.name)}</strong><span>${esc(d.zone)} · Level ${esc(d.level)}</span><em>${d.bosses.length ? `${d.bosses.length} bosses · ${d.bosses.reduce((n, b) => n + b[1].length, 0)} listed items` : "Boss loot pending"}</em></a>`).join("")}</div>`
-    : "<p>No dungeons match that search.</p>";
-}
-function bindDungeon() {
-  $("#dungeon-search")?.addEventListener("input", (e) => {
-    dungeonQuery = e.target.value;
-    $("#dungeon-results").innerHTML = dungeonCards();
-  });
-  $("#dungeon-filter")?.addEventListener("change", (e) => {
-    dungeonFilter = e.target.value;
-    $("#dungeon-results").innerHTML = dungeonCards();
-  });
 }
 function guideView() {
   return (
@@ -1309,7 +1305,7 @@ function guildDialog(g) {
 function progressDialog(c) {
   modal(
     "Record encounter progress",
-    `<form id="progress-form"><label>Dungeon or raid<select name="instance">${DUNGEONS.map((d) => `<option value="${d.id}">${esc(d.name)}${d.kind === "raid" ? " · Raid" : ""}</option>`).join("")}</select></label><label>Status<select name="status"><option>Planned</option><option>In progress</option><option>Complete</option></select></label><label>Notes<textarea name="notes" maxlength="1000"></textarea></label><p><small>This records your own progress, not a verified game completion. Saving replaces your prior record for this instance.</small></p><p id="form-error" class="error" role="alert"></p><button class="primary">Save progress</button></form>`,
+    `<form id="progress-form"><label>Dungeon or raid<select name="instance">${instances.map((d) => `<option value="${d.id}">${esc(d.name)}${d.kind === "raid" ? " · Raid" : ""}</option>`).join("")}</select></label><label>Status<select name="status"><option>Planned</option><option>In progress</option><option>Complete</option></select></label><label>Notes<textarea name="notes" maxlength="1000"></textarea></label><p><small>This records your own progress, not a verified game completion. Saving replaces your prior record for this instance.</small></p><p id="form-error" class="error" role="alert"></p><button class="primary">Save progress</button></form>`,
     () => {
       const form = $("#progress-form");
       form.elements.instance.onchange = () => {
@@ -1328,7 +1324,7 @@ function progressDialog(c) {
         e.preventDefault();
         try {
           const prior = latest(c),
-            d = findDungeon(form.elements.instance.value),
+            d = findInstance(form.elements.instance.value),
             existing = (prior.progress || []).find((p) => p.id === d.id),
             progress = [
               ...(prior.progress || []).filter((p) => p.id !== d.id),

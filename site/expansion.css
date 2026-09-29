@@ -456,3 +456,35 @@ td {
     font-size: 0.65rem;
   }
 }
+.encounter-nav {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.2rem 0;
+}
+.encounter-nav a {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line, #383b40);
+  border-radius: 5px;
+}
+.encounter-nav a[aria-current] {
+  background: #393528;
+  color: #f0d390;
+}
+.encounter-check {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.55rem 0;
+}
+.encounter-check input {
+  width: auto;
+  min-width: 18px;
+  accent-color: #d6b36a;
+}
+#pve-progress {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 0.2rem 1rem;
+}
