@@ -40,3 +40,15 @@ test('RP profiles and character posts never expose private fields or grant anoth
   }
  }
 });
+test('event and RSVP records persist for Google owner and cannot be read or edited cross-account',async()=>{
+ const {demoState}=await import('../../site/model.js');
+ const {saveEvent,saveRSVP}=await import('../../site/event-model.js');
+ const {recordsFor,stateFromRecords}=await import('../../site/cloud-model.js');
+ let state=demoState();state=saveEvent(state,{title:'Guild night',type:'social',hostCharacterId:state.characters[0].id,startsAt:'2026-09-01T18:00:00Z',endsAt:'2026-09-01T20:00:00Z',capacity:5},'guild-night');
+ state=saveRSVP(state,'guild-night',state.characters[1].id,'going','Healer');
+ const owner=env.authenticatedContext('events-owner',{firebase:{sign_in_provider:'google.com'}}).firestore(),records=await recordsFor(state);
+ await assertSucceeds(runTransaction(owner,async tx=>{tx.set(doc(owner,'armories/events-owner'),{version:1,revision:1,updatedAt:serverTimestamp()});for(const[id,data]of records)tx.set(doc(owner,'armories/events-owner/records/'+id),data);}));
+ const stored=await getDocs(collection(owner,'armories/events-owner/records')),restored=stateFromRecords(stored.docs.map(d=>d.data()));
+ if(restored.calendar.rsvps[0].role!=='Healer'||restored.calendar.events[0].title!=='Guild night')throw Error('Event persistence failed');
+ for(const [id,data]of records)if(id.startsWith('event-')||id.startsWith('rsvp-'))for(const db of[bob,guest,nonGoogle]){const path='armories/events-owner/records/'+id;await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),data));await assertFails(deleteDoc(doc(db,path)));}
+});

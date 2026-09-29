@@ -1,3 +1,4 @@
+import { eventSection } from "./events.js";
 import { inventoryFor, searchInventory, LOCATIONS } from "./character-data.js";
 import { itemButton, discoveredItems } from "./items.js";
 import { instances, findInstance } from "./pve-data.js";
@@ -175,7 +176,7 @@ export function guildsView(state, id) {
   const members = state.characters.filter(
     (c) => latest(c).guildId === guild.id,
   );
-  return `<a href="#guilds">← All guilds</a>${title(guild.faction, guild.name, guild.description)}<p><button id="edit-guild">Edit guild</button></p><div class="two-col"><section class="panel"><h2>Roster</h2>${members.length ? members.map((c) => `<div class="gear-row"><a href="#character/${encodeURIComponent(c.id)}">${esc(latest(c).name)}</a><span>${esc(latest(c).guildRank || "Member")} · Level ${latest(c).level}</span></div>`).join("") : "<p>Assign characters from their edit form to populate this roster.</p>"}<p><small>Officers: ${guild.officers.map(esc).join(", ") || "Not recorded"}<br>Ranks: ${guild.ranks.map(esc).join(", ") || "Not recorded"}</small></p></section><section class="panel"><h2>Recruitment</h2><p class="preserve-lines">${esc(guild.recruitment) || "No recruitment information yet."}</p><h3>Upcoming activity</h3>${guild.events.map((e) => `<p><strong>${esc(e.title)}</strong> · ${esc(e.date)}<br>${esc(e.notes)}</p>`).join("") || "<p>No events recorded.</p>"}</section></div>${progressSection({ progress: guild.progress })}`;
+  return `<a href="#guilds">← All guilds</a>${title(guild.faction, guild.name, guild.description)}<p><button id="edit-guild">Edit guild</button></p><div class="two-col"><section class="panel"><h2>Roster</h2>${members.length ? members.map((c) => `<div class="gear-row"><a href="#character/${encodeURIComponent(c.id)}">${esc(latest(c).name)}</a><span>${esc(latest(c).guildRank || "Member")} · Level ${latest(c).level}</span></div>`).join("") : "<p>Assign characters from their edit form to populate this roster.</p>"}<p><small>Officers: ${guild.officers.map(esc).join(", ") || "Not recorded"}<br>Ranks: ${guild.ranks.map(esc).join(", ") || "Not recorded"}</small></p></section><section class="panel"><h2>Recruitment</h2><p class="preserve-lines">${esc(guild.recruitment) || "No recruitment information yet."}</p><h3>Imported activity notes</h3>${guild.events.map((e) => `<p><strong>${esc(e.title)}</strong> · ${esc(e.date)}<br>${esc(e.notes)}</p>`).join("") || "<p>No events recorded.</p>"}</section></div>${eventSection(state,{guildId:guild.id})}${progressSection({ progress: guild.progress })}`;
 }
 export function searchView() {
   return (

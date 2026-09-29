@@ -1,3 +1,4 @@
+import { normalizeEvents, rekeyEvents } from "./event-model.js";
 import { normalizeSocial, rekeySocial } from "./social-model.js";
 import {
   characterExtras,
@@ -216,6 +217,7 @@ export const emptyState = () => ({
   tasks: [],
   guilds: [],
   social: { profiles: [], posts: [] },
+  calendar: { events: [], rsvps: [] },
   gameAccounts: [{ id: "default", name: "WoW 1" }],
   legacy: { challenges: [], perks: {} },
 });
@@ -397,6 +399,7 @@ export function validateBackup(o) {
     tasks,
     guilds: cleanGuilds,
     social: normalizeSocial(o.social, characters),
+    calendar: normalizeEvents(o.calendar, characters, cleanGuilds),
     gameAccounts: accounts,
     legacy: { challenges: [...legacy.challenges], perks },
   };
@@ -425,6 +428,11 @@ export function mergeBackup(current, incoming) {
   out.guilds ??= [];
   for (const g of incoming.guilds || [])
     if (!out.guilds.some((x) => x.id === g.id)) out.guilds.push(g);
+  out.calendar ??= {events:[],rsvps:[]};
+  for (const e of incoming.calendar?.events || [])
+    if (!out.calendar.events.some(x=>x.id===e.id)) out.calendar.events.push(e);
+  for (const r of incoming.calendar?.rsvps || [])
+    if (!out.calendar.rsvps.some(x=>x.eventId===r.eventId&&x.characterId===r.characterId)) out.calendar.rsvps.push(r);
   out.social ??= {profiles:[],posts:[]};
   for (const p of incoming.social?.profiles || [])
     if (!out.social.profiles.some(x=>x.characterId===p.characterId)) out.social.profiles.push(p);
@@ -561,6 +569,7 @@ export function saveManualCharacter(state, fields, existingId) {
     );
   if (existing) {
     rekeySocial(next, existingId, id);
+    rekeyEvents(next, existingId, id);
     existing.id = id;
     existing.snapshots = existing.snapshots.map((s) => {
       const updated = { ...s, ...identity };

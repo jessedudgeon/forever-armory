@@ -107,6 +107,13 @@ export async function recordsFor(state) {
   }
   for (const p of state.social?.posts || [])
     records.set("post-"+p.id, {kind:"task",characterId:"@character-post",payload:JSON.stringify(p)});
+  for (const e of state.calendar?.events || [])
+    records.set('event-'+e.id,{kind:'task',characterId:'@event',payload:JSON.stringify(e)});
+  for (const r of state.calendar?.rsvps || []) {
+    const hash=await crypto.subtle.digest('SHA-256',encoder.encode(JSON.stringify([r.eventId,r.characterId])));
+    const id=Array.from(new Uint8Array(hash),b=>b.toString(16).padStart(2,'0')).join('');
+    records.set('rsvp-'+id,{kind:'task',characterId:'@event-rsvp',payload:JSON.stringify(r)});
+  }
   return records;
 }
 export function stateFromRecords(records) {
@@ -198,6 +205,10 @@ export function stateFromRecords(records) {
       if (record.payload && payload.id === "default")
         out.gameAccounts[0] = payload;
       else out.gameAccounts.push(payload);
+    } else if (record.kind === "task" && record.characterId === "@event") {
+      out.calendar.events.push(payload);
+    } else if (record.kind === "task" && record.characterId === "@event-rsvp") {
+      out.calendar.rsvps.push(payload);
     } else if (record.kind === "task" && record.characterId === "@rp-profile") {
       out.social.profiles.push(payload);
     } else if (record.kind === "task" && record.characterId === "@character-post") {

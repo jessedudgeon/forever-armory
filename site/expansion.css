@@ -525,3 +525,10 @@ td {
 #rp-form details { margin: 16px 0; }
 #rp-form label, #character-post-form label, [data-edit-post] label { display: block; margin: 14px 0; }
 #rp-form textarea, #character-post-form textarea, [data-edit-post] textarea { width: 100%; box-sizing: border-box; }
+
+.event-filters { display: flex; flex-wrap: wrap; gap: 16px; }
+.event-filters label { flex: 1 1 200px; }
+#event-form label, #rsvp-form label { display: block; margin: 12px 0; }
+#event-form textarea, #rsvp-form textarea { width: 100%; box-sizing: border-box; }
+.event-attendees { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); margin-bottom: 20px; }
+.event-attendees article { padding: 12px; border: 1px solid var(--line); overflow-wrap: anywhere; }

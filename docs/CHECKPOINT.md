@@ -1,3 +1,30 @@
+# Latest checkpoint — character event planning, September 29
+
+Continued from live commit `513ad0c`; preserved the private RP/story release and all prior reference/Armory work.
+
+- Completed this continuation: private event creation/editing, raid/dungeon/RP/social/PvP/custom types, character hosts, optional guild plan and shared Journal links, UTC times with local display, character RSVPs with roles/notes, capacity enforcement, cancel/complete/reopen, private calendar export, guild event cards and completed-event character history.
+- Data changes: separate event/RSVP cloud records and additive backup collections; rename/delete handling keeps references valid; addon imports cannot overwrite plans.
+- Validation: 76 application/model/release tests and 9 Firestore emulator tests pass, including actual event/RSVP save/read and denied cross-owner access. Packaging, syntax and diff checks pass. Live browser acceptance follows deployment; no claim of a new production Google login or mobile pass yet.
+- Blocked by access: Firebase CLI reports no authenticated deployment session. Public profiles, cross-user feeds/following, shared guild invites/memberships and remote RSVPs cannot be enabled safely without the new shared authorization layer and its deployment.
+- Blocked by raw export: inventory/bank/recipes/talents/progress collector verification remains listed in EXPORT-FOLLOWUP.md; it did not block event development.
+- Incomplete: public social/guild platform, portraits/gallery, relationships/guestbook/reactions, shared scheduling, full verified Forever datasets. Private events are not presented as a shared calendar.
+- Known limits: local DST fall-back ambiguity (browser chooses first repeated hour); full owner collections still load together; large restore limits remain. Existing untracked race-banners.jpg is excluded, untouched.
+- Next highest priority: obtain authenticated Firebase deployment access, then implement stable public character identities and opt-in audience projections, followed by character-specific guild invitations. See SOCIAL-ARCHITECTURE.md and EVENTS.md.
+- Files: site/event-model.js, site/events.js, site/model.js, site/cloud-model.js, site/app.js, site/features.js, site/index.html, site/expansion.css, tests/events.test.mjs, tests/security/firestore.test.mjs, docs/EVENTS.md.
+
+## Current requirement status
+
+| Area | Status |
+|---|---|
+| Google auth, accounts → characters, private persistence | Core complete; production login acceptance still pending |
+| Armory, inventory, professions, talent calculator, shared dungeon/raid Journal | Working foundations; game content/collector coverage partial |
+| RP profiles, IC/OOC journal, private main/alt links | Private authoring complete; sharing not started |
+| Guild roster and event planning, character RSVPs/history | Private foundation complete; shared membership/calendar not started |
+| Public character directory, following, invites, social relationships | Not started; requires shared authorization deployment |
+| Addon import and complete verified game datasets | Partial; raw export / authoritative game data pending |
+
+---
+
 # Latest checkpoint — character storytelling, September 29
 
 The prior reference/Armory release was merged as `9ba3ca9` (PR #6); Pages deployment succeeded and the production homepage was verified. This continuation adds private character storytelling from the new social-platform brief.
