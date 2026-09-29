@@ -4,13 +4,21 @@ The prior reference/Armory release was merged as `9ba3ca9` (PR #6); Pages deploy
 
 - Completed: optional RP profiles, private IC/OOC and other journal entries with editing, character-filtered owner feed, story display alongside history, private main/alt links, rename/delete migration, additive backup/cloud persistence.
 - Security: unchanged owner-only Firestore rules; 8 emulator tests pass, including new profile/post cross-owner denial tests. No public publishing or new database access granted.
-- Tests: 68 Node tests pass; addon packaging and syntax/diff checks pass. Cloud browser cannot reach localhost (`ERR_BLOCKED_BY_CLIENT`); live UI verification follows publishing. Prior responsive smoke is recorded below and must not be confused with new social UI coverage.
+- Tests: 68 Node tests pass; addon packaging and syntax/diff checks pass. Cloud browser cannot reach localhost (`ERR_BLOCKED_BY_CLIENT`); live UI verification completed after publishing (details below). Prior responsive smoke is recorded below and must not be confused with new social UI coverage.
 - Incomplete: cross-user profiles/posts/following, character guild invitations, shared guild hub, events/RSVPs, mutual relationships, guestbooks/reactions and media. Next highest-value task is stable public character IDs plus opt-in profile projection and tested audience authorization; see SOCIAL-ARCHITECTURE.md.
 - Export-blocked tasks: unchanged; see EXPORT-FOLLOWUP.md. Tonight's raw addon export is still needed for inventory/bank/recipe/talent/progress collector verification, not for RP authoring.
 - Files: site/social-model.js, site/social.js, site/model.js, site/cloud-model.js, site/app.js, site/index.html, site/expansion.css, tests/social.test.mjs, tests/security/firestore.test.mjs, docs/SOCIAL-ARCHITECTURE.md.
 - Production QA also caught encoded route IDs reaching the social writer; binding now uses the resolved character ID.
 - Production QA found stale module caching after deploy. Added scripts/build-site.py and a release graph test; Pages now uploads .pages-dist with content-versioned JS/CSS URLs. Sources stay unchanged.
 - Existing untracked `site/assets/race-banners.jpg` was not introduced by this change and is excluded from the release.
+
+## Production verification
+
+Release `d4b5814` is deployed; both Pages and validation workflows succeeded. Live example-roster tests passed for RP profile saving, main/alt association, IC and OOC entry creation, entry editing, feed filtering and history reuse. Desktop (1348px) feed has no horizontal overflow or broken images. No application error appeared in the inspected console entries; browser-extension metadata errors are external to the site. Production Google sign-in and new mobile social layout remain unverified; prior emulator/auth and responsive checks are recorded separately. No production user records were written during QA.
+
+## Next task
+
+Build immutable opt-in public character identities and separately authorized profile projections, followed by character-to-character guild invitations. Keep owner records private. The raw addon export is a separate follow-up; no addon update was required for this private storytelling release.
 
 ---
 
