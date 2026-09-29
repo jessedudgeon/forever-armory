@@ -2,7 +2,7 @@
 
 Branch: `codex/armory-reference-expansion` · PR: https://github.com/jessedudgeon/forever-armory/pull/6
 
-This work extends the prior Journal/storage commit `5563543`; do not restart the audit. The PR is not merged or deployed. Firebase production rules/configuration were not changed; the rule comment documents the existing private envelope policy.
+This work extends the prior Journal/storage commit `5563543`; do not restart the audit. The owner authorized merging and production deployment on September 29; GitHub PR/Actions status is authoritative for release completion. Firebase production rules/configuration were not changed; the rule comment documents the existing private envelope policy.
 
 ## Completed this resumed session (continuation from `5563543`)
 
@@ -52,3 +52,7 @@ This work extends the prior Journal/storage commit `5563543`; do not restart the
 Class filtering uses explicit restrictions only; unknown restrictions remain visible. It does not infer trained weapon/armor proficiency or calculate upgrades. Metadata hooks are not a populated strategy/quest database. Manual editing of quest/attunement details, tier-set relationships, public/community features, and full addon collectors remain incomplete.
 
 Reproduce with `npm test`, `npm run test:security`, `python3 scripts/package.py`; browser setup is in `QA.md`. The site remains static GitHub Pages with hash routes.
+
+## Production release handoff
+
+Owner requested deploying all implemented changes. See [EXPORT-FOLLOWUP.md](EXPORT-FOLLOWUP.md) for the explicit tasks deferred until the raw addon export arrives tonight, separate from the broader unfinished backlog. The supplied website backup passed compatibility checks without edits or production writes.
