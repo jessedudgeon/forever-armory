@@ -38,7 +38,7 @@ const TREE_ICONS={
 };
 
 const CLASS_NAMES=Object.fromEntries(Object.keys(CLASS_ICONS).map(k=>[k,k[0]+k.slice(1).toLowerCase()]));
-// Samwise Didier's classic race heraldry, arranged in a 4×3 sprite.
+// Original geometric race-themed pennants, arranged in a 4×3 SVG sprite.
 // Skyborne has no published race banner here, so use its chosen faction crest.
 const RACE_BANNER_TILES={
  Human:[1,1],Dwarf:[0,2],'Night Elf':[0,1],Gnome:[1,2],
@@ -125,7 +125,7 @@ function enhanceCharacterForm(){
  const preview=document.createElement('div');preview.className='character-create-preview';preview.innerHTML='<span class="race-banner create-race-crest" role="img"></span><img class="create-class-icon" alt=""><div><small>CHARACTER IDENTITY</small><strong>Choose a faction, race, and class</strong><span>Your choices will shape the visual identity of this character.</span></div>';
  grid.before(preview);
  const faction=form.elements.faction,race=form.elements.race,cls=form.elements.class;
- const update=()=>{const f=faction?.value||'',r=race?.value||'',c=cls?.value||'';const raceImg=preview.querySelector('.create-race-crest'),classImg=preview.querySelector('.create-class-icon');raceImg.hidden=!r;if(r)applyRaceBanner(raceImg,r,f);classImg.src=CLASS_ICONS[c]||'';classImg.hidden=!c;classImg.alt=c?CLASS_NAMES[c]:'Class';preview.querySelector('strong').textContent=[r,c&&CLASS_NAMES[c]].filter(Boolean).join(' ')||'Choose a faction, race, and class';preview.querySelector('span').textContent=f?`${f} · ${r||'Choose a race'} · ${c?CLASS_NAMES[c]:'Choose a class'}`:'Start with a faction to reveal available races.';};
+ const update=()=>{const f=faction?.value||'',r=race?.value||'',c=cls?.value||'';const raceImg=preview.querySelector('.create-race-crest'),classImg=preview.querySelector('.create-class-icon');raceImg.hidden=!r;if(r)applyRaceBanner(raceImg,r,f);if(c)classImg.src=CLASS_ICONS[c];else classImg.removeAttribute('src');classImg.hidden=!c;classImg.alt=c?CLASS_NAMES[c]:'Class';preview.querySelector('strong').textContent=[r,c&&CLASS_NAMES[c]].filter(Boolean).join(' ')||'Choose a faction, race, and class';preview.querySelector('div > span').textContent=f?`${f} · ${r||'Choose a race'} · ${c?CLASS_NAMES[c]:'Choose a class'}`:'Start with a faction to reveal available races.';};
  form.addEventListener('change',update);update();
 }
 

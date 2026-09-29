@@ -11,3 +11,22 @@ test('another Google user cannot read, list, write or delete someone else’s re
 test('signed-out and non-Google clients cannot access an armory',async()=>{for(const db of [guest,nonGoogle]){await assertFails(getDoc(doc(db,'armories/alice')));await assertFails(setDoc(doc(db,'armories/alice/records/s-test'),record));}});
 test('users cannot enumerate accounts or write outside their armory',async()=>{await assertFails(getDocs(collection(alice,'armories')));await assertFails(setDoc(doc(alice,'public/anything'),record));});
 test('revision is advanced atomically, stale revision and invalid payload are denied',async()=>{await assertSucceeds(runTransaction(alice,async tx=>{const ref=doc(alice,'armories/alice');const root=await tx.get(ref);tx.set(ref,{version:1,revision:root.data().revision+1,updatedAt:serverTimestamp()});tx.set(doc(alice,'armories/alice/records/t-goal'),{...record,kind:'task'});}));await assertFails(setDoc(doc(alice,'armories/alice'),{version:1,revision:2,updatedAt:serverTimestamp()}));await assertFails(setDoc(doc(alice,'armories/alice/records/bad'),{...record,unexpected:'field'}));await assertFails(setDoc(doc(alice,'armories/alice/records/bad'),{...record,payload:'x'.repeat(180001)}));});
+test('account and guild envelopes remain private and cannot grant public access',async()=>{
+ for(const [id,characterId,payload] of [['a-second','@game-account',{id:'second',name:'WoW 2',legacyStatus:'Notes'}],['g-test','@guild',{id:'test',name:'Guild',officers:['bob'],public:true}]]){
+  const path='armories/alice/records/'+id;
+  await assertSucceeds(setDoc(doc(alice,path),{kind:'task',characterId,payload:JSON.stringify(payload)}));
+  for(const db of [bob,guest]){await assertFails(getDoc(doc(db,path)));await assertFails(setDoc(doc(db,path),{kind:'task',characterId,payload:'{}'}));}
+ }
+});
+test('large snapshot fragments save atomically under existing rules and remain owner-only',async()=>{
+ const {recordsFor,stateFromRecords}=await import('../../site/cloud-model.js');
+ const {emptyState,normalize,addSnapshot}=await import('../../site/model.js');
+ const state=addSnapshot(emptyState(),normalize({name:'Big Bags',playStyle:'Normal',class:'MAGE',level:60,inventory:Array.from({length:2000},(_,slot)=>({id:2770,name:'Ore',quantity:20,slot,location:'bank'}))})).state;
+ const records=await recordsFor(state),owner=env.authenticatedContext('large-owner',{firebase:{sign_in_provider:'google.com'}}).firestore();
+ await assertSucceeds(runTransaction(owner,async tx=>{tx.set(doc(owner,'armories/large-owner'),{version:1,revision:1,updatedAt:serverTimestamp()});for(const[id,data]of records)tx.set(doc(owner,'armories/large-owner/records/'+id),data);}));
+ const actual=await getDocs(collection(owner,'armories/large-owner/records'));
+ const restored=stateFromRecords(actual.docs.map(d=>d.data()));
+ if(restored.characters[0].snapshots[0].inventory.length!==2000)throw Error('Incomplete inventory');
+ const part=[...records.keys()].find(id=>id.startsWith('p-'));
+ for(const db of[bob,guest]){await assertFails(getDoc(doc(db,'armories/large-owner/records/'+part)));await assertFails(deleteDoc(doc(db,'armories/large-owner/records/'+part)));}
+});

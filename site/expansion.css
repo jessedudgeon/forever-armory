@@ -1,0 +1,518 @@
+/* Shared reference/Armory components. Keep desktop tools dense and mobile controls reachable. */
+html {
+  scroll-padding-top: 90px;
+}
+body {
+  overflow-x: hidden;
+}
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+}
+a,
+button {
+  touch-action: manipulation;
+}
+.sidebar {
+  overflow-y: auto;
+}
+.sidebar nav a {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.workspace,
+main,
+.panel,
+.two-col > * {
+  min-width: 0;
+}
+.subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.home-card {
+  display: block;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.home-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--gold);
+}
+.home-card > span:first-child {
+  font-size: 1.7rem;
+  color: var(--gold);
+}
+.home-card small {
+  color: var(--gold);
+}
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.3fr;
+  gap: 14px;
+  align-items: end;
+  margin: 20px 0;
+}
+.check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+.check-label input {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+.storage-coverage {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding-top: 20px;
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.storage-coverage strong,
+.storage-coverage small,
+.block {
+  display: block;
+}
+.storage-coverage small {
+  font-size: 0.75rem;
+}
+.item-inline {
+  border: 0;
+  background: none;
+  padding: 4px 0;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+}
+.item-inline:hover {
+  background: none;
+  color: var(--gold);
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin: 18px 0;
+}
+.summary-grid strong {
+  display: block;
+  font-size: 1.8rem;
+  color: var(--gold);
+}
+.summary-grid small {
+  display: block;
+}
+.recipe-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.recipe-card {
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #101b17;
+}
+.recipe-card h3 {
+  margin: 0;
+}
+.recipe-card .section-row {
+  flex-wrap: wrap;
+}
+.recipe-card p {
+  margin: 8px 0;
+}
+.craft-character {
+  display: block;
+  font-size: 1.3rem;
+  margin-bottom: 12px;
+}
+.preserve-lines {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.stat-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.stat-list dd {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1.4rem;
+}
+.progress-entry {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.progress-entry > .chip {
+  margin-left: 12px;
+}
+.search-result {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+}
+.search-result small {
+  margin-left: auto;
+}
+.search-result:hover strong {
+  color: var(--gold);
+}
+.reference-label {
+  font-size: 0.8rem;
+  color: var(--muted);
+  padding: 10px;
+  border-left: 2px solid var(--gold);
+}
+.ad-slot {
+  min-height: 90px;
+  max-width: 100%;
+  overflow: hidden;
+  margin: 20px auto;
+}
+.ad-slot:empty {
+  display: none;
+}
+.item-detail-modal {
+  max-width: min(640px, calc(100vw - 24px));
+  max-height: 85dvh;
+  overflow: auto;
+}
+.item-modal-actions {
+  flex-wrap: wrap;
+}
+.table-wrap {
+  max-width: 100%;
+  overflow: auto;
+}
+td {
+  overflow-wrap: anywhere;
+}
+/* All three trees remain aligned at desktop widths; compact nodes expose full tooltips. */
+.talent-trees {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: none;
+  gap: 12px;
+  align-items: stretch;
+}
+.talent-tree {
+  padding: 12px;
+}
+.talent-tree h2 {
+  font-size: 1.25rem;
+  gap: 6px;
+}
+.talent-tree .tree-icon {
+  width: 28px;
+  height: 28px;
+}
+.talent-grid {
+  gap: 5px;
+  align-items: stretch;
+}
+.talent-row {
+  min-height: 156px;
+  margin-bottom: 12px;
+}
+.talent-node {
+  min-height: 130px;
+  padding: 6px 2px;
+  cursor: default;
+}
+.talent-icon {
+  width: 32px;
+  height: 32px;
+  margin-bottom: 5px;
+}
+.talent-node > strong {
+  font-family: inherit;
+  font-size: 0.64rem;
+  min-height: 3.2em;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+}
+.rank-controls {
+  gap: 1px;
+  margin-top: 3px;
+}
+.rank-controls button {
+  min-width: 19px;
+  min-height: 26px;
+  padding: 1px;
+  font-size: 0.85rem;
+}
+.rank-controls span {
+  min-width: 22px;
+  font-size: 0.67rem;
+}
+.talent-info {
+  font-size: 0.62rem;
+  padding: 3px 0;
+  border: 0;
+  background: transparent;
+  display: block;
+  width: 100%;
+  margin-top: 3px;
+}
+.tier-label {
+  font-size: 0.66rem;
+}
+.talent-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  position: static;
+  align-items: center;
+}
+.talent-toolbar label {
+  flex: 1;
+  min-width: 115px;
+}
+.talent-point-track {
+  min-width: 90px;
+  flex: 1;
+}
+.talent-tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: min(340px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+  padding: 16px;
+  background: linear-gradient(130deg, #13172afa, #080c16fc);
+  color: #f4efe0;
+  border: 1px solid #b99d67;
+  box-shadow: 0 12px 35px #000c;
+  border-radius: 6px;
+  font-size: 0.86rem;
+  pointer-events: none;
+}
+.talent-tooltip > strong {
+  font-size: 1.1rem;
+  color: #ffdf86;
+  display: block;
+}
+.talent-tooltip small {
+  display: block;
+  color: #abb4c7;
+  font-size: 0.72rem;
+}
+.talent-tooltip p {
+  color: #e6e8ed;
+  font-size: 0.83rem;
+  margin: 10px 0;
+}
+.talent-tooltip .next-rank {
+  color: #83dc99;
+}
+.talent-tooltip .talent-requirements {
+  color: #e3c680;
+}
+.talent-node.locked:not(.invested) {
+  opacity: 0.85;
+}
+@media (max-width: 1100px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .home-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .talent-trees {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    align-items: stretch;
+    padding-bottom: 14px;
+  }
+  .talent-tree {
+    min-width: 340px;
+    flex: 1;
+    scroll-snap-align: start;
+  }
+}
+@media (max-width: 760px) {
+  .sidebar {
+    overflow: visible;
+  }
+  .sidebar nav {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .sidebar nav a {
+    font-size: 0.8rem;
+    padding: 8px;
+  }
+  .home-grid,
+  .recipe-list {
+    grid-template-columns: 1fr;
+  }
+  .summary-grid,
+  .storage-coverage {
+    grid-template-columns: 1fr 1fr;
+  }
+  .search-result {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .search-result small {
+    margin-left: 0;
+    width: 100%;
+  }
+  .talent-tree {
+    min-width: min(340px, calc(100vw - 48px));
+  }
+  .talent-toolbar .talent-class-badge {
+    width: 40px;
+    height: 40px;
+  }
+  .talent-tooltip {
+    pointer-events: auto;
+  }
+  .stat-list {
+    grid-template-columns: 1fr 1fr;
+  }
+  .topbar {
+    position: static;
+  }
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filters > label:first-child {
+    grid-column: 1/-1;
+  }
+  .profile-hero {
+    padding-right: 55px;
+  }
+  .profile-emblem {
+    width: 64px;
+    height: 64px;
+  }
+  .profile-hero h2 {
+    overflow-wrap: anywhere;
+  }
+  .section-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+@media (max-width: 760px) {
+  .profile-hero {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr);
+    align-items: start;
+    gap: 14px;
+    padding: 20px;
+  }
+  .profile-emblem {
+    width: 52px;
+    height: 52px;
+    padding: 4px;
+  }
+  .profile-hero h2 {
+    font-size: 1.65rem;
+    line-height: 1.2;
+    overflow-wrap: break-word;
+  }
+  .profile-race-crest {
+    width: 40px;
+    height: 40px;
+  }
+  .profile-hero .button {
+    margin-bottom: 30px;
+  }
+  .profile-hero .eyebrow {
+    font-size: 0.65rem;
+  }
+}
+.encounter-nav {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.2rem 0;
+}
+.encounter-nav a {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--line, #383b40);
+  border-radius: 5px;
+}
+.encounter-nav a[aria-current] {
+  background: #393528;
+  color: #f0d390;
+}
+.encounter-check {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0.55rem 0;
+}
+.encounter-check input {
+  width: auto;
+  min-width: 18px;
+  accent-color: #d6b36a;
+}
+#pve-progress {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 0.2rem 1rem;
+}
+.loot-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 1rem;
+}
+.loot-table-wrap {
+  overflow-x: auto;
+}
+.loot-table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.loot-table-wrap th,
+.loot-table-wrap td {
+  text-align: left;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.loot-table-wrap small {
+  display: block;
+}
+
+.pve-art {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+}

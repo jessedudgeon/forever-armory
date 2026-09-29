@@ -1,3 +1,1 @@
-Classic racial heraldry sprite used in the character cards, profile, and creation form:
-https://i.pinimg.com/originals/9c/61/e8/9c61e857541d01b6a1dc39b403087b9c.jpg
-These Warcraft racial crests originate in Samwise Didier's artwork. The site is an independent fan project. No published Skyborne crest was found, so that race displays its chosen faction crest instead.
+Race banners are original geometric SVG pennants created for this project (2026-09-28), not official racial logos. The 4×3 layout preserves the existing UI mapping. Skyborne uses a faction-themed pennant until verified artwork is available. The former Pinterest-sourced Warcraft raster sprite is no longer distributed. Existing class icons are unchanged.

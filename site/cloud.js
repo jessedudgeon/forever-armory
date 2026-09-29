@@ -13,7 +13,7 @@ export async function connectCloud(callback){
  const app=appSDK.initializeApp(firebaseConfig),auth=A.getAuth(app),db=F.initializeFirestore(app,{localCache:F.memoryLocalCache()});
  // Session-only authentication protects shared machines; cloud character data is never persisted locally.
  await A.setPersistence(auth,A.browserSessionPersistence);
- let user=null,epoch=0,revision=0,loaded=false,saving=false,lastState=emptyState(),unsubscribe=null,loadSerial=0,observedRevision=0;
+ let user=null,epoch=0,revision=0,loaded=false,saving=false,lastState=emptyState(),lastRecords=new Map(),unsubscribe=null,loadSerial=0,observedRevision=0;
  const error=code=>Object.assign(new Error(code),{code});
  const root=uid=>F.doc(db,'armories',uid),collection=uid=>F.collection(db,'armories',uid,'records');
  function emit(status,extra={}){callback({status,user:user?{uid:user.uid,name:user.displayName||'Adventurer',email:user.email||''}:null,...extra});}
@@ -31,13 +31,13 @@ export async function connectCloud(callback){
     const rev=before.data()?.revision||0;
     if(rev!==(after.data()?.revision||0))continue;
     const state=stateFromRecords(records.docs.map(d=>d.data()));
-    revision=rev;lastState=state;loaded=true;emit('ready',{state});return;
+    revision=rev;lastState=state;lastRecords=new Map(records.docs.map(d=>[d.id,d.data()]));loaded=true;emit('ready',{state});return;
    }
    throw error('conflict');
   }catch(e){if(epoch===session&&serial===loadSerial)emit('error',{error:friendlyError(e)});}
  }
  A.onAuthStateChanged(auth,next=>{
-  epoch++;loadSerial++;unsubscribe?.();unsubscribe=null;user=next;loaded=false;revision=0;observedRevision=0;lastState=emptyState();
+  epoch++;loadSerial++;unsubscribe?.();unsubscribe=null;user=next;loaded=false;revision=0;observedRevision=0;lastState=emptyState();lastRecords=new Map();
   if(!next){emit('signed-out');return;}
   emit('loading');
   const uid=next.uid,session=epoch;
@@ -57,8 +57,10 @@ export async function connectCloud(callback){
    if(!navigator.onLine)throw error('offline');
    saving=true;emit('saving');
    try{
-    const[before,after]=await Promise.all([recordsFor(lastState),recordsFor(next)]);
-    const change=diffRecords(before,after);
+    // Diff against actual stored IDs: normalizers may evolve without leaving
+    // old content-hash records orphaned on a subsequent save or deletion.
+    const after=await recordsFor(next);
+    const change=diffRecords(lastRecords,after);
     if(!change.writes.length&&!change.deletes.length){emit('ready',{state:lastState});return;}
     await F.runTransaction(db,async tx=>{
      if(epoch!==session||auth.currentUser?.uid!==uid)throw error('session-changed');
@@ -69,7 +71,7 @@ export async function connectCloud(callback){
      tx.set(root(uid),{version:1,revision:baseRevision+1,updatedAt:F.serverTimestamp()});
     });
     if(epoch!==session||auth.currentUser?.uid!==uid)throw error('session-changed');
-    revision=baseRevision+1;lastState=structuredClone(next);loaded=true;emit('ready',{state:lastState});
+    revision=baseRevision+1;lastState=structuredClone(next);lastRecords=after;loaded=true;emit('ready',{state:lastState});
    }catch(e){if(epoch===session)emit('save-error',{error:friendlyError(e)});throw Object.assign(new Error(friendlyError(e)),{code:e.code});}
    finally{saving=false;if(epoch===session&&observedRevision>revision)void refresh();}
   }
