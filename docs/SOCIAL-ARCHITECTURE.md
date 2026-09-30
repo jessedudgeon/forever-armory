@@ -21,4 +21,4 @@ Limits: one profile per owned character, 2,000 posts per Armory, 6,000 character
 
 An independent opt-in shared layer now provides stable public IDs, allowlisted profiles, directory, public posts, following, paginated feeds and reactions. See [COMMUNITY.md](COMMUNITY.md) for the exact schema, privacy contract, tests, activation gates and remaining limits. Private profiles/posts described above remain private; only explicit publication creates a separate public projection.
 
-Shared guild invitations/membership, shared events/RSVPs, mutual RP relationships, guestbooks and galleries remain unimplemented. Private event planning is complete; see EVENTS.md. These shared features require the new authorization layer to be deployed, not the pending raw addon export.
+Shared guild invitations/membership, shared events/RSVPs and directional public RP relationships now have a staged implementation; see SHARED-GUILDS.md. Mutual relationship confirmation, guestbooks and galleries remain unimplemented. Private event planning is complete; see EVENTS.md. These shared features require the new authorization layer to be deployed, not the pending raw addon export.

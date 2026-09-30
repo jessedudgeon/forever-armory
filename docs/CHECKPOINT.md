@@ -1,3 +1,19 @@
+# Latest checkpoint — shared character guilds, September 30
+
+Continued from `8b22cb9` on `codex/character-guild-foundation`. This is an incremental, staged release; production community activation is not performed.
+
+- Added: public RP story/image fields isolated from imported snapshots; directional RP relationships; reciprocal follows and follower counts; paginated following management; public/private guild creation/settings; character invitations and acceptance/decline; independent alt memberships; Master/Officer/Member ranks and atomic leadership transfer; filtered/paginated roster; guild posts and pinned announcements; guild events and transactional character RSVPs/capacity.
+- Preserved: Google auth implementation, owner-private accounts/characters/snapshots, private RP/journals, private guild/event planners, addon 0.3.0 collector and import identity/deduplication, item/inventory services, PvE Journal and talent URLs/layout.
+- UI fixes: community controls remain inert during asynchronous reads/writes; hidden pagination buttons really hide; actor selection survives navigation; unpublished owned identities remain available for guild management. Existing local-time validation is reused for scheduling.
+- Security: private immutable owner claims remain authoritative; no UID/account/automatic alt data is projected into membership/rosters. Canonical per-character membership enforces one guild. Invites cannot self-promote a recipient. RSVP rules couple each response to exactly one capacity delta. A browser-discovered ordinary-member rule-read-budget failure is fixed and covered by the security suite.
+- Validation: 101 application/model/release tests and 12 Firestore security scenarios pass. Browser acceptance uses actual production UI modules plus the real Firestore service against isolated emulator users: guild create/invite/accept, member authorization, roster, capacity, announcements/pinning, public story, relationship, follow/unfollow, manual character creation, explicit GUID linking, repeat import, inventory, existing routes, desktop talent trees, mobile layout and application errors. It does not use real Google OAuth or prove production indexes/CDN transport.
+- Deployment boundary: Firebase CLI has no authorized accounts. Rules/indexes must be deployed separately; Pages cannot activate them. Community remains behind the existing `communityConfig/status.enabled` gate. Review branch/PR before merging. Refresh old tabs after the reciprocal-follow rule update.
+- New index: collection-scoped `posts` on `pinned ASC, createdAt DESC`; story/guild prose fields are index-exempt. See `firestore.indexes.json` and SHARED-GUILDS.md.
+- Remaining: real staging/production Google login and Firebase activation; full opt-in public Armory/progression beyond compact identity; screenshot media upload/rendering; automatic shared import activities; scalable personalized feed; custom rank editing; shared event editing and former-member RSVP cleanup; guild disbanding and shared-data export/erasure. No game data was fabricated.
+- Important files: `site/guild-{model,service,ui}.js`, `site/profile-{model,ui}.js`, community modules, navigation/styles, Firestore rules/indexes, `tests/security/guilds.test.mjs`, `tests/browser-guilds.mjs`, and `docs/SHARED-GUILDS.md`.
+
+---
+
 # Latest checkpoint — addon import pipeline, September 29
 
 Continued from live `11671f7` and the owner's 21:31 UTC import handoff. Prior community and Journal work preserved.

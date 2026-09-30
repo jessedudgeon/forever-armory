@@ -1,5 +1,7 @@
 # Private character events
 
+This owner-only planner is preserved. The new shared guild calendar uses separate authorized collections and transactional cross-user character RSVPs; see [SHARED-GUILDS.md](SHARED-GUILDS.md).
+
 Events & gatherings (`#events`, `#events/{UUID}`) supports raids, dungeons, RP, social, PvP and custom events. Events have a character host, optional guild plan, optional shared PvE Journal instance link, title, description/preparation, location, capacity and start/end times. Forms show the browser's time zone; stored timestamps are UTC. Nonexistent local times (such as a spring DST gap) are rejected. During an autumn repeated hour the browser chooses the first occurrence; an explicit timezone/offset picker remains future work.
 
 RSVPs belong to individual owned characters, with Going / Maybe / Cannot attend, role and note. A host does not automatically reserve capacity. Changing a response updates the same record; Going counts are validated against capacity before saving. Cancelled/completed events close RSVPs and detail editing; reopening retains responses. Completion before the start is rejected. Marking complete is manual history, never inferred boss kills or loot.

@@ -90,4 +90,10 @@ Inventory across captured storage locations, craftbooks, saved builds, statistic
 - [Additive addon import contract](docs/IMPORT-SCHEMA.md)
 - [Validation and remaining acceptance work](docs/QA.md)
 
-Ads remain disabled. Public guild membership and full verified Forever datasets are future work.
+Ads remain disabled. Shared character profiles and guild membership are implemented behind the existing community activation gate; deployment/production acceptance and complete verified Forever datasets remain pending.
+
+## Character community and shared guilds
+
+The new **Guilds** navigation opens character-based invitations, memberships, filtered rosters, announcements and shared event RSVPs. **Private guild planner** retains the original owner-only plans. Public profiles add independently edited RP stories, HTTPS portraits/headers, relationships and follower counts. Imports do not write to these collections.
+
+See [shared guild schema, security, indexes, tests and deployment](docs/SHARED-GUILDS.md). Run `npm run test:browser` after installing Chromium with `npx playwright install --with-deps chromium`; the suite exercises the production UI modules against isolated Firestore emulator users. It does not test real Google OAuth.
