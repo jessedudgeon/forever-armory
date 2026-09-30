@@ -1,5 +1,5 @@
 // Explicit opt-in projection. Never spread a private snapshot or RP profile here.
-export const PUBLIC_POST_TYPES = ['ic','ooc','adventure','journal','profession','progression'];
+export const PUBLIC_POST_TYPES = ['ic','ooc','adventure','journal','profession','progression','screenshot','achievement','loot'];
 const text=(v,max)=>{if(typeof v!=='string'||v.length>max)throw Error(`Text exceeds ${max} characters.`);return v.trim();};
 export function publicCharacter(character,profile) {
   const s=character.snapshots.at(-1),f=profile?.fields||{};
