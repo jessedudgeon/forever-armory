@@ -22,6 +22,9 @@ jobs:
       - run: node --check site/app.js && node --check site/cloud.js
       - run: npm test
       - run: npm run test:security
+      - name: Install browser for community and Armory acceptance
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
       - name: Verify guarded addon collectors with Lua mocks
         run: |
           python3 -m venv /tmp/forever-lua
@@ -30,3 +33,13 @@ jobs:
           node scripts/verify-addon-export.mjs /tmp/forever-addon-test.json
           node scripts/verify-addon-export.mjs /tmp/forever-addon-test.json.lua
       - run: python3 scripts/package.py
+      - name: Stage production Pages candidate
+        run: python3 scripts/build-site.py
+      - name: Save reviewed Pages candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: forever-pages-candidate
+          path: .pages-dist
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7

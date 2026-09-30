@@ -1,3 +1,39 @@
+# Latest checkpoint — isolated staging build preparation, September 30
+
+- Resumed PR #7 from `da5b2f7`; GitHub validation run 36757198949 passed. Terminal works again. Interactive browser inventory works, but live-site navigation timed out; Firebase CLI has no authorized account.
+- Added `scripts/build-staging.py` to build against an explicitly supplied separate Firebase web config without editing production source or Pages output. Rejects production project/auth domain and extra credential fields; removes production CNAME and records project, Git revision, modified-tree status and asset token.
+- Release tests verify environment isolation and rejection behavior. No Firebase rules/indexes, private data/import contracts, production gate or deployment changed. Three lookup fields remain indexed.
+- Next: supply the existing staging project's web config and hosting origin, establish authorized Firebase access, and complete the two-account matrix in LIVE-COMMUNITY-ACCEPTANCE.md. PR remains draft; real Google acceptance is still pending.
+
+---
+
+# Latest checkpoint — private Armory observation views, September 30
+
+- Continued existing PR #7 / `codex/character-guild-foundation`; fetched main remains `8b22cb9`. Production HTML release token `d7c2478f349a0e6b`; feature branch remains unmerged.
+- Owner verified production rules publication, enabled posts index, successful Google sign-in/character loads and six text exemptions. Repository index config now preserves automatic indexing on `records.characterId`, `records.kind`, `communityOwners.characterKey` as explicitly requested.
+- Added read-only private observation panel: GUID, available names, addon/schema versions, capture reason, sex code/bind location and separate capture/import timestamps; reputation display handles missing/unsupported entries without invented labels.
+- Added Quest journal tab and searchable/paginated completed quest history, including backfilled IDs, repeatable turn-ins, unknown dates and export-truncation notice. No importer/addon contract, public visibility, schema or rule changes; no migration or new console steps.
+- Validation: 105 Node tests, 12 security scenarios, production addon packaging and versioned build; expanded emulator-backed browser suite passed quest search/pagination, reputation, mobile overflow and existing character/import/inventory/talent/community/guild flows. No application errors. Local Chromium installed in isolated /tmp prefix after official Playwright download failed; project dependencies unchanged.
+- Real production OAuth is owner-reported, not freshly automated. Enabled real-user shared-feature acceptance remains pending; community stays disabled. See ARMORY-OBSERVATIONS.md for audit and next milestone.
+
+---
+
+# Latest checkpoint — shared character guilds, September 30
+
+Continued from `8b22cb9` on `codex/character-guild-foundation`. This is an incremental, staged release; production community activation is not performed.
+
+- Added: public RP story/image fields isolated from imported snapshots; directional RP relationships; reciprocal follows and follower counts; paginated following management; public/private guild creation/settings; character invitations and acceptance/decline; independent alt memberships; Master/Officer/Member ranks and atomic leadership transfer; filtered/paginated roster; guild posts and pinned announcements; guild events and transactional character RSVPs/capacity.
+- Preserved: Google auth implementation, owner-private accounts/characters/snapshots, private RP/journals, private guild/event planners, addon 0.3.0 collector and import identity/deduplication, item/inventory services, PvE Journal and talent URLs/layout.
+- UI fixes: community controls remain inert during asynchronous reads/writes; hidden pagination buttons really hide; actor selection survives navigation; unpublished owned identities remain available for guild management. Existing local-time validation is reused for scheduling.
+- Security: private immutable owner claims remain authoritative; no UID/account/automatic alt data is projected into membership/rosters. Canonical per-character membership enforces one guild. Invites cannot self-promote a recipient. RSVP rules couple each response to exactly one capacity delta. A browser-discovered ordinary-member rule-read-budget failure is fixed and covered by the security suite.
+- Validation: 101 application/model/release tests and 12 Firestore security scenarios pass. Browser acceptance uses actual production UI modules plus the real Firestore service against isolated emulator users: guild create/invite/accept, member authorization, roster, capacity, announcements/pinning, public story, relationship, follow/unfollow, manual character creation, explicit GUID linking, repeat import, inventory, existing routes, desktop talent trees, mobile layout and application errors. It does not use real Google OAuth or prove production indexes/CDN transport.
+- Deployment boundary: Firebase CLI has no authorized accounts. Rules/indexes must be deployed separately; Pages cannot activate them. Community remains behind the existing `communityConfig/status.enabled` gate. Review branch/PR before merging. Refresh old tabs after the reciprocal-follow rule update.
+- New index: collection-scoped `posts` on `pinned ASC, createdAt DESC`; story/guild prose fields are index-exempt. See `firestore.indexes.json` and SHARED-GUILDS.md.
+- Remaining: real staging/production Google login and Firebase activation; full opt-in public Armory/progression beyond compact identity; screenshot media upload/rendering; automatic shared import activities; scalable personalized feed; custom rank editing; shared event editing and former-member RSVP cleanup; guild disbanding and shared-data export/erasure. No game data was fabricated.
+- Important files: `site/guild-{model,service,ui}.js`, `site/profile-{model,ui}.js`, community modules, navigation/styles, Firestore rules/indexes, `tests/security/guilds.test.mjs`, `tests/browser-guilds.mjs`, and `docs/SHARED-GUILDS.md`.
+
+---
+
 # Latest checkpoint — addon import pipeline, September 29
 
 Continued from live `11671f7` and the owner's 21:31 UTC import handoff. Prior community and Journal work preserved.

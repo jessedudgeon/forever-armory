@@ -69,15 +69,23 @@ service cloud.firestore {
         allow create, update: if communityLive() && characterOwner(id) && id != target
           && published(id) && published(target)
           && request.resource.data.keys().hasOnly(['createdAt'])
-          && request.resource.data.createdAt == request.time;
-        allow delete: if characterOwner(id);
+          && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/communityCharacters/$(target)/followers/$(id)).data.createdAt == request.time;
+        allow delete: if characterOwner(id) && !existsAfter(/databases/$(database)/documents/communityCharacters/$(target)/followers/$(id));
       }
+    }
+    function publicStoryData(d) {
+      return d.keys().hasOnly(['description','appearance','personality','history','portraitUrl','headerUrl','professions','designation'])
+        && shortText(d.description,2000) && shortText(d.appearance,2000) && shortText(d.personality,2000)
+        && shortText(d.history,6000) && safeUrl(d.portraitUrl) && safeUrl(d.headerUrl)
+        && shortText(d.professions,300) && shortText(d.designation,80);
     }
     match /communityCharacters/{id} {
       allow read: if communityLive();
       allow create, update: if communityLive() && googleUser()
         && getAfter(/databases/$(database)/documents/communityOwners/$(id)).data.uid == request.auth.uid
-        && request.resource.data.keys().hasOnly(['name','class','race','faction','level','playStyle','title','bio','status','createdAt','updatedAt'])
+        && request.resource.data.keys().hasOnly(['name','class','race','faction','level','playStyle','title','bio','status','story','createdAt','updatedAt'])
+        && (!('story' in request.resource.data) || publicStoryData(request.resource.data.story))
         && shortText(request.resource.data.name,150) && request.resource.data.name.size() > 0
         && shortText(request.resource.data.class,30) && shortText(request.resource.data.race,80)
         && shortText(request.resource.data.faction,30) && shortText(request.resource.data.playStyle,40)
@@ -88,12 +96,27 @@ service cloud.firestore {
         && ((!exists(/databases/$(database)/documents/communityCharacters/$(id)) && request.resource.data.createdAt == request.time)
           || (exists(/databases/$(database)/documents/communityCharacters/$(id)) && request.resource.data.createdAt == resource.data.createdAt));
       allow delete: if characterOwner(id);
+      match /followers/{actor} {
+        allow read: if communityLive() && published(id);
+        allow create, update: if communityLive() && characterOwner(actor) && actor != id && published(actor) && published(id)
+          && request.resource.data.keys().hasOnly(['createdAt']) && request.resource.data.createdAt == request.time
+          && getAfter(/databases/$(database)/documents/communityOwners/$(actor)/following/$(id)).data.createdAt == request.time;
+        allow delete: if characterOwner(actor) && !existsAfter(/databases/$(database)/documents/communityOwners/$(actor)/following/$(id));
+      }
+      match /relationships/{target} {
+        allow read: if communityLive() && published(id);
+        allow create, update: if communityLive() && characterOwner(id) && published(id) && published(target) && id != target
+          && request.resource.data.keys().hasOnly(['type','note','updatedAt'])
+          && request.resource.data.type in ['friend','rival','family','mentor','student','guildmate','romantic','enemy','custom']
+          && shortText(request.resource.data.note,500) && request.resource.data.updatedAt == request.time;
+        allow delete: if characterOwner(id);
+      }
       match /posts/{post} {
         allow read: if communityLive() && published(id);
         allow create, update: if communityLive() && characterOwner(id) && published(id)
           && post.matches('^[a-zA-Z0-9-]{1,80}$')
           && request.resource.data.keys().hasOnly(['type','body','createdAt','updatedAt'])
-          && request.resource.data.type in ['ic','ooc','adventure','journal','profession','progression']
+          && request.resource.data.type in ['ic','ooc','adventure','journal','profession','progression','screenshot','achievement','loot']
           && shortText(request.resource.data.body,6000) && request.resource.data.body.size() > 0
           && request.resource.data.updatedAt == request.time
           && ((!exists(/databases/$(database)/documents/communityCharacters/$(id)/posts/$(post)) && request.resource.data.createdAt == request.time)
@@ -107,6 +130,154 @@ service cloud.firestore {
             && request.resource.data.keys().hasOnly(['kind','createdAt'])
             && request.resource.data.kind == 'appreciate' && request.resource.data.createdAt == request.time;
           allow delete: if characterOwner(actor);
+        }
+      }
+    }
+    // Shared guilds never trust the owner-private @guild planning records.
+    function guildMember(actor, gid) {
+      return exists(/databases/$(database)/documents/communityMemberships/$(actor))
+        && get(/databases/$(database)/documents/communityMemberships/$(actor)).data.guildId == gid;
+    }
+    function guildAccess(gid) {
+      return googleUser() && exists(/databases/$(database)/documents/communityGuilds/$(gid)/access/$(request.auth.uid));
+    }
+    function accessActor(gid) {
+      return get(/databases/$(database)/documents/communityGuilds/$(gid)/access/$(request.auth.uid)).data.characterId;
+    }
+    function guildReader(gid) {
+      return communityLive() && (get(/databases/$(database)/documents/communityGuilds/$(gid)).data.visibility == 'public'
+        || (guildAccess(gid) &&
+          (guildMember(accessActor(gid),gid) || exists(/databases/$(database)/documents/communityInvites/$(accessActor(gid))/guilds/$(gid)))));
+    }
+    function guildMaster(gid) {
+      return characterOwner(get(/databases/$(database)/documents/communityGuilds/$(gid)).data.masterId);
+    }
+    function guildManager(gid) {
+      return (guildAccess(gid) && guildMember(accessActor(gid),gid)
+        && get(/databases/$(database)/documents/communityMemberships/$(accessActor(gid))).data.role in ['master','officer']) || guildMaster(gid);
+    }
+    function guildActor(actor, gid) { return characterOwner(actor) && published(actor) && guildMember(actor,gid); }
+    function safeUrl(value) { return shortText(value,1000) && (value == '' || value.matches('https://[^ @/]+[\\S]*')); }
+    function guildData(d) {
+      return d.keys().hasOnly(['name','tag','description','rules','playStyle','faction','recruiting','visibility','discordUrl','websiteUrl','imageUrl','bannerUrl','masterId','createdAt','updatedAt'])
+        && shortText(d.name,100) && d.name.size() > 0 && shortText(d.tag,16)
+        && shortText(d.description,3000) && shortText(d.rules,4000) && shortText(d.playStyle,40)
+        && d.faction in ['Horde','Alliance','Both'] && d.visibility in ['public','private'] && d.recruiting is bool
+        && safeUrl(d.discordUrl) && safeUrl(d.websiteUrl) && safeUrl(d.imageUrl) && safeUrl(d.bannerUrl)
+        && d.updatedAt == request.time;
+    }
+    function compatible(actor,gid) {
+      return get(/databases/$(database)/documents/communityGuilds/$(gid)).data.faction == 'Both'
+        || get(/databases/$(database)/documents/communityGuilds/$(gid)).data.faction == get(/databases/$(database)/documents/communityCharacters/$(actor)).data.faction;
+    }
+    match /communityMemberships/{actor} {
+      allow read: if characterOwner(actor) || guildReader(resource.data.guildId);
+      allow create: if communityLive() && characterOwner(actor) && published(actor)
+        && request.resource.data.keys().hasOnly(['guildId','role','joinedAt'])
+        && request.resource.data.joinedAt == request.time
+        && ((request.resource.data.role == 'master'
+            && !exists(/databases/$(database)/documents/communityGuilds/$(request.resource.data.guildId))
+            && getAfter(/databases/$(database)/documents/communityGuilds/$(request.resource.data.guildId)).data.masterId == actor)
+          || (request.resource.data.role == 'member'
+            && compatible(actor,request.resource.data.guildId)
+            && exists(/databases/$(database)/documents/communityInvites/$(actor)/guilds/$(request.resource.data.guildId))
+            && !existsAfter(/databases/$(database)/documents/communityInvites/$(actor)/guilds/$(request.resource.data.guildId))));
+      allow update: if communityLive() && guildMaster(resource.data.guildId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role'])
+        && ((request.resource.data.role in ['officer','member'] && getAfter(/databases/$(database)/documents/communityGuilds/$(resource.data.guildId)).data.masterId != actor)
+          || (request.resource.data.role == 'master' && getAfter(/databases/$(database)/documents/communityGuilds/$(resource.data.guildId)).data.masterId == actor));
+      allow delete: if communityLive() && resource.data.role != 'master'
+        && (characterOwner(actor) || guildMaster(resource.data.guildId)
+          || (resource.data.role == 'member' && guildManager(resource.data.guildId)));
+    }
+    match /communityInvites/{actor}/guilds/{gid} {
+      allow read: if characterOwner(actor) || (communityLive() && guildManager(gid));
+      allow create, update: if communityLive() && guildManager(gid) && characterOwner(request.resource.data.inviterId) && guildMember(request.resource.data.inviterId,gid)
+        && published(actor) && !guildMember(actor,gid) && compatible(actor,gid)
+        && request.resource.data.keys().hasOnly(['inviterId','guildName','createdAt'])
+        && request.resource.data.guildName == get(/databases/$(database)/documents/communityGuilds/$(gid)).data.name
+        && request.resource.data.createdAt == request.time;
+      allow delete: if characterOwner(actor) || (communityLive() && guildManager(gid));
+    }
+    match /communityGuilds/{gid} {
+      allow get: if guildReader(gid);
+      allow list: if communityLive() && resource.data.visibility == 'public';
+      allow create: if communityLive() && gid.matches('^[a-zA-Z0-9-]{1,80}$') && guildData(request.resource.data)
+        && characterOwner(request.resource.data.masterId) && published(request.resource.data.masterId)
+        && (request.resource.data.faction == 'Both' || request.resource.data.faction == get(/databases/$(database)/documents/communityCharacters/$(request.resource.data.masterId)).data.faction)
+        && getAfter(/databases/$(database)/documents/communityMemberships/$(request.resource.data.masterId)).data.guildId == gid
+        && getAfter(/databases/$(database)/documents/communityMemberships/$(request.resource.data.masterId)).data.role == 'master'
+        && request.resource.data.createdAt == request.time;
+      allow update: if communityLive() && guildManager(gid) && guildData(request.resource.data)
+        && (request.resource.data.masterId == resource.data.masterId || (guildMaster(gid)
+          && guildMember(request.resource.data.masterId,gid)
+          && getAfter(/databases/$(database)/documents/communityMemberships/$(request.resource.data.masterId)).data.role == 'master'
+          && getAfter(/databases/$(database)/documents/communityMemberships/$(resource.data.masterId)).data.role == 'officer'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['masterId','updatedAt'])))
+        && request.resource.data.faction == resource.data.faction
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if false;
+      match /access/{uid} {
+        allow get: if owner(uid);
+        allow create, update: if communityLive() && owner(uid)
+          && request.resource.data.keys().hasOnly(['characterId']) && characterOwner(request.resource.data.characterId)
+          && (existsAfter(/databases/$(database)/documents/communityMemberships/$(request.resource.data.characterId)) && getAfter(/databases/$(database)/documents/communityMemberships/$(request.resource.data.characterId)).data.guildId == gid
+            || exists(/databases/$(database)/documents/communityInvites/$(request.resource.data.characterId)/guilds/$(gid)));
+        allow delete: if owner(uid);
+      }
+      match /posts/{post} {
+        allow read: if guildReader(gid);
+        allow create: if communityLive() && guildActor(request.resource.data.actorId,gid)
+          && post.matches('^[a-zA-Z0-9-]{1,80}$')
+          && request.resource.data.keys().hasOnly(['actorId','type','body','pinned','createdAt'])
+          && request.resource.data.type in ['announcement','ic','ooc','screenshot','adventure','achievement','loot','profession','journal']
+          && (request.resource.data.type != 'announcement' || guildManager(gid))
+          && shortText(request.resource.data.body,6000) && request.resource.data.body.size() > 0
+          && request.resource.data.pinned == false && request.resource.data.createdAt == request.time;
+        allow update: if communityLive() && guildManager(gid) && resource.data.type == 'announcement'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pinned']) && request.resource.data.pinned is bool;
+        allow delete: if communityLive() && (characterOwner(resource.data.actorId) || guildManager(gid));
+      }
+      match /events/{event} {
+        function oldGoing(actor) {
+          return exists(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)/rsvps/$(actor))
+            && get(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)/rsvps/$(actor)).data.status == 'going';
+        }
+        function responseChange() {
+          let actor = request.resource.data.lastRsvpActor;
+          let response = getAfter(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)/rsvps/$(actor)).data;
+          return guildActor(actor,gid) && resource.data.status == 'scheduled'
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['going','lastRsvpActor','updatedAt'])
+            && response.updatedAt == request.time
+            && request.resource.data.going == resource.data.going + (response.status == 'going' ? 1 : 0) - (oldGoing(actor) ? 1 : 0)
+            && request.resource.data.going >= 0
+            && (resource.data.capacity == 0 || request.resource.data.going <= resource.data.capacity);
+        }
+        allow read: if guildReader(gid);
+        allow create: if communityLive() && guildManager(gid) && guildActor(request.resource.data.organizerId,gid)
+          && event.matches('^[a-zA-Z0-9-]{1,80}$')
+          && request.resource.data.keys().hasOnly(['name','description','requirements','notes','type','startsAt','capacity','organizerId','going','status','createdAt','updatedAt'])
+          && shortText(request.resource.data.name,150) && request.resource.data.name.size() > 0
+          && shortText(request.resource.data.description,4000) && shortText(request.resource.data.requirements,2000) && shortText(request.resource.data.notes,2000)
+          && request.resource.data.type in ['raid','dungeon','rp','meeting','pvp','social','custom']
+          && request.resource.data.startsAt is timestamp && request.resource.data.capacity is int
+          && request.resource.data.capacity >= 0 && request.resource.data.capacity <= 500
+          && request.resource.data.going == 0 && request.resource.data.status == 'scheduled'
+          && request.resource.data.createdAt == request.time && request.resource.data.updatedAt == request.time;
+        allow update: if communityLive() && request.resource.data.updatedAt == request.time
+          && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','updatedAt']) && guildManager(gid)
+            && request.resource.data.status in ['scheduled','cancelled']) || responseChange());
+        allow delete: if false;
+        match /rsvps/{actor} {
+          allow read: if guildReader(gid);
+          allow create, update: if communityLive() && guildActor(actor,gid)
+            && request.resource.data.keys().hasOnly(['status','updatedAt'])
+            && request.resource.data.status in ['going','maybe','declined'] && request.resource.data.updatedAt == request.time
+            && get(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)).data.status == 'scheduled'
+            && getAfter(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)).data.lastRsvpActor == actor
+            && getAfter(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)).data.updatedAt == request.time
+            && getAfter(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)).data.going == get(/databases/$(database)/documents/communityGuilds/$(gid)/events/$(event)).data.going + (request.resource.data.status == 'going' ? 1 : 0) - (oldGoing(actor) ? 1 : 0);
+          allow delete: if false;
         }
       }
     }

@@ -1,3 +1,4 @@
+import {questJournal, bindQuestJournal} from './armory-observations.js';
 import { storageView, bindStorage } from "./storage.js";
 import { progressChanges } from "./import-schema.js";
 import { sessionExportText } from "./session-import.js";
@@ -224,7 +225,7 @@ function render() {
     account || localMode || demo ? current() : emptyState(),
   );
   document.querySelectorAll("[data-nav]").forEach((a) => {
-    const active = a.dataset.nav === (view === "character" ? "roster" : view);
+    const active = a.dataset.nav === (view === "character" ? "roster" : view === "community" && (id === "guilds" || id?.startsWith("guild-")) ? "shared-guilds" : view);
     a.classList.toggle("active", active);
     if (active) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
@@ -470,7 +471,7 @@ function characterView(id) {
     );
   const s = latest(c),
     [cn, color] = CLASSES[s.class];
-  return `<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${["profile", "social", "equipment", "inventory", "professions", "encounters", "progress", "plans", "legacy"].map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Profile", social: "RP & story", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "Dungeons & raids", progress: "Progress history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "social" ? socialProfile(c, current()) : tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "progress" ? history(c) + '<h2>Character stories</h2>' + activityCards(current(), c.id) + eventSection(current(), {characterId:c.id,completedOnly:true}) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest observation: ${esc(new Date(s.observedAt).toLocaleString())}${s.importedAt ? ` · Imported: ${esc(new Date(s.importedAt).toLocaleString())}` : ""} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
+  return `<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${["profile", "social", "equipment", "inventory", "professions", "encounters", "quests", "progress", "plans", "legacy"].map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Profile", social: "RP & story", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "Dungeons & raids", quests: "Quest journal", progress: "Progress history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "social" ? socialProfile(c, current()) : tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "quests" ? questJournal(s) : tab === "progress" ? history(c) + '<h2>Character stories</h2>' + activityCards(current(), c.id) + eventSection(current(), {characterId:c.id,completedOnly:true}) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest observation: ${esc(new Date(s.observedAt).toLocaleString())}${s.importedAt ? ` · Imported: ${esc(new Date(s.importedAt).toLocaleString())}` : ""} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
 }
 function equipment(c) {
   const s = latest(c);
@@ -486,11 +487,6 @@ function equipment(c) {
           .join("")
       : "<p>No equipment captured yet. Use the included Forever Armory addon to export your equipped items.</p>"
   }</section><div><section class="panel"><h2>Talents</h2><p><a class="button" href="#talents/${s.class.toLowerCase()}/${Math.min(60, s.level)}">Plan a talent build ↗</a></p>${s.talents.length ? s.talents.map((t) => `<div class="gear-row"><span>${esc(t)}</span></div>`).join("") : "<p>No talent data in this snapshot.</p>"}</section><section class="panel"><h2>Professions & purse</h2>${s.professions.map((p) => `<div class="gear-row"><span>${esc(p.name)}</span><strong>${p.rank == null ? "Rank not captured" : p.rank + (p.max ? "/" + p.max : "")}</strong></div>`).join("") || "<p>Professions not captured.</p>"}<div class="gear-row"><span>Gold</span><strong>${money(s.money)}</strong></div></section></div></div>${s.warnings.length ? `<div class="note">${s.warnings.map(esc).join("<br>")}</div>` : ""}`;
-}
-function questJournal(s) {
-  if(!s.questHistory && !s.completedQuestIDs)return '';
-  const events=(s.questHistory||[]).slice(-50).reverse();
-  return `<section class="panel"><h2>Completed quest journal</h2><p>${s.completedQuestIDs?.length||0} known completed quest IDs · ${s.questHistory?.length||0} recorded turn-ins. Backfilled IDs have no invented completion time.</p>${events.length?`<p><small>Latest ${events.length} turn-ins. The full imported journal is included in your backup.</small></p><div class="table-wrap"><table><thead><tr><th>Turned in</th><th>Quest</th><th>Level</th><th>Zone</th></tr></thead><tbody>${events.map(e=>`<tr><td>${date(e.completedAt)}</td><td>${esc(e.name)||'Quest '+e.questId}</td><td>${e.level??'—'}</td><td>${esc(e.zone)||'—'}</td></tr>`).join('')}</tbody></table></div>`:'<p>No timed turn-ins imported yet. Install addon 0.3.0, complete a quest, then import the saved session.</p>'}</section>`;
 }
 function history(c) {
   const ss = c.snapshots,
@@ -557,6 +553,7 @@ function bindCharacter(id) {
   const c = findChar(id);
   if (!c) return;
   bindSocial($("#main"), current(), c.id, commit, render);
+  bindQuestJournal($("#main"), latest(c));
   if ($("#inventory-search")) bindInventory($("#main"), c);
   $("#edit-notes")?.addEventListener("click", () => notesDialog(c));
   $("#edit-progress")?.addEventListener("click", () => progressDialog(c));

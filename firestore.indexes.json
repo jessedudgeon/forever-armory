@@ -1,19 +1,24 @@
 {
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "posts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "pinned",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
   "fieldOverrides": [
     {
       "collectionGroup": "records",
       "fieldPath": "payload",
-      "indexes": []
-    },
-    {
-      "collectionGroup": "records",
-      "fieldPath": "characterId",
-      "indexes": []
-    },
-    {
-      "collectionGroup": "records",
-      "fieldPath": "kind",
       "indexes": []
     },
     {
@@ -27,8 +32,18 @@
       "indexes": []
     },
     {
-      "collectionGroup": "communityOwners",
-      "fieldPath": "characterKey",
+      "collectionGroup": "communityCharacters",
+      "fieldPath": "story",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "communityGuilds",
+      "fieldPath": "rules",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "communityGuilds",
+      "fieldPath": "description",
       "indexes": []
     }
   ]

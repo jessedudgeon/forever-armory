@@ -1,5 +1,7 @@
 # Opt-in character community — staged beta
 
+The character/guild continuation extends this baseline. **[SHARED-GUILDS.md](SHARED-GUILDS.md) is authoritative for the new story fields, reciprocal public follower edges/counts, following-list pagination, guilds, invitations, ranks, events, security, indexes and remaining deployment steps.** The following baseline describes the original compact projection and earlier release.
+
 The website includes public character profiles, a paginated directory, independent public IC/OOC and journal posts with editing, character following, a chronological following feed, and character-authored appreciation reactions. This layer is implemented and emulator-tested, but **production sharing remains disabled until database activation and enabled-UI acceptance**. Existing private Armory records and authentication are unchanged.
 
 ## Storage boundary
@@ -19,7 +21,7 @@ Unpublishing deletes only the public projection. Rules then deny reads of its po
 
 `community-service.js` is the Firestore boundary; `community-model.js` defines projections and chronological pagination; `community.js` provides the UI. Reads use server APIs, not a persistent public cache. Owner claims and projections publish atomically. Post edits preserve creation time. A k-way feed merge tracks independent cursors and rolls back buffered progress after a failed page.
 
-Directory and source-post pages load 20 records. The beta following feed includes the selected character and the first 20 following edges ordered by ID, explicitly labeled in the UI; full following management/pagination remains pending. The actor picker loads up to 100 identities. There is no public user directory or exposed main/alt grouping. Public data is separate from private backup exports. Shared-data export/erasure, moderation/reporting, blocking, query-abuse controls and broader feed scaling are still launch work.
+Directory and source-post pages load 20 records. The beta following feed includes the selected character and the first 20 following edges ordered by ID, explicitly labeled in the UI; the mixed feed remains limited; the new following management list is paginated. The actor picker loads up to 100 identities. There is no public user directory or exposed main/alt grouping. Public data is separate from private backup exports. Shared-data export/erasure, moderation/reporting, blocking, query-abuse controls and broader feed scaling are still launch work.
 
 ## Safe activation / rollback
 
@@ -30,6 +32,6 @@ Directory and source-post pages load 20 records. The beta following feed include
 
 `npm test` covers projection exclusions, validation, stable IDs and feed ordering/retries. `npm run test:security` uses the actual service against the Firestore emulator with two Google users and an anonymous reader, including forgery/ownership-transfer denial, follows/reactions, unpublish and kill-switch behavior. These checks do not prove production OAuth/configuration or enabled browser UX.
 
-## Next vertical slice
+## Original next vertical slice (implemented in this continuation; activation pending)
 
 Character-targeted guild invitations and acceptance, authoritative shared membership/ranks, then shared guild feed/events and character RSVPs. Existing private guild officer fields must never confer shared authority. Mutual RP relationships, guestbooks, galleries and addons producing public activity remain future work. No raw addon export is needed for this community layer; collector gaps remain in EXPORT-FOLLOWUP.md.

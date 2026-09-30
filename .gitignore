@@ -5,3 +5,4 @@ site/downloads/*.zip
 .firebase/
 
 .pages-dist/
+.staging-dist/

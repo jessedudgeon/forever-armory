@@ -1,3 +1,21 @@
+# Private observation / quest journal acceptance — September 30
+
+105 Node tests pass, including 20,000 completed IDs, repeatable quest events, untimed backfill, page clamping/filtering, HTML escaping, zero reputation values and retained lookup indexes. All 12 existing security scenarios pass with unchanged rules. Production packaging and versioned site staging succeed.
+
+The expanded Chromium suite passes 125-ID pagination/search/filter reset, reputation and GUID display, 390px mobile overflow checks, plus existing manual creation/import deduplication/inventory/talents and emulator-backed social/guild/RSVP checks. No application errors observed. Screenshot `/tmp/forever-quest-mobile.png` was visually inspected. No production records were written. Production sign-in/character loading and console configuration are verified by the owner; this run does not authenticate real Google accounts.
+
+---
+
+# Shared guild / social acceptance — September 30
+
+The shared foundation adds 4 pure-model tests (101 total), a multi-user guild lifecycle/rules scenario (12 security scenarios total), and `npm run test:browser`. Security scenarios contain multiple positive and hostile assertions, including an ordinary Member RSVP regression for the Firestore per-write rule-read limit, concurrent last-seat claims, private access revocation and atomic leadership transfer.
+
+The Chromium suite renders the production community modules and sends their operations through the real service to the emulator. It covers guild creation, invitation/acceptance, ordinary-member controls, roster filtering, RSVP capacity, pinned announcements, public story editing, relationships, follow/unfollow/counts, desktop/mobile layout, and application errors. It also opens the actual app in isolated example mode to verify manual character creation, stable explicit import linking, identical re-imports, captured inventory, existing reference/planner routes, and three desktop talent trees. The final run uses the checked-in npm lockfile. CI now runs this suite after installing Chromium.
+
+No production user records or Firebase configuration were changed. Real Google OAuth, deployed rule/index state, enabled production UI, actual Forever client data collection, and full game-content verification remain separate acceptance gates. See [SHARED-GUILDS.md](SHARED-GUILDS.md) for scope, schema and deployment commands.
+
+---
+
 # Validation record — 2026-09-29
 
 ## Automated and browser checks
