@@ -6,7 +6,7 @@
 - GitHub Actions run 36728366990 completed successfully: dependency install, JavaScript syntax, 105 model tests, security suite, Chromium UI suite, Lua collector round trip and addon packaging.
 - The three lookup fields retain automatic indexing: `records.characterId`, `records.kind`, `communityOwners.characterKey`. No changes to rules, data contracts or activation in this release-preparation increment.
 - Production rules/indexes and existing Google sign-in/character loading were previously confirmed by the owner. These are not fresh live two-user acceptance results.
-- Current development environment is unavailable. No authenticated Firebase administrative connection or interactive browser is exposed. Live website retrieval also failed through the available retrieval tool; current deployed asset identity is unverified.
+- Continuation check September 30: terminal restored; head `da5b2f7` passed GitHub Actions run 36757198949. Browser inventory responded but opening the live site timed out. Firebase CLI reports no authorized accounts and project listing fails authentication. Current deployed asset identity and live acceptance remain unverified.
 - No production writes, merge, deployment, or community activation performed.
 
 ## Build preparation
@@ -50,4 +50,17 @@ Record pass/fail, time, revision and non-secret evidence for each row. Do not st
 5. Only after acceptance, enable production community through an authorized Firebase admin. Do not auto-publish any character.
 6. If shared behavior fails, set the production gate false, retain data, and investigate. Do not delete community records or revert ownership rules to broad access. Frontend rollback uses the existing Git workflow and a reviewed compatible revision.
 
-Remaining prerequisites: restored development environment, authorized staging Firebase access, staging frontend and two real Google test sessions. No production console changes are required by the build-preparation commit itself.
+Remaining prerequisites: authorized staging Firebase access, a staging frontend, a working interactive browser and two real Google test sessions. No production console changes are required by the build-preparation commit itself.
+
+## Prepare the isolated staging candidate
+
+Use the existing staging project's Firebase **web app config**, saved as JSON outside the repository. Do not provide a service-account key or access token. If there is no staging project yet, agree its creation with the owner first.
+
+```sh
+python3 scripts/package.py
+python3 scripts/build-staging.py --firebase-config /absolute/path/staging-web-config.json
+```
+
+The builder creates `.staging-dist`, leaves production source and `.pages-dist` untouched, rejects the production project/auth domain and unknown configuration fields, removes the production CNAME, and adds a crawler exclusion and a non-secret revision/project/asset manifest. Crawler exclusion is not access control. Review `staging-manifest.json`; `workingTreeModified` must be false for revision-specific acceptance. Build again from the final committed revision before hosting.
+
+Host this directory on the agreed staging origin using the owner's authorized hosting setup; authorize that origin in the staging Google provider configuration. This build command does not create projects, enable billing, deploy hosting/rules/indexes, sign anyone in, or enable community. Deploy the existing rules/indexes explicitly to the staging project and verify readiness before following the test matrix above. Production keeps its existing Pages workflow and closed community gate.

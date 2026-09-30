@@ -1,3 +1,12 @@
+# Latest checkpoint — isolated staging build preparation, September 30
+
+- Resumed PR #7 from `da5b2f7`; GitHub validation run 36757198949 passed. Terminal works again. Interactive browser inventory works, but live-site navigation timed out; Firebase CLI has no authorized account.
+- Added `scripts/build-staging.py` to build against an explicitly supplied separate Firebase web config without editing production source or Pages output. Rejects production project/auth domain and extra credential fields; removes production CNAME and records project, Git revision, modified-tree status and asset token.
+- Release tests verify environment isolation and rejection behavior. No Firebase rules/indexes, private data/import contracts, production gate or deployment changed. Three lookup fields remain indexed.
+- Next: supply the existing staging project's web config and hosting origin, establish authorized Firebase access, and complete the two-account matrix in LIVE-COMMUNITY-ACCEPTANCE.md. PR remains draft; real Google acceptance is still pending.
+
+---
+
 # Latest checkpoint — private Armory observation views, September 30
 
 - Continued existing PR #7 / `codex/character-guild-foundation`; fetched main remains `8b22cb9`. Production HTML release token `d7c2478f349a0e6b`; feature branch remains unmerged.
