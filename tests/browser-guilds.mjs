@@ -96,7 +96,7 @@ try {
  await app.locator('#manual-form [name=race]').selectOption('Undead');await app.locator('#manual-form [name=class]').selectOption('PALADIN');
  await app.locator('#manual-form button[type=submit]').click();await app.locator('#modal').waitFor({state:'hidden'});
  const characterRoute=app.url().split('#')[1];
- const payload={format:'forever-armory',version:1,addonVersion:'0.3.0',character:{mainName:'Browser',secondaryName:'Fixture',playStyle:'Normal',class:'PALADIN',race:'Undead',faction:'Horde',level:15,gameIdentity:{guid:'Player-BROWSER-TEST',realm:'QA'},observedAt:new Date(Date.now()+1000).toISOString(),bags:[{bag:0,slot:1,id:2840,count:33,link:'[Copper Bar]'}]}};
+ const payload={format:'forever-armory',version:1,addonVersion:'0.3.0',character:{mainName:'Browser',secondaryName:'Fixture',playStyle:'Normal',class:'PALADIN',race:'Undead',faction:'Horde',level:15,gameIdentity:{guid:'Player-BROWSER-TEST',realm:'QA'},observedAt:new Date(Date.now()+1000).toISOString(),bags:[{bag:0,slot:1,id:2840,count:33,link:'[Copper Bar]'}],completedQuestIDs:Array.from({length:125},(_,i)=>i+1),reputations:[{name:'Test Faction',standing:4,min:0,max:3000,value:125}]}};
  for(let i=0;i<2;i++){
   await app.evaluate(()=>location.hash='roster');await app.locator('#import').first().click();await app.locator('#import-text').fill(JSON.stringify(payload));
   await app.locator('#import-form button[type=submit]').click();await app.locator('#import-account').selectOption('default');
@@ -104,6 +104,19 @@ try {
   await app.locator('#save-import').click();await app.locator('#modal').waitFor({state:'hidden'});
   assert.equal(app.url().split('#')[1],characterRoute,'import keeps manual profile route');
  }
+ await app.locator('[data-tab=profile]').click();await app.getByText('Player-BROWSER-TEST',{exact:true}).waitFor();
+ await app.getByText('Imported reputation (1)',{exact:true}).click();await app.getByText('Test Faction',{exact:true}).waitFor();
+ await app.locator('[data-tab=progress]').click();await app.locator('#quest-results').filter({hasText:'125 matching records'}).waitFor();
+ assert.equal(await app.locator('#quest-rows tr').count(),50);await app.locator('#quest-next').click();
+ await app.locator('#quest-results').filter({hasText:'Page 2 of 3'}).waitFor();
+ await app.locator('#quest-search').fill('125');assert.equal(await app.locator('#quest-rows tr').count(),1);
+ await app.getByText('Quest 125',{exact:false}).first().waitFor();assert.equal(await app.locator('#quest-prev').isDisabled(),true);
+ await app.locator('#quest-mode').selectOption('timed');await app.getByText('No matching completed quests.',{exact:true}).waitFor();
+ await app.locator('#quest-mode').selectOption('all');await app.locator('#quest-search').fill('');
+ await app.setViewportSize({width:390,height:844});assert.equal(await app.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'quest journal mobile overflow');
+ await app.screenshot({path:'/tmp/forever-quest-mobile.png',fullPage:true});
+ await app.locator('[data-tab=profile]').click();assert.equal(await app.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'observation mobile overflow');
+ await app.setViewportSize({width:1440,height:1000});
  await app.evaluate(()=>location.hash='storage');await app.getByText('Copper Bar',{exact:false}).first().waitFor();
  await app.evaluate(()=>location.hash='talents');await app.waitForSelector('.talent-tree');
  const xs=await app.locator('.talent-tree').evaluateAll(nodes=>nodes.map(n=>n.getBoundingClientRect().top));assert.equal(new Set(xs).size,1,'three trees align on desktop');

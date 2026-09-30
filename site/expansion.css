@@ -549,3 +549,5 @@ td {
 @media(max-width:600px) { .roster-member { flex-direction:column; } }
 
 #community-root [hidden] { display:none !important; }
+
+.observation-filters{display:flex;gap:1rem;flex-wrap:wrap}.observation-filters label{flex:1;min-width:180px}.observation-facts{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,3fr);gap:.5rem 1rem}.observation-facts dd{margin:0;overflow-wrap:anywhere}.observation-facts dt{color:var(--muted)}

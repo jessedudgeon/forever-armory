@@ -97,3 +97,7 @@ Ads remain disabled. Shared character profiles and guild membership are implemen
 The new **Guilds** navigation opens character-based invitations, memberships, filtered rosters, announcements and shared event RSVPs. **Private guild planner** retains the original owner-only plans. Public profiles add independently edited RP stories, HTTPS portraits/headers, relationships and follower counts. Imports do not write to these collections.
 
 See [shared guild schema, security, indexes, tests and deployment](docs/SHARED-GUILDS.md). Run `npm run test:browser` after installing Chromium with `npx playwright install --with-deps chromium`; the suite exercises the production UI modules against isolated Firestore emulator users. It does not test real Google OAuth.
+
+## Private imported observations and quest journal
+
+Character profiles show available GUID/capture metadata and imported reputation without publishing it. The Quest journal tab searches and pages all retained turn-ins and completed IDs, including untimed backfill. See [current roadmap audit and deployment state](docs/ARMORY-OBSERVATIONS.md).

@@ -1,3 +1,14 @@
+# Latest checkpoint — private Armory observation views, September 30
+
+- Continued existing PR #7 / `codex/character-guild-foundation`; fetched main remains `8b22cb9`. Production HTML release token `d7c2478f349a0e6b`; feature branch remains unmerged.
+- Owner verified production rules publication, enabled posts index, successful Google sign-in/character loads and six text exemptions. Repository index config now preserves automatic indexing on `records.characterId`, `records.kind`, `communityOwners.characterKey` as explicitly requested.
+- Added read-only private observation panel: GUID, available names, addon/schema versions, capture reason, sex code/bind location and separate capture/import timestamps; reputation display handles missing/unsupported entries without invented labels.
+- Added Quest journal tab and searchable/paginated completed quest history, including backfilled IDs, repeatable turn-ins, unknown dates and export-truncation notice. No importer/addon contract, public visibility, schema or rule changes; no migration or new console steps.
+- Validation: 105 Node tests, 12 security scenarios, production addon packaging and versioned build; expanded emulator-backed browser suite passed quest search/pagination, reputation, mobile overflow and existing character/import/inventory/talent/community/guild flows. No application errors. Local Chromium installed in isolated /tmp prefix after official Playwright download failed; project dependencies unchanged.
+- Real production OAuth is owner-reported, not freshly automated. Enabled real-user shared-feature acceptance remains pending; community stays disabled. See ARMORY-OBSERVATIONS.md for audit and next milestone.
+
+---
+
 # Latest checkpoint — shared character guilds, September 30
 
 Continued from `8b22cb9` on `codex/character-guild-foundation`. This is an incremental, staged release; production community activation is not performed.
