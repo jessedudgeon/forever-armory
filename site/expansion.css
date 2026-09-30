@@ -537,3 +537,15 @@ td {
 #community-root textarea { width: 100%; box-sizing: border-box; }
 #community-root dd { margin: 4px 0 12px; overflow-wrap: anywhere; }
 #community-root .actions { flex-wrap: wrap; }
+
+/* Shared community keeps long text and user images inside responsive panels. */
+.shared-form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr)); gap:1rem; }
+.community-banner { width:100%; max-height:220px; object-fit:cover; border-radius:8px; }
+.community-portrait { width:96px; height:96px; object-fit:cover; border-radius:8px; }
+.roster-member { display:flex; justify-content:space-between; gap:1rem; padding:1rem 0; border-bottom:1px solid var(--border,#34433e); }
+#community-root { overflow-wrap:anywhere; }
+#community-root .actions { flex-wrap:wrap; }
+#community-root input,#community-root select,#community-root textarea { max-width:100%; }
+@media(max-width:600px) { .roster-member { flex-direction:column; } }
+
+#community-root [hidden] { display:none !important; }

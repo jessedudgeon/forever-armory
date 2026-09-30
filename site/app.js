@@ -224,7 +224,7 @@ function render() {
     account || localMode || demo ? current() : emptyState(),
   );
   document.querySelectorAll("[data-nav]").forEach((a) => {
-    const active = a.dataset.nav === (view === "character" ? "roster" : view);
+    const active = a.dataset.nav === (view === "character" ? "roster" : view === "community" && (id === "guilds" || id?.startsWith("guild-")) ? "shared-guilds" : view);
     a.classList.toggle("active", active);
     if (active) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");

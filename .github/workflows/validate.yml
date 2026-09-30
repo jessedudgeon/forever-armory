@@ -22,6 +22,9 @@ jobs:
       - run: node --check site/app.js && node --check site/cloud.js
       - run: npm test
       - run: npm run test:security
+      - name: Install browser for community and Armory acceptance
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
       - name: Verify guarded addon collectors with Lua mocks
         run: |
           python3 -m venv /tmp/forever-lua
