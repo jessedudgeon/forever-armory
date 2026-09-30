@@ -51,7 +51,7 @@ No import path writes to the new collections. Exact-import deduplication, stable
 
 ## Indexes and deployment
 
-`firestore.indexes.json` adds the collection-scoped `posts` composite index: `pinned ASC`, `createdAt DESC`. Existing body/payload index exemptions remain. Public `story` maps and guild rules/description are also exempted. Other queries use single-field indexes with document-ID tie breaks. The emulator does not prove production composite-index provisioning; wait for the index to finish building before staging acceptance.
+`firestore.indexes.json` adds the collection-scoped `posts` composite index: `pinned ASC`, `createdAt DESC`. Existing body/payload index exemptions remain. Per the owner’s September 30 console setup, `records.characterId`, `records.kind` and `communityOwners.characterKey` deliberately retain automatic indexing. Public `story` maps and guild rules/description are also exempted. Other queries use single-field indexes with document-ID tie breaks. The emulator does not prove production composite-index provisioning; wait for the index to finish building before staging acceptance.
 
 1. `npm ci` (Node 22 recommended); install Java 21 for emulators.
 2. `npm test` and `npm run test:security`.

@@ -22,16 +22,6 @@
       "indexes": []
     },
     {
-      "collectionGroup": "records",
-      "fieldPath": "characterId",
-      "indexes": []
-    },
-    {
-      "collectionGroup": "records",
-      "fieldPath": "kind",
-      "indexes": []
-    },
-    {
       "collectionGroup": "posts",
       "fieldPath": "body",
       "indexes": []
@@ -39,11 +29,6 @@
     {
       "collectionGroup": "communityCharacters",
       "fieldPath": "bio",
-      "indexes": []
-    },
-    {
-      "collectionGroup": "communityOwners",
-      "fieldPath": "characterKey",
       "indexes": []
     },
     {
