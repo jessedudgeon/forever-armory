@@ -10,9 +10,6 @@ import {
   compactItem,
 } from "./item-core.js";
 
-const CATALOG_URL =
-  "https://unpkg.com/wow-classic-items@2.0.1/data/json/data.json";
-const CACHE_NAME = "forever-item-catalog-v1";
 const PENDING_KEY = "forever-pending-item-goal-v1";
 const esc = (value) =>
   String(value ?? "").replace(
@@ -39,9 +36,7 @@ const qualityClass = (q) =>
   )
     .toLowerCase()
     .replace(/[^a-z]/g, "")}`;
-let catalogPromise = null,
-  catalog = null,
-  lastQuery = "",
+let lastQuery = "",
   renderNonce = 0;
 
 let getState = () => ({ characters: [] });
@@ -81,67 +76,15 @@ export function discoveredItems() {
   return Object.values(customItems());
 }
 
-async function fetchCatalogResponse() {
-  if ("caches" in window) {
-    const cacheStore = await caches.open(CACHE_NAME),
-      cached = await cacheStore.match(CATALOG_URL);
-    if (cached) return cached;
-    const response = await fetch(CATALOG_URL, {
-      mode: "cors",
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!response.ok)
-      throw new Error("The Classic item reference could not load.");
-    try {
-      await cacheStore.put(CATALOG_URL, response.clone());
-    } catch {}
-    return response;
-  }
-  const response = await fetch(CATALOG_URL, {
-    mode: "cors",
-    signal: AbortSignal.timeout(10000),
-  });
-  if (!response.ok)
-    throw new Error("The Classic item reference could not load.");
-  return response;
-}
-
-async function loadCatalog() {
-  if (catalog) return catalog;
-  if (!catalogPromise)
-    catalogPromise = (async () => {
-      const response = await fetchCatalogResponse(),
-        data = await response.json();
-      if (!Array.isArray(data))
-        throw new Error("The item reference returned an unexpected format.");
-      catalog = data;
-      return catalog;
-    })().catch((err) => {
-      catalogPromise = null;
-      throw err;
-    });
-  return catalogPromise;
-}
-
-// Journal and item dialogs share this catalog; imported inventory never becomes a global definition.
+// Public reference metadata is curated from Forever sources only.
 export async function referenceItemsById(ids) {
-  const wanted = new Set(ids.map(Number)),
-    local = new Map(referenceItems().map((i) => [i.id, i]));
-  try {
-    for (const raw of await loadCatalog())
-      if (wanted.has(Number(raw.itemId ?? raw.id))) {
-        const item = compactItem(raw);
-        if (item) local.set(item.id, { ...local.get(item.id), ...item });
-      }
-  } catch {
-    /* Offline journal keeps canonical names, IDs and source links. */
-  }
-  return local;
+  const wanted = new Set(ids.map(Number));
+  return new Map(referenceItems().filter(i => wanted.has(i.id)).map(i => [i.id, i]));
 }
 function journalSourcesHTML(id) {
   const sources = itemSources(id);
   return sources.length
-    ? `<section class="item-source"><h3>Journal sources</h3>${sources.map((s) => `<p><a href="#pve/${s.instanceId}/${s.encounterId}" data-journal-source>${esc(s.encounter)}</a> · <a href="#pve/${s.instanceId}" data-journal-source>${esc(s.instance)}</a> <small>(Classic reference)</small></p>`).join("")}</section>`
+    ? `<section class="item-source"><h3>Journal sources</h3>${sources.map((s) => `<p><a href="#pve/${s.instanceId}/${s.encounterId}" data-journal-source>${esc(s.encounter)}</a> · <a href="#pve/${s.instanceId}" data-journal-source>${esc(s.instance)}</a> <small>(Forever source)</small></p>`).join("")}</section>`
     : "";
 }
 function localMatches(query) {
@@ -154,37 +97,6 @@ function localMatches(query) {
     .filter((i) => String(i.id) === q || i.name.toLowerCase().includes(q))
     .slice(0, 50);
 }
-function catalogMatches(data, query) {
-  const q = query.trim().toLowerCase();
-  if (!q) return [];
-  const exactId = /^\d+$/.test(q) ? Number(q) : null,
-    starts = [],
-    contains = [];
-  for (const raw of data) {
-    const id = Number(raw.itemId),
-      name = String(raw.name || "");
-    if (exactId && id === exactId) {
-      starts.unshift(raw);
-      continue;
-    }
-    const lower = name.toLowerCase();
-    if (lower.startsWith(q)) starts.push(raw);
-    else if (lower.includes(q)) contains.push(raw);
-    if (starts.length >= 35 && contains.length >= 35) break;
-  }
-  return [...starts, ...contains].slice(0, 60).map(compactItem).filter(Boolean);
-}
-function mergeResults(a, b) {
-  const seen = new Set(),
-    out = [];
-  for (const item of [...a, ...b]) {
-    if (!item || seen.has(item.id)) continue;
-    seen.add(item.id);
-    out.push(item);
-  }
-  return out;
-}
-
 function itemIconHTML(item, size = "large") {
   const src = iconUrl(item?.icon, size);
   return src
@@ -192,7 +104,7 @@ function itemIconHTML(item, size = "large") {
     : '<span class="item-art-fallback">◆</span>';
 }
 function wowheadLink(item, text = item?.name || `Item ${item?.id}`) {
-  return `<a class="wowhead-item-link ${qualityClass(item?.quality)}" href="https://www.wowhead.com/classic/item=${Number(item?.id)}" data-wowhead="item=${Number(item?.id)}&domain=classic" target="_blank" rel="noopener">${esc(text)}</a>`;
+  return `<a class="wowhead-item-link ${qualityClass(item?.quality)}" href="https://www.wowhead.com/forever/item=${Number(item?.id)}" data-wowhead="item=${Number(item?.id)}&domain=forever" target="_blank" rel="noopener">${esc(text)}</a>`;
 }
 function refreshWowhead() {
   try {
@@ -248,32 +160,8 @@ export async function openItem(item) {
   item = normalizeLocalItem(item) || compactItem(item);
   if (!item) return;
   const dialog = ensureItemDialog();
-  // Imported gear often has only an ID. Enrich it with the Classic reference before showing details.
-  if (!item.tooltip?.length || !item.icon) {
-    dialog.querySelector("#item-detail-content").innerHTML =
-      '<button class="item-modal-close" aria-label="Close">×</button><p role="status">Loading item details…</p>';
-    dialog.querySelector(".item-modal-close").onclick = () => dialog.close();
-    if (!dialog.open) dialog.showModal();
-    try {
-      const data = await loadCatalog(),
-        record = data.find((raw) => Number(raw.itemId) === item.id);
-      if (record) {
-        const reference = compactItem(record);
-        item = {
-          ...reference,
-          ...item,
-          icon: item.icon || reference.icon,
-          tooltip: item.tooltip?.length ? item.tooltip : reference.tooltip,
-          source: item.source || reference.source,
-          class: item.class || reference.class,
-          subclass: item.subclass || reference.subclass,
-          slot: item.slot || reference.slot,
-          itemLevel: item.itemLevel ?? reference.itemLevel,
-          requiredLevel: item.requiredLevel ?? reference.requiredLevel,
-        };
-      }
-    } catch {}
-  }
+  // Keep captured values; fill names only from the sourced Forever catalog.
+  item = {...referenceItems().find(i => i.id === item.id), ...item};
   if (serial !== openSerial) return;
   const source = sourceText(item),
     details = [item.class, item.subclass, item.slot]
@@ -286,7 +174,7 @@ export async function openItem(item) {
       .filter(Boolean)
       .join(" · ");
   dialog.querySelector("#item-detail-content").innerHTML =
-    `<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details ? `<p>${esc(details)}</p>` : ""}${level ? `<small>${esc(level)}</small>` : ""}</div><button class="item-modal-close" aria-label="Close">×</button></div><p class="reference-label">Classic reference stats; Forever values may differ. Imported item names are preserved.</p>${tooltipHTML(item)}${journalSourcesHTML(item.id)}${source ? `<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>` : ""}<div class="item-modal-actions"><a href="#items/${item.id}" data-item-permalink>Item permalink</a>${wowheadLink(item, "Classic reference ↗")}<button class="primary" type="button" data-item-goal>Add as goal</button></div>`;
+    `<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details ? `<p>${esc(details)}</p>` : ""}${level ? `<small>${esc(level)}</small>` : ""}</div><button class="item-modal-close" aria-label="Close">×</button></div><p class="reference-label">Forever source or captured inventory. Unrecorded stats remain unknown.</p>${tooltipHTML(item)}${journalSourcesHTML(item.id)}${source ? `<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>` : ""}<div class="item-modal-actions"><a href="#items/${item.id}" data-item-permalink>Item permalink</a>${wowheadLink(item, "Forever database ↗")}<button class="primary" type="button" data-item-goal>Add as goal</button></div>`;
   dialog.querySelector("[data-item-permalink]").onclick = () => dialog.close();
   dialog.querySelector(".item-modal-close").onclick = () => dialog.close();
   dialog.querySelector("[data-item-goal]").onclick = () => {
@@ -377,7 +265,7 @@ export function renderItemsPage() {
   document
     .querySelectorAll("[data-nav]")
     .forEach((a) => a.classList.toggle("active", a.dataset.nav === "items"));
-  main.innerHTML = `${location.hash.split("/")[1] ? breadcrumbs([["Game Guide", "#game-guide"],["Items", "#items"],["Item " + location.hash.split("/")[1]]]) : ""}<div class="page-heading"><div><span class="eyebrow">AZEROTH CATALOG</span><h1>Item database</h1><p>Search the Classic reference, inspect item artwork and tooltips, and turn anything into a character goal.</p></div></div><section class="panel item-search-panel"><label>Find an item<input id="item-search" autocomplete="off" placeholder="Peacebloom, Eye of Shadow, or item ID…" value="${esc(lastQuery)}"></label><p id="item-search-status"><small>Type at least two letters to search the full Classic catalog. The first search downloads the reference once and caches it in this browser.</small></p><div id="item-search-results"></div></section><section class="panel"><div class="section-row"><div><span class="eyebrow">YOUR LAST IMPORT</span><h2>Your captured inventory</h2></div><span class="muted">Captured by /farmory</span></div><div id="imported-inventory">${inventoryHTML()}</div></section>`;
+  main.innerHTML = `${location.hash.split("/")[1] ? breadcrumbs([["Game Guide", "#game-guide"],["Items", "#items"],["Item " + location.hash.split("/")[1]]]) : ""}<div class="page-heading"><div><span class="eyebrow">AZEROTH CATALOG</span><h1>Item database</h1><p>Search sourced Forever drops and your captured items, then add a character goal.</p></div></div><section class="panel item-search-panel"><label>Find an item<input id="item-search" autocomplete="off" placeholder="Spiritwraith, Meteor Shard, or item ID…" value="${esc(lastQuery)}"></label><p id="item-search-status"><small>Search verified Forever references and your imports. The catalog is incomplete.</small></p><div id="item-search-results"></div></section><section class="panel"><div class="section-row"><div><span class="eyebrow">YOUR LAST IMPORT</span><h2>Your captured inventory</h2></div><span class="muted">Captured by /farmory</span></div><div id="imported-inventory">${inventoryHTML()}</div></section>`;
   const input = main.querySelector("#item-search"),
     results = main.querySelector("#item-search-results"),
     status = main.querySelector("#item-search-status");
@@ -410,35 +298,19 @@ export function renderItemsPage() {
           : "";
         bindItemResults(results, local);
         status.innerHTML =
-          "<small>Type at least two letters to search the full Classic catalog.</small>";
+          "<small>Search verified Forever references and your imports.</small>";
         return;
       }
-      status.innerHTML =
-        '<span class="catalog-loading"></span> Loading the Classic item catalog…';
-      const local = localMatches(q);
-      try {
-        const data = await loadCatalog();
-        if (nonce !== renderNonce || serial !== request || !input.isConnected)
-          return;
-        const matches = mergeResults(local, catalogMatches(data, q));
-        results.innerHTML = matches.length
-          ? `<div class="item-results">${matches.map(itemResultCard).join("")}</div>`
-          : '<p class="muted">No matching reference item found. Forever custom items appear after you import them with the addon.</p>';
-        status.innerHTML = `<small>${matches.length} result${matches.length === 1 ? "" : "s"} shown · Classic reference + Forever items discovered from your imports.</small>`;
-        bindItemResults(results, matches);
-      } catch (err) {
-        if (nonce !== renderNonce || serial !== request || !input.isConnected)
-          return;
-        results.innerHTML = local.length
-          ? `<div class="item-results">${local.map(itemResultCard).join("")}</div>`
-          : '<p class="muted">No locally discovered matches.</p>';
-        status.innerHTML = `<small>${esc(err.message)} Local Forever items are still searchable.</small>`;
-        bindItemResults(results, local);
-      }
+      const matches = localMatches(q);
+      results.innerHTML = matches.length
+        ? `<div class="item-results">${matches.map(itemResultCard).join("")}</div>`
+        : '<p class="muted">No matching verified or captured item. Unverified Classic items are excluded.</p>';
+      status.innerHTML = `<small>${matches.length} results · Sourced Forever items and your imports; partial coverage.</small>`;
+      bindItemResults(results, matches);
     }, 220);
   };
   input.addEventListener("input", run);
-  if (lastQuery) run();
+  run();
   input.focus();
   return true;
 }
@@ -503,14 +375,7 @@ function searchPicker(input, results, select) {
         return;
       }
       const local = localMatches(q);
-      let matches = local;
-      results.innerHTML = "<small>Searching…</small>";
-      try {
-        matches = mergeResults(
-          local,
-          catalogMatches(await loadCatalog(), q),
-        ).slice(0, 12);
-      } catch {}
+      const matches = local.slice(0,12);
       if (serial !== request || !input.isConnected) return;
       results.innerHTML =
         matches

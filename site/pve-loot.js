@@ -9,7 +9,7 @@ const esc = (v) =>
       ],
   );
 export const lootPanel = () =>
-  `<section class="panel"><h2>Find loot</h2><p class="muted">Classic reference metadata. Class filters use explicit restrictions only; unknown restrictions remain visible. Weapon training and Forever-specific eligibility are not inferred.</p><div id="pve-loot"><p role="status">Loading item metadata…</p></div></section>`;
+  `<section class="panel"><h2>Find loot</h2><p class="muted">Sourced Forever drops. Class filters use explicit restrictions only; unknown restrictions remain visible. Missing stats and drop rates are not inferred.</p><div id="pve-loot"><p role="status">Loading item metadata…</p></div></section>`;
 export async function bindLoot(root, id, state) {
   const host = root.querySelector("#pve-loot");
   if (!host) return;
@@ -54,7 +54,7 @@ export async function bindLoot(root, id, state) {
             `<tr><td>${itemButton(i)}<br><a href="#items/${i.id}">Item ${i.id} →</a></td><td><a href="#pve/${id}/${i.encounterId}">${esc(i.encounter)}</a>${i.variation ? `<small>${esc(i.variation)}</small>` : ""}${Number.isFinite(i.dropRate) && i.sourceUrl ? `<small>${i.dropRate}% · <a href="${esc(i.sourceUrl)}" rel="noopener" target="_blank">Source</a></small>` : ""}</td><td>${esc(i.slot) || "Unknown"}<br>${esc(i.subclass) || "Unknown"}</td><td>Item: ${esc(i.itemLevel ?? "Unknown")}<br>Required: ${esc(i.requiredLevel ?? "Unknown")}</td><td>${i.allowedClasses?.length ? i.allowedClasses.map(esc).join(", ") : "Unknown / not recorded"}</td></tr>`,
         )
         .join("") ||
-      '<tr><td colspan="5">No listed loot matches these filters.</td></tr>';
+      `<tr><td colspan="5">${rows.length ? "No listed loot matches these filters." : "Forever loot has not been verified for this instance yet."}</td></tr>`;
   }
   host.addEventListener("input", draw);
   host.querySelector("#loot-character")?.addEventListener("change", (e) => {

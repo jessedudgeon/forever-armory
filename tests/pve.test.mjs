@@ -24,24 +24,24 @@ test("canonical encounters have unique stable routes and valid shared item refer
       }
     }
   }
-  assert.equal(findInstance("molten-core").encounters.length, 10);
-  assert.equal(findInstance("blackwing-lair").encounters.length, 8);
+  assert.equal(findInstance("hall-of-thanes").encounters.length, 4);
+  assert.equal(findInstance("ruins-of-lordaeron").encounters.length, 6);
 });
 test("tracking one raid boss preserves legacy names, notes, unrelated progress, and explicit instance status", () => {
   const prior = [
     {
-      id: "onyxias-lair",
+      id: "hall-of-thanes",
       notes: "Bring potions",
       status: "Planned",
       completed: false,
-      bosses: [{ name: "Onyxia", completed: false }],
+      bosses: [{ name: "Faldrim Anvilmar", completed: false }],
     },
     { id: "another", bosses: [] },
   ];
-  const next = encounterProgress(prior, "onyxias-lair", "onyxia", true);
-  const entry = next.find((p) => p.id === "onyxias-lair");
+  const next = encounterProgress(prior, "hall-of-thanes", "faldrim-anvilmar", true);
+  const entry = next.find((p) => p.id === "hall-of-thanes");
   assert.equal(entry.bosses.length, 1);
-  assert.equal(entry.bosses[0].id, "onyxia");
+  assert.equal(entry.bosses[0].id, "faldrim-anvilmar");
   assert.equal(entry.bosses[0].completed, true);
   assert.equal(entry.completed, false);
   assert.equal(entry.notes, "Bring potions");
@@ -54,14 +54,14 @@ test("tracking one raid boss preserves legacy names, notes, unrelated progress, 
     level: 60,
     progress: next,
   });
-  assert.equal(saved.progress[1].bosses[0].id, "onyxia");
+  assert.equal(saved.progress[1].bosses[0].id, "faldrim-anvilmar");
   assert.equal(
-    encounterProgress(next, "onyxias-lair", "onyxia", false)[1].bosses[0]
+    encounterProgress(next, "hall-of-thanes", "faldrim-anvilmar", false)[1].bosses[0]
       .completed,
     false,
   );
   assert.throws(
-    () => encounterProgress(next, "onyxias-lair", "made-up", true),
+    () => encounterProgress(next, "hall-of-thanes", "made-up", true),
     /Unknown/,
   );
 });
@@ -95,8 +95,8 @@ test("loot filters retain unknown class eligibility and filter explicit restrict
     1,
   );
   assert.equal(filterLoot(rows, { type: "Axe" }).length, 0);
-  assert.ok(instanceLoot("onyxias-lair").some((i) => i.id === 17068));
-  assert.equal(itemSources(17068)[0].encounterId, "onyxia");
+  assert.ok(instanceLoot("hall-of-thanes").some((i) => i.id === 271097));
+  assert.equal(itemSources(271097)[0].encounterId, "faldrim-anvilmar");
 });
 test("imported kills, quests and attunements survive cloud and manual boss edits", async () => {
   const { emptyState, addSnapshot } = await import("../site/model.js");
@@ -109,12 +109,12 @@ test("imported kills, quests and attunements survive cloud and manual boss edits
     level: 60,
     progress: [
       {
-        id: "onyxias-lair",
+        id: "hall-of-thanes",
         type: "raid",
         bosses: [
           {
-            id: "onyxia",
-            name: "Onyxia",
+            id: "faldrim-anvilmar",
+            name: "Faldrim Anvilmar",
             completed: true,
             kills: 3,
             lastKilledAt: "2026-09-29T00:00:00Z",
@@ -127,8 +127,8 @@ test("imported kills, quests and attunements survive cloud and manual boss edits
   });
   const changed = encounterProgress(
     s.progress,
-    "onyxias-lair",
-    "onyxia",
+    "hall-of-thanes",
+    "faldrim-anvilmar",
     false,
   );
   assert.equal(changed[0].bosses[0].kills, 3);
@@ -146,8 +146,8 @@ test("imported kills, quests and attunements survive cloud and manual boss edits
 test('raid catalog, search, prerequisites and legacy dungeon routes share one service', async () => {
   const {searchInstances} = await import('../site/pve-data.js');
   assert.equal(new Set(instances.map(d=>d.id)).size, instances.length);
-  assert.equal(searchInstances('', 'raids').length, 7);
-  assert.equal(searchInstances('Blackhand’s Command')[0].id, 'blackwing-lair');
+  assert.equal(searchInstances('', 'raids').length, 2);
+  assert.equal(searchInstances('Old Ironforge Incursion')[0].id, 'hall-of-thanes');
   assert.equal(searchInstances('Meteor Shard')[0].id, 'shadowfang-keep');
   for (const d of instances) for (const q of d.quests) {
     const seen = new Set();
@@ -162,13 +162,13 @@ test('raid catalog, search, prerequisites and legacy dungeon routes share one se
 test('quest turn-ins, readiness and unknown coverage remain distinct', async () => {
   const {journalQuestStatus, journalProgress, instanceProgress} = await import('../site/pve-data.js');
   const q = {id:'verified-test-quest',gameQuestId:123};
-  assert.equal(journalQuestStatus({}, 'molten-core', q), 'Not recorded');
-  assert.equal(journalQuestStatus({quests:[{id:123,completed:true}]}, 'molten-core', q), 'Ready to turn in');
-  assert.equal(journalQuestStatus({completedQuestIDs:[123]}, 'molten-core', q), 'Turned in');
-  assert.equal(journalQuestStatus({questHistory:[{questId:123}]}, 'molten-core', q), 'Turned in');
-  assert.equal(journalQuestStatus({completedQuestIDs:[123]}, 'molten-core', {id:'123'}), 'Not recorded');
-  const d=findInstance('onyxias-lair');
-  const progress=encounterProgress([], d.id, 'onyxia', true);
+  assert.equal(journalQuestStatus({}, 'hall-of-thanes', q), 'Not recorded');
+  assert.equal(journalQuestStatus({quests:[{id:123,completed:true}]}, 'hall-of-thanes', q), 'Ready to turn in');
+  assert.equal(journalQuestStatus({completedQuestIDs:[123]}, 'hall-of-thanes', q), 'Turned in');
+  assert.equal(journalQuestStatus({questHistory:[{questId:123}]}, 'hall-of-thanes', q), 'Turned in');
+  assert.equal(journalQuestStatus({completedQuestIDs:[123]}, 'hall-of-thanes', {id:'123'}), 'Not recorded');
+  const d=findInstance('hall-of-thanes');
+  const progress=encounterProgress([], d.id, 'faldrim-anvilmar', true);
   assert.equal(journalProgress({progress},d).completed,false);
   const completed=instanceProgress(progress,d.id,true);
   assert.equal(journalProgress({progress:completed},d).completed,true);
@@ -181,10 +181,10 @@ test('future PvE events survive version 1 imports, overlapping exports, old part
   const {recordsFor,stateFromRecords} = await import('../site/cloud-model.js');
   const {normalizePveHistory} = await import('../site/pve-history.js');
   const base={name:'Raid Tester',class:'MAGE',level:60,playStyle:'Normal',guid:'Player-Test',realm:'Test'};
-  const event={eventId:'run-1-kill',type:'boss-kill',instanceId:'onyxias-lair',encounterId:'onyxia',occurredAt:'2026-09-29T12:00:00Z',characterGuid:'Player-Test'};
+  const event={eventId:'run-1-kill',type:'boss-kill',instanceId:'hall-of-thanes',encounterId:'faldrim-anvilmar',occurredAt:'2026-09-29T12:00:00Z',characterGuid:'Player-Test'};
   const parse=(at,events)=>parseImport(JSON.stringify({format:'forever-armory',version:1,character:{...base,observedAt:at,...(events === undefined?{}:{pveHistory:events})}}));
   let state=addSnapshot(emptyState(),parse('2026-09-29T13:00:00Z',[event])).state;
-  const loot={eventId:'run-1-loot',type:'loot-received',instanceId:'onyxias-lair',itemId:17068,quantity:1,occurredAt:'2026-09-29T12:01:00Z'};
+  const loot={eventId:'run-1-loot',type:'loot-received',instanceId:'hall-of-thanes',itemId:271097,quantity:1,occurredAt:'2026-09-29T12:01:00Z'};
   const second=parse('2026-09-29T14:00:00Z',[event,loot]);
   state=addSnapshot(state,second).state;
   assert.equal(addSnapshot(state,second).duplicate,true);
@@ -207,7 +207,7 @@ test('future PvE events survive version 1 imports, overlapping exports, old part
 test('PvE observations reject ambiguous times, oversized history and out-of-order conflicts without changing saved state', async()=>{
  const {parseImport,emptyState,addSnapshot}=await import('../site/model.js');
  const {normalizePveHistory,mergePveHistory}=await import('../site/pve-history.js');
- const event={eventId:'kill-1',type:'boss-kill',instanceId:'naxxramas',encounterId:'kelthuzad',occurredAt:'2026-09-29T12:00:00Z'};
+ const event={eventId:'kill-1',type:'boss-kill',instanceId:'ruins-of-lordaeron',encounterId:'witherfang',occurredAt:'2026-09-29T12:00:00Z'};
  for(const occurredAt of ['2026-09-29','2026-09-29T12:00:00','1'])assert.throws(()=>normalizePveHistory([{...event,occurredAt}]),/Invalid/);
  const many=Array.from({length:5000},(_,i)=>({...event,eventId:'kill-'+i}));
  assert.throws(()=>mergePveHistory(many,[{...event,eventId:'overflow'}]),/size/);
@@ -221,4 +221,20 @@ test('PvE observations reject ambiguous times, oversized history and out-of-orde
  assert.equal(earlier.characters[0].snapshots.at(-1).pveHistory.length,1);
  const emptyLater=addSnapshot(state,parse('2026-10-01T12:00:00Z',[])).state;
  assert.equal(emptyLater.characters[0].snapshots.at(-1).pveHistory.length,1);
+});
+
+test('public catalog requires Forever provenance and excludes unverified Classic raid/loot records', () => {
+  for (const d of instances) {
+    assert.match(d.source, /wowhead\.com\/forever\/|blizzard\.com\/en-us\/article\/24303862\//);
+    assert.equal(d.checkedAt, '2026-10-01');
+    assert.ok(d.availability);
+    for (const e of d.encounters) {
+      assert.match(e.source, /wowhead\.com\/forever\//);
+      for (const loot of e.loot) assert.match(loot.sourceUrl, /wowhead\.com\/forever\//);
+    }
+  }
+  for (const id of ['molten-core','onyxias-lair','blackwing-lair','zulgurub','ruins-of-ahnqiraj','temple-of-ahnqiraj','naxxramas']) assert.equal(findInstance(id), undefined);
+  assert.equal(referenceItems().some(i => i.id === 17068), false);
+  assert.equal(lootFor(findEncounter('hall-of-thanes','faldrim-anvilmar')).length,3);
+  assert.equal(findInstance('ruins-of-lordaeron').encounters.reduce((n,e)=>n+e.loot.length,0),18);
 });

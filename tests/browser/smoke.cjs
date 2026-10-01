@@ -237,7 +237,7 @@ const assert = require("node:assert/strict");
     });
     await page.goto("http://localhost:4173/#dungeons");
     await page.locator("#dungeon-filter").selectOption("raids");
-    assert.equal(await page.locator(".dungeon-card").count(), 7);
+    assert.equal(await page.locator(".dungeon-card").count(), 2);
     await page.goto("http://localhost:4173/#dungeons/shadowfang-keep");
     await page.locator('[data-item-detail="6220"]').first().click();
     await page.locator("#item-detail-content h2").waitFor();
@@ -246,29 +246,29 @@ const assert = require("node:assert/strict");
       /Meteor Shard/,
     );
     await page.locator(".item-modal-close").click();
-    await page.goto("http://localhost:4173/#pve/onyxias-lair");
+    await page.goto("http://localhost:4173/#pve/hall-of-thanes");
     await page.locator("#loot-rows tr").first().waitFor();
-    assert.equal(await page.locator("#loot-rows tr").count(), 2);
-    await page.locator('[data-loot-filter="query"]').fill("Deathbringer");
+    assert.equal(await page.locator("#loot-rows tr").count(), 12);
+    await page.locator('[data-loot-filter="query"]').fill("Spiritwraith Drape");
     assert.equal(await page.locator("#loot-rows tr").count(), 1);
-    await page.locator('#loot-rows [data-item-detail="17068"]').click();
+    await page.locator('#loot-rows [data-item-detail="271097"]').click();
     await page.locator("[data-journal-source]").first().click();
     await page.locator("#item-detail-modal").waitFor({ state: "hidden" });
-    await page.waitForFunction(()=>document.querySelector("h1")?.textContent==="Onyxia");
-    await page.goto("http://localhost:4173/#pve/onyxias-lair/onyxia");
-    await page.waitForFunction(()=>document.querySelector("h1")?.textContent==="Onyxia");
-    await page.locator('[data-encounter="onyxia"]').check();
+    await page.waitForFunction(()=>document.querySelector("h1")?.textContent==="Faldrim Anvilmar");
+    await page.goto("http://localhost:4173/#pve/hall-of-thanes/faldrim-anvilmar");
+    await page.waitForFunction(()=>document.querySelector("h1")?.textContent==="Faldrim Anvilmar");
+    await page.locator('[data-encounter="faldrim-anvilmar"]').check();
     await page.reload();
-    await page.locator('[data-encounter="onyxia"]').waitFor();
+    await page.locator('[data-encounter="faldrim-anvilmar"]').waitFor();
     assert.equal(
-      await page.locator('[data-encounter="onyxia"]').isChecked(),
+      await page.locator('[data-encounter="faldrim-anvilmar"]').isChecked(),
       true,
     );
-    await page.locator('[data-item-detail="17068"]').click();
+    await page.locator('[data-item-detail="271097"]').click();
     await page.locator("#item-detail-content h2").waitFor();
     assert.match(
       await page.locator("#item-detail-content").innerText(),
-      /Deathbringer/,
+      /Spiritwraith Drape/,
     );
     await page.locator(".item-modal-close").click();
     await page.goto(
@@ -305,8 +305,8 @@ const assert = require("node:assert/strict");
         "professions",
         "items",
         "dungeons",
-        "pve/blackwing-lair/nefarian",
-        "pve/onyxias-lair",
+        "pve/ruins-of-lordaeron/witherfang",
+        "pve/hall-of-thanes",
         charHash.slice(1),
       ]) {
         await page.goto("http://localhost:4173/#" + route);

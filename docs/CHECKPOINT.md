@@ -1,3 +1,15 @@
+# Latest checkpoint — Forever-only Journal correction, October 1
+
+- Owner corrected the previous milestone: bosses and loot were missing for Forever instances, and unconfirmed Classic content should not be published.
+- Replaced Classic-only raids with Blizzard's announced Hyjal Summit / Barrow Deeps. Added sourced Forever boss/drop tables for five dungeons: 33 encounters, 79 items. Other confirmed listings explicitly show unknown boss/loot coverage. See PVE-CONTENT.md for source URLs and boundaries.
+- Removed Classic catalog search and automatic item stat enrichment; kept captured inventory and sourced Forever items searchable, goal-enabled and linked through the existing item dialog.
+- Preserved all private records. Regression found and fixed: retired raid IDs remain valid for existing private event backup/cloud round trips and editing, without surfacing in public catalog choices.
+- Validation: 122 Node tests; Journal/navigation/smoke browser suites. Added provenance/exclusion checks, retired private event round trip, new loot/item links and honest announcement gaps. CI and Pages status are recorded in the release PR.
+- No auth, Firestore rules/indexes, community/guild collection or addon changes. No production user records touched.
+- Remaining content work: source missing Forever boss/loot tables. Announcements do not establish current beta access. Never use Classic content to fill unknowns.
+
+---
+
 # Latest checkpoint — Journal progression release, October 1
 
 - Baseline: production `7bf1eb1` (navigation PR #10), validated and deployed with asset token `c57e151f56000a3e`. Recovered the separate unfinished September 30 Journal draft and integrated it into the current shell; original draft checkout remains untouched.
