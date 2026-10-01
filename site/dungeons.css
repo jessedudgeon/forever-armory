@@ -1,1 +1,8 @@
 .dungeon-controls{display:flex;align-items:end;gap:14px;margin-bottom:22px}.dungeon-controls label:first-child{flex:1}.dungeon-controls label{margin:0}.dungeon-controls input,.dungeon-controls select{margin-top:7px}.dungeon-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px}.dungeon-card{display:flex;flex-direction:column;gap:9px;padding:19px;border:1px solid var(--line);border-radius:6px;background:#101b17;color:var(--text);text-decoration:none;min-height:150px}.dungeon-card:hover,.dungeon-card:focus-visible{border-color:var(--gold);background:#1c2b22}.dungeon-card small{color:var(--gold);font-size:.7rem;letter-spacing:.1em}.dungeon-card strong{font:1.3rem Georgia,serif}.dungeon-card span{color:var(--muted);font-size:.88rem}.dungeon-card em{margin-top:auto;color:#b9c9ae;font-style:normal;font-size:.8rem}.dungeon-bosses{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:15px}.dungeon-boss h2{font-size:1.35rem;margin:0}.dungeon-loot{padding:0;list-style:none;display:grid;gap:0;margin:15px 0 0}.dungeon-loot li{display:flex;gap:10px;padding:9px 0;border-top:1px solid var(--line)}.dungeon-loot li span{color:var(--gold)}.dungeon-loot a{color:#b6d3f4}.dungeon-source{margin:24px 0}@media(max-width:760px){.dungeon-controls{flex-direction:column;align-items:stretch}.dungeon-grid,.dungeon-bosses{grid-template-columns:1fr}}
+
+/* Keep summaries and history separate from the responsive boss checklist. */
+#pve-progress > p, #pve-progress > h3, #pve-progress > ul,
+#pve-progress > .pve-completion { grid-column: 1 / -1; }
+.pve-quest + .pve-quest { border-top: 1px solid var(--line); margin-top: 1.5rem; padding-top: 1rem; }
+.pve-quest li { margin-block: .6rem; }
+.pve-quest li small { display: block; }

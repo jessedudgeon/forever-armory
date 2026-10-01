@@ -18,4 +18,4 @@ test('search finds a boss or item and new dungeons do not imply verified drops',
  assert.ok(!searchDungeons('','classic').some(d=>d.new));
 });
 
-test('raids and dungeons filter separately',()=>{assert.equal(searchDungeons('','raids').length,3);assert.ok(searchDungeons('','dungeons').every(d=>d.kind==='dungeon'));assert.ok(searchDungeons('Ragnaros').some(d=>d.kind==='raid'));});
+test('raids and dungeons filter separately',()=>{assert.equal(searchDungeons('','raids').length,7);assert.ok(searchDungeons('','dungeons').every(d=>d.kind==='dungeon'));assert.ok(searchDungeons('Ragnaros').some(d=>d.kind==='raid'));});

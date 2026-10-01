@@ -1,3 +1,4 @@
+import { mergePveHistory, normalizePveHistory } from "./pve-history.js";
 import { IMPORT_ADAPTERS } from "./import-schema.js";
 import { sessionExportText } from "./session-import.js";
 import { normalizeEvents, rekeyEvents } from "./event-model.js";
@@ -291,6 +292,7 @@ export function addSnapshot(state, c, {targetId} = {}) {
       "talentDetails",
       "quests",
       "questHistory",
+      "pveHistory",
       "completedQuestIDs",
       "questHistoryStatus",
       "reputations",
@@ -303,6 +305,7 @@ export function addSnapshot(state, c, {targetId} = {}) {
       for(const r of c.recipes)recipes.set(r.profession+':'+r.id,r);
       c.recipes=[...recipes.values()];
     }
+    if(c.pveHistory && last.pveHistory)c.pveHistory=mergePveHistory(last.pveHistory,c.pveHistory);
     if(c.questHistory && last.questHistory) {
       const events=new Map(last.questHistory.map(e=>[e.eventId,e]));
       for(const e of c.questHistory)if(!events.has(e.eventId))events.set(e.eventId,e);
@@ -321,6 +324,17 @@ export function addSnapshot(state, c, {targetId} = {}) {
         ];
       c.storageStatus = { ...last.storageStatus };
       for(const [key,value]of Object.entries(incomingCoverage))if(captured.has(key)||!c.storageStatus[key])c.storageStatus[key]=value;
+    }
+  }
+  if(c.pveHistory) {
+    const knownGuid=c.gameIdentity?.guid || found.snapshots.find(s=>s.gameIdentity?.guid)?.gameIdentity.guid;
+    c={...c,pveHistory:normalizePveHistory(c.pveHistory,knownGuid)};
+    // Check immutable IDs even when an older export is imported after a newer snapshot.
+    // Only merge data from the prior observation above; never inject future events backwards.
+    const incomingEvents=new Map(c.pveHistory.map(e=>[e.eventId,JSON.stringify(e)]));
+    for(const snapshot of found.snapshots)for(const event of snapshot.pveHistory || []) {
+      if(incomingEvents.has(event.eventId) && incomingEvents.get(event.eventId)!==JSON.stringify(event))
+        throw Error('Conflicting PvE history event ID.');
     }
   }
   const meaningful = (x) => JSON.stringify({ ...x, observedAt: undefined, importedAt: undefined });

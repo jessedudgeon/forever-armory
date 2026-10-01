@@ -52,6 +52,7 @@ export function searchInstances(query = "", filter = "all") {
         [
           d.name,
           d.zone,
+          ...d.quests.map(q => typeof q === "string" ? q : q.name),
           ...d.encounters.flatMap((e) => [
             e.name,
             ...lootFor(e).map((i) => i.name),
@@ -153,4 +154,37 @@ export function filterLoot(rows, filters = {}) {
         !i.allowedClasses?.length ||
         i.allowedClasses.some((c) => norm(c) === norm(filters.class))),
   );
+}
+
+// Missing completion is unknown, never inferred from the catalog or owned loot.
+export function instanceProgress(progress, instanceId, completed) {
+  const d = findInstance(instanceId);
+  if (!d) throw Error("Unknown instance.");
+  const prior = (progress || []).find(p => p.id === d.id);
+  return [...(progress || []).filter(p => p.id !== d.id), {
+    ...prior, id: d.id, name: d.name, type: d.kind,
+    bosses: prior?.bosses || [], completed: completed === true,
+    status: completed ? "Complete" : "In progress", notes: prior?.notes || "",
+  }];
+}
+export function journalProgress(snapshot, instance) {
+  const record = snapshot?.progress?.find(p => p.id === instance.id);
+  const bosses = instance.encounters.map(e => ({...e,
+    record: record?.bosses?.find(b => b.id === e.id || (!b.id && b.name === e.name)),
+  }));
+  return {record, bosses, completed: record?.completed === true,
+    completedBosses: bosses.filter(b => b.record?.completed).length,
+    history: (snapshot?.pveHistory || []).filter(e => e.instanceId === instance.id),
+  };
+}
+// Numeric game IDs must be verified for Forever before a catalog entry supplies one.
+export function journalQuestStatus(snapshot, instanceId, quest) {
+  const explicit = snapshot?.progress?.find(p => p.id === instanceId)?.quests?.find(q => q.id === String(quest.id));
+  if (explicit?.completed) return "Completion recorded";
+  if (quest.gameQuestId != null) {
+    if (snapshot?.completedQuestIDs?.includes(quest.gameQuestId) || snapshot?.questHistory?.some(e => e.questId === quest.gameQuestId)) return "Turned in";
+    const active = snapshot?.quests?.find(q => q.id === quest.gameQuestId);
+    if (active) return active.completed ? "Ready to turn in" : "In quest log";
+  }
+  return explicit ? "Not marked complete" : "Not recorded";
 }

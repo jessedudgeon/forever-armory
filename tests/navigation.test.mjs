@@ -52,3 +52,7 @@ test('primary hierarchy exposes only implemented hubs and destinations',()=>{
  assert.equal(sectionFor('#items/123'),'game-guide');
  assert.equal(sectionFor('#talents/paladin'),'tools');
 });
+
+test('all Journal overview filters remain valid deep links',()=>{
+ for(const filter of ['new','classic','dungeons','raids'])assert.ok(!pveView(filter,undefined,emptyState()).includes('Instance not found'));
+});

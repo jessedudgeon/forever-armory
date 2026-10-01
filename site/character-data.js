@@ -1,3 +1,4 @@
+import { normalizePveHistory } from "./pve-history.js";
 // Shared validation boundary for manual input, backups, cloud records, and addon imports.
 export const text = (v, max = 200) =>
   typeof v === "string" ? v.trim().slice(0, max) : "";
@@ -141,6 +142,7 @@ export function characterExtras(o, at) {
     for(const k of ['treeID','nodeID','entryID','spellID','treeIndex','talentIndex','tier','column','maxRank'])if(t[k]!=null)row[k]=integer(t[k],1);
     return row;
   });
+  if(o.pveHistory!==undefined) out.pveHistory=normalizePveHistory(o.pveHistory, o.gameIdentity?.guid);
   if(o.quests!==undefined) out.quests=list(o.quests,500).map(q=>({id:integer(q.id??q.questID,1),title:text(q.title??q.name,200),level:q.level==null?null:integer(q.level,-1,1000),completed:q.completed===true||q.isComplete===true||q.isComplete===1}));
   if(o.completedQuestIDs!==undefined)out.completedQuestIDs=[...new Set(list(o.completedQuestIDs,20000).map(id=>integer(id,1)))].sort((a,b)=>a-b);
   if(o.questHistory!==undefined) {

@@ -1,3 +1,17 @@
+# Latest checkpoint — Journal progression release, October 1
+
+- Baseline: production `7bf1eb1` (navigation PR #10), validated and deployed with asset token `c57e151f56000a3e`. Recovered the separate unfinished September 30 Journal draft and integrated it into the current shell; original draft checkout remains untouched.
+- Added four Classic raid references (seven total), named encounters, selected entrance/access/quest preparation sequences and source links. Rechecked the cited Blizzard Classic pages; none of this is presented as verified Forever availability or automatic game-ID mapping.
+- Character selector now shows private progress on directory cards and related quest state. Whole-instance completion is explicit and independent from boss checkboxes; imported counts/timestamps remain preserved. Instances without listed encounters can still be tracked. Journal breadcrumbs, section shortcuts, legacy routes and the new navigation remain intact.
+- Fixed all Journal filter deep links, including `#pve/new` and `#pve/classic`; labels say listings/references rather than implying verified Forever availability.
+- Optional `pveHistory` supports future boss-kill, instance-completed and loot-received observations in existing private snapshots. Validates identity/type/time/bounds, merges immutable IDs, rejects conflicts across out-of-order snapshots, preserves omitted/empty incoming history and survives backups/cloud serialization. Addon 0.3.0 is unchanged and does not yet emit these events.
+- Local validation: 120 Node tests, existing 25-flow browser smoke, navigation/search suite and new Journal acceptance at 320/390/768/1440px passed. Covers independent clear/boss persistence, overview progress, quest search/prerequisites, character isolation and failed-save recovery. Inspected the rendered Journal. Build/package/diff checks pass.
+- No Firestore rules/indexes/collections, authentication, community gate, guild services or community QA implementation changes. No production user data was written. This is a private additive import extension, not an automatic publisher or inventory mutation.
+- Release uses an exact-tree GitHub connector commit, PR CI, then Pages after CI passes. This entry records implementation/local tests; PR and Actions provide subsequent deployment status. No live Google/two-user acceptance claimed.
+- Next: verified Forever quest/encounter IDs and client-tested addon collection; richer sourced loot/mechanics; larger history browsing. Existing quest/session exports remain supported.
+
+---
+
 # Latest checkpoint — navigation and unified experience, October 1
 
 - Baseline: production/main `f2e3f13`; validation and Pages succeeded, live HTML asset token `e0b0ca154485cab7`. Recovered and completed unfinished navigation draft in an isolated checkout; unrelated Journal draft untouched.
