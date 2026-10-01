@@ -1,3 +1,5 @@
+import {initializeNavigation, updateNavigation, breadcrumbs, hubView} from './navigation.js';
+import {dashboardView, bindHome} from './dashboard.js';
 import {questJournal, bindQuestJournal} from './armory-observations.js';
 import { storageView, bindStorage } from "./storage.js";
 import { progressChanges } from "./import-schema.js";
@@ -14,7 +16,6 @@ import {
   renderItemsPage,
 } from "./items.js";
 import {
-  homeView,
   inventoryView,
   bindInventory,
   professionSection,
@@ -189,6 +190,7 @@ function render() {
   const [rawRoute, id, encounterId] = route(),
     r = rawRoute === "pve" ? "dungeons" : rawRoute,
     views = [
+      "game-guide", "tools", "community-home",
       "storage",
       "community",
       "events",
@@ -209,6 +211,7 @@ function render() {
     ],
     view = views.includes(r) ? r : "not-found";
   const publicView = [
+    "game-guide", "tools", "community-home",
     "community",
     "home",
     "items",
@@ -232,6 +235,7 @@ function render() {
   });
   $("#section-label").textContent =
     {
+      "game-guide": "Game Guide", tools: "Tools", "community-home": "Community",
       storage: "Find my items",
       community: "Character community",
       events: "Events & gatherings",
@@ -270,11 +274,12 @@ function render() {
     );
   else
     content = {
+      "game-guide": () => hubView("game-guide"), tools: () => hubView("tools"), "community-home": () => hubView("community-home"),
       storage: () => storageView(current()),
       community: communityView,
       events: () => eventsView(current(), id),
       activity: () => socialFeed(current()),
-      home: () => homeView(visible),
+      home: () => dashboardView(visible, {personal:!!(account || localMode || demo), loading:!!account && cloudStatus === "loading" && !demo}),
       account: accountView,
       dungeons: () => pveView(id, encounterId, visible),
       talents: () => '<div id="talent-root"></div>',
@@ -295,17 +300,23 @@ function render() {
         ),
     }[view]();
   $("#main").innerHTML = banner + adSlot("header") + content + adSlot("footer");
+  const pageTitle = $("#main h1")?.textContent;
+  if(pageTitle && view !== "home") document.title = pageTitle + " · Forever";
   $("#leave-demo")?.addEventListener("click", () => {
     demo = false;
     location.hash = "roster";
     render();
   });
   bindCommon();
+  if(view === "home") bindHome($("#main"),cloudClient?.community,demo?null:account,visible);
   if(view === "storage") bindStorage($("#main"),current());
   if (view === "community") void bindCommunity($("#community-root"), cloudClient?.community, visible, demo ? null : account, id, commit, render, toast);
   if (view === "events") bindEvents($("#main"), current(), id, commit, render);
   if (view === "activity") bindSocial($("#main"), current(), "", commit, render);
-  if (view === "roster") bindRoster();
+  if (view === "roster") {
+    bindRoster();
+    if(id === 'accounts') requestAnimationFrame(()=>$('#wow-accounts')?.scrollIntoView({block:'start'}));
+  }
   if (view === "legacy") bindLegacy();
   if (view === "character") bindCharacter(id);
   if (view === "journal") bindJournal();
@@ -341,7 +352,7 @@ function render() {
   if (view === "guide") bindGuide();
   if (view === "guilds") bindGuilds(id);
   if (view === "search" && $("#global-query"))
-    void bindSearch($("#main"), visible);
+    void bindSearch($("#main"), visible, cloudClient?.community, decodeRoute(id));
   bindAccount();
   if (view === "items" && $("#items-root")) renderItemsPage();
   if (view === "talents" && $("#talent-root"))
@@ -377,6 +388,10 @@ function render() {
     });
 }
 function rosterView() {
+  if(route()[1] === 'history') {
+    const records=current().characters.flatMap(c=>c.snapshots.map(s=>({c,s}))).sort((a,b)=>Date.parse(b.s.observedAt)-Date.parse(a.s.observedAt));
+    return breadcrumbs([['Characters','#roster'],['Character & import history']])+heading('YOUR COLLECTION','Character & import history','Saved snapshots from your active collection. Open a character for changes between records.')+`<section class="panel">${records.slice(0,100).map(({c,s})=>`<div class="dashboard-row"><div><a href="#character/${encodeURIComponent(c.id)}/progress">${esc(s.name)}</a><small>${esc(s.source)} · Observed ${esc(new Date(s.observedAt).toLocaleString())}${s.importedAt?' · Imported '+esc(new Date(s.importedAt).toLocaleString()):''}</small></div></div>`).join('')||'<p>No saved snapshots yet. <a href="#guide">Import a character</a> to begin.</p>'}${records.length>100?'<p>Showing the newest 100 snapshots. Open a character to see its full history.</p>':''}</section>`;
+  }
   const cs = current().characters;
   const snaps = cs.reduce((n, c) => n + c.snapshots.length, 0);
   return (
@@ -387,7 +402,7 @@ function rosterView() {
       action("add-manual", "+ Add character") +
         action("import", "⇧ Import character", true),
     ) +
-    `<section class="stats" aria-label="Roster totals"><div class="stat"><span class="stat-label">Characters</span><span class="stat-value">${cs.length.toString().padStart(2, "0")}</span></div><div class="stat"><span class="stat-label">Highest level</span><span class="stat-value">${cs.length ? Math.max(...cs.map((c) => latest(c).level)) : "—"}</span></div><div class="stat"><span class="stat-label">Saved snapshots</span><span class="stat-value">${snaps.toString().padStart(2, "0")}</span></div></section><div class="section-row"><h2>Character collection</h2>${cs.length ? `<input class="search" id="search" aria-label="Search characters" placeholder="Find a character…" value="${esc(query)}">` : '<span class="muted">Your story starts here</span>'}</div><section class="panel account-switcher"><div class="section-row"><h2>WoW game accounts</h2>${action("new-game-account", "+ Add game account")}</div><p>Organize characters by WoW license. Legacy Points are shared across these game accounts when they belong to the same Battle.net account.</p><div class="account-tabs"><button data-account-filter="all" class="${accountFilter === "all" ? "selected" : ""}">All accounts</button>${current()
+    `<section class="stats" aria-label="Roster totals"><div class="stat"><span class="stat-label">Characters</span><span class="stat-value">${cs.length.toString().padStart(2, "0")}</span></div><div class="stat"><span class="stat-label">Highest level</span><span class="stat-value">${cs.length ? Math.max(...cs.map((c) => latest(c).level)) : "—"}</span></div><div class="stat"><span class="stat-label">Saved snapshots</span><span class="stat-value">${snaps.toString().padStart(2, "0")}</span></div></section><div class="section-row"><h2>Character collection</h2>${cs.length ? `<input class="search" id="search" aria-label="Search characters" placeholder="Find a character…" value="${esc(query)}">` : '<span class="muted">Your story starts here</span>'}</div><section class="panel account-switcher" id="wow-accounts" data-section-anchor><div class="section-row"><h2>WoW game accounts</h2>${action("new-game-account", "+ Add game account")}</div><p>Organize characters by WoW license. Legacy Points are shared across these game accounts when they belong to the same Battle.net account.</p><div class="account-tabs"><button data-account-filter="all" class="${accountFilter === "all" ? "selected" : ""}">All accounts</button>${current()
       .gameAccounts.map(
         (a) =>
           `<button data-account-filter="${esc(a.id)}" class="${accountFilter === a.id ? "selected" : ""}">${esc(a.name)} · ${current().characters.filter((c) => (latest(c).accountId || "default") === a.id).length}</button>`,
@@ -461,6 +476,7 @@ function findChar(id) {
     return null;
   }
 }
+function decodeRoute(value) { try { return decodeURIComponent(value || ""); } catch { return ""; } }
 function characterView(id) {
   const c = findChar(id);
   if (!c)
@@ -471,7 +487,10 @@ function characterView(id) {
     );
   const s = latest(c),
     [cn, color] = CLASSES[s.class];
-  return `<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${["profile", "social", "equipment", "inventory", "professions", "encounters", "quests", "progress", "plans", "legacy"].map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Profile", social: "RP & story", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "Dungeons & raids", quests: "Quest journal", progress: "Progress history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "social" ? socialProfile(c, current()) : tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "quests" ? questJournal(s) : tab === "progress" ? history(c) + '<h2>Character stories</h2>' + activityCards(current(), c.id) + eventSection(current(), {characterId:c.id,completedOnly:true}) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest observation: ${esc(new Date(s.observedAt).toLocaleString())}${s.importedAt ? ` · Imported: ${esc(new Date(s.importedAt).toLocaleString())}` : ""} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
+  const allowedTabs=["profile", "social", "equipment", "inventory", "professions", "encounters", "quests", "progress", "plans", "legacy"];
+  tab = allowedTabs.includes(route()[2]) ? route()[2] : "profile";
+  const shownTabs=allowedTabs;
+  return `${breadcrumbs([['Characters','#roster'],[s.name]])}<a href="#roster" class="text-button">← All characters</a><div style="margin-top:22px">${heading("CHARACTER RECORD", esc(s.name), `${esc(s.race)} ${cn} · ${esc(playStyleLabel(s))}`, action("update-manual", "Update manually") + action("import", "Import update", true))}</div><div class="detail-meta"><span class="chip" style="color:${color}">Level ${s.level} ${cn}</span><span class="chip">${esc(s.faction) || "Faction not captured"}</span><span class="chip">${esc(s.zone) || "Zone not captured"}</span><span class="chip">${c.snapshots.length} snapshots</span><span class="chip">${esc(current().gameAccounts.find((a) => a.id === (s.accountId || "default"))?.name || "WoW account")}</span></div><div class="subnav" aria-label="Character sections">${shownTabs.map((t) => `<button data-tab="${t}" class="${tab === t ? "selected" : ""}" aria-pressed="${tab === t}">${{ profile: "Overview", social: "Social & story", equipment: "Equipment & talents", inventory: "Inventory", professions: "Professions", encounters: "PvE progress", quests: "Quest journal", progress: "Activity & history", plans: "Adventure plans", legacy: "Legacy perks" }[t]}</button>`).join("")}</div>${tab === "social" ? socialProfile(c, current()) : tab === "profile" ? profile(c) + armorySummary(c, current()) : tab === "inventory" ? inventoryView(c) : tab === "professions" ? professionSection(s) : tab === "encounters" ? progressSection(s, true) : tab === "equipment" ? equipment(c) + savedBuilds(s) : tab === "quests" ? questJournal(s) : tab === "progress" ? history(c) + '<h2>Character stories</h2>' + activityCards(current(), c.id) + eventSection(current(), {characterId:c.id,completedOnly:true}) : tab === "legacy" ? legacyPerks(c) : plans(c)}<p><small>Latest observation: ${esc(new Date(s.observedAt).toLocaleString())}${s.importedAt ? ` · Imported: ${esc(new Date(s.importedAt).toLocaleString())}` : ""} · ${esc(s.source)}</small></p><button id="delete-character" class="text-button danger">Remove character</button>`;
 }
 function equipment(c) {
   const s = latest(c);
@@ -560,8 +579,7 @@ function bindCharacter(id) {
   document.querySelectorAll("[data-tab]").forEach(
     (b) =>
       (b.onclick = () => {
-        tab = b.dataset.tab;
-        render();
+        location.hash = "character/" + encodeURIComponent(c.id) + "/" + b.dataset.tab;
       }),
   );
   $("#update-manual")?.addEventListener("click", () => manualDialog(latest(c)));
@@ -1028,11 +1046,14 @@ function bindLegacy() {
   );
 }
 
+initializeNavigation();
 initializeItemUI();
 $("#backup-footer").onclick = backup;
 window.addEventListener("hashchange", () => {
   $("#item-detail-modal")?.close();
   render();
+  if(route()[0] === "character" && route()[2]) document.querySelector("[data-tab].selected")?.focus({preventScroll:true});
+  else $("#main").focus({preventScroll:true});
 });
 window.addEventListener("storage", (e) => {
   if (e.key === KEY && !demo) {
@@ -1113,8 +1134,7 @@ function updateAccountHeader() {
             ? "Sync needs attention"
             : "Saved to your account"
       : "Local to this device";
-  $("#account-header").innerHTML =
-    `<span class="local-badge">${status}</span><a href="#account" class="account-link">${account ? esc(account.name) : "Sign in"}</a>`;
+  updateNavigation(location.hash || "#home", account, status);
 }
 function googleButton(id = "google-signin") {
   return `<button type="button" id="${id}" class="google-button" ${!cloudClient ? "disabled" : ""}><span aria-hidden="true" class="google-g">G</span>Continue with Google</button>`;
@@ -1164,7 +1184,7 @@ function bindAccount() {
     render();
   });
   $("#account-backup")?.addEventListener("click", backup);
-  $("#signout")?.addEventListener("click", async () => {
+  document.querySelectorAll("#signout, [data-signout]").forEach(button => button.addEventListener("click", async () => {
     try {
       await cloudClient.signOut();
       localMode = false;
@@ -1175,7 +1195,7 @@ function bindAccount() {
     } catch (e) {
       toast(friendlyError(e));
     }
-  });
+  }));
   for (const id of ["refresh-cloud", "retry-cloud"])
     $("#" + id)?.addEventListener("click", () => cloudClient?.refresh());
   $("#migrate-local")?.addEventListener("click", () => {

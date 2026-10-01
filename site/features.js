@@ -1,3 +1,4 @@
+import {groupResults, publicSearchRows} from './search-model.js';
 import {observationDetails} from './armory-observations.js';
 import { eventSection } from "./events.js";
 import { inventoryFor, searchInventory, LOCATIONS } from "./character-data.js";
@@ -189,20 +190,20 @@ export function searchView() {
     '<section class="panel"><label>Search<input id="global-query" type="search" placeholder="Try Arugal, Paladin, or an item ID…" autofocus></label><div id="global-results" aria-live="polite"><p>Type at least two characters to search the available data.</p></div></section>'
   );
 }
-export async function bindSearch(root, state) {
+export async function bindSearch(root, state, service, initialQuery = "") {
   const input = root.querySelector("#global-query"),
     results = root.querySelector("#global-results");
-  let talentRows = [],
-    timer;
+  let talentRows = [], publicRows = [], timer, publicRequested = false;
+  input.value = initialQuery;
   const entries = [
     ...state.characters.map((c) => ({
-      type: "Character",
+      type: "My character",
       name: latest(c).name,
       meta: latest(c).class,
       href: "#character/" + encodeURIComponent(c.id),
     })),
     ...state.guilds.map((g) => ({
-      type: "Guild",
+      type: "Private guild plan",
       name: g.name,
       meta: g.faction,
       href: "#guilds/" + encodeURIComponent(g.id),
@@ -214,6 +215,7 @@ export async function bindSearch(root, state) {
         meta: d.zone,
         href: "#pve/" + d.id,
       },
+      {type:'Zone reference',name:d.zone,meta:d.name,href:'#pve/'+d.id},
       ...d.quests.map((q) => ({
         type: "Quest",
         name: typeof q === "string" ? q : q.name,
@@ -234,6 +236,8 @@ export async function bindSearch(root, state) {
       href: "#items/" + i.id,
     })),
     ...state.characters.flatMap((c) => [
+      ...(latest(c).quests || []).map(q=>({type:'My active quest',name:q.title || 'Quest '+q.id,meta:latest(c).name+' · '+q.id,href:'#character/'+encodeURIComponent(c.id)})),
+      ...(latest(c).questHistory || []).map(q=>({type:'My completed quest',name:q.name || 'Quest '+q.questId,meta:latest(c).name+' · '+q.questId,href:'#character/'+encodeURIComponent(c.id)+'/quests'})),
       ...latest(c).professions.map((p) => ({
         type: "Profession",
         name: p.name,
@@ -254,15 +258,35 @@ export async function bindSearch(root, state) {
       results.innerHTML = "<p>Type at least two characters.</p>";
       return;
     }
-    const found = [...entries, ...talentRows]
-      .filter((e) => `${e.name} ${e.meta}`.toLowerCase().includes(q))
-      .slice(0, 100);
-    results.innerHTML = `<p>${found.length} results${found.length === 100 ? " (first 100)" : ""}</p>${found.map((e) => `<a class="search-result" href="${e.href}"><span class="chip">${e.type}</span><strong>${esc(e.name)}</strong><small>${esc(e.meta)}</small></a>`).join("") || "<p>No matches in the available dataset. Try the item database for the full Classic catalog.</p>"}`;
+    const found = groupResults([...entries, ...talentRows, ...publicRows], q);
+    results.innerHTML = `<p role="status">${found.shown} results${found.total > found.shown ? ` of ${found.total} matches (first 100)` : ''} in loaded data</p>${found.groups.map(([type,rows])=>`<section class="search-group"><h2>${esc(type)}</h2>${rows.map(e=>`<a class="search-result" href="${esc(e.href)}"><span class="chip">${esc(e.type)}</span><strong>${esc(e.name)}</strong><small>${esc(e.meta)}</small></a>`).join('')}</section>`).join('') || '<p>No matches in the loaded data. Load more public records below or <a href="#items">search the full item catalog</a>.</p>'}`;
   }
+  run();
   input.oninput = () => {
     clearTimeout(timer);
-    timer = setTimeout(run, 100);
+    timer = setTimeout(() => { if(!input.isConnected)return; run(); history.replaceState(null, "", "#search/" + encodeURIComponent(input.value.trim())); if(input.value.trim().length>=2&&!publicRequested){publicRequested=true;button.click();} }, 150);
   };
+  const coverage=document.createElement('div'); coverage.className='search-coverage';
+  coverage.innerHTML='<p>Reference results include listed instances, encounters, discovered items and talents. Your private records are searched only in this session. Public characters and guilds load in pages.</p><p data-coverage role="status">Public directories have not been loaded.</p><button data-load-public>Search public characters & guilds</button><p data-talent-status role="status">Loading talent references…</p>';
+  results.after(coverage);
+  let characterCursor,guildCursor,characterDone=false,guildDone=false;
+  const publicCharacters=[],publicGuilds=[],button=coverage.querySelector('button'),status=coverage.querySelector('[data-coverage]');
+  button.onclick=async()=>{
+    button.disabled=true;status.textContent='Loading public directories…';
+    try {
+      if(!service)throw Error('Community is still connecting. Try again shortly.');
+      if(!await service.available())throw Error('Shared community is currently unavailable.');
+      const pages=await Promise.allSettled([characterDone?null:service.directory(characterCursor),guildDone?null:service.guilds.directory(guildCursor)]);
+      if(!input.isConnected)return;
+      if(pages[0].status==='fulfilled'&&pages[0].value){const p=pages[0].value;publicCharacters.push(...p.rows);characterCursor=p.cursor;characterDone=p.done;}
+      if(pages[1].status==='fulfilled'&&pages[1].value){const p=pages[1].value;publicGuilds.push(...p.rows);guildCursor=p.cursor;guildDone=p.done;}
+      publicRows=publicSearchRows(publicCharacters,publicGuilds);run();
+      status.textContent=`Searching ${publicCharacters.length} public characters and ${publicGuilds.length} public guilds. ${characterDone&&guildDone?'All available public records loaded.':'More records may contain matches.'}${pages.some(p=>p.status==='rejected')?' A directory could not load. Retry to continue.':''}`;
+      button.hidden=characterDone&&guildDone;button.textContent='Search more public records';
+    }catch(e){if(input.isConnected)status.textContent=e.message;}
+    finally{button.disabled=false;}
+  };
+  if(input.value.trim().length>=2){publicRequested=true;button.click();}
   const data = await Promise.allSettled(classes.map(loadTalents));
   if (!input.isConnected) return;
   talentRows = data.flatMap((r) =>
@@ -275,6 +299,7 @@ export async function bindSearch(root, state) {
         }))
       : [],
   );
+  coverage.querySelector("[data-talent-status]").textContent = data.some(r=>r.status==="rejected") ? "Some talent references could not load. Reload to retry." : "Talent references loaded.";
   if (input.value) run();
 }
 

@@ -1,3 +1,5 @@
+> October 1 navigation update: see [NAVIGATION.md](NAVIGATION.md) for current routes, shared shell, dashboard and search providers. Older community-status notes below are historical; the current community implementation and activation are preserved.
+
 # Architecture and migration notes
 
 ## Application

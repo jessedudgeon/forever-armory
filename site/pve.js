@@ -1,3 +1,4 @@
+import {breadcrumbs, sectionNavigation, bindSectionNavigation} from './navigation.js';
 import {
   instances,
   findInstance,
@@ -34,7 +35,7 @@ function notes(title, values) {
 function questsHTML(d, ids) {
   const quests = ids ? d.quests.filter((q) => ids.includes(q.id)) : d.quests;
   return quests.length
-    ? `<section class="panel"><h2>Related quests</h2>${quests.map((q) => (typeof q === "string" ? `<p>${esc(q)}</p>` : `<article><h3>${esc(q.name)}</h3><p>${esc(q.description || "")}</p><p>${esc(q.requirements || "")}</p>${q.rewardItemIds?.map((id) => itemButton({ id })).join(" ") || ""}</article>`)).join("")}</section>`
+    ? `<section class="panel" id="pve-quests"><h2>Related quests</h2>${quests.map((q) => (typeof q === "string" ? `<p>${esc(q)}</p>` : `<article><h3>${esc(q.name)}</h3><p>${esc(q.description || "")}</p><p>${esc(q.requirements || "")}</p>${q.rewardItemIds?.map((id) => itemButton({ id })).join(" ") || ""}</article>`)).join("")}</section>`
     : "";
 }
 function artworkHTML(art) {
@@ -60,12 +61,13 @@ function encounterCard(d, e, detail = false) {
 function tracker(d, state) {
   const chars = state.characters || [];
   if (!chars.length)
-    return '<section class="panel"><h2>Your encounter progress</h2><p>Add a character to keep a private record of completed encounters.</p><a href="#roster">Open characters →</a></section>';
+    return '<section class="panel" id="pve-tracker"><h2>Your encounter progress</h2><p>Add a character to keep a private record of completed encounters.</p><a href="#roster">Open characters →</a></section>';
   if (!chars.some((c) => c.id === selectedCharacter))
     selectedCharacter = chars[0].id;
-  return `<section class="panel"><h2>Your encounter progress</h2><label>Character<select id="pve-character">${chars.map((c) => `<option value="${esc(c.id)}" ${c.id === selectedCharacter ? "selected" : ""}>${esc(c.snapshots.at(-1).name)} · ${esc(state.gameAccounts?.find((a) => a.id === c.snapshots.at(-1).accountId)?.name || "Default account")}</option>`).join("")}</select></label><p class="muted">Manual, private tracking. This checklist does not automatically mark the whole ${d.kind} complete.</p><div id="pve-progress"></div><p id="pve-error" role="alert" class="error"></p></section>`;
+  return `<section class="panel" id="pve-tracker"><h2>Your encounter progress</h2><label>Character<select id="pve-character">${chars.map((c) => `<option value="${esc(c.id)}" ${c.id === selectedCharacter ? "selected" : ""}>${esc(c.snapshots.at(-1).name)} · ${esc(state.gameAccounts?.find((a) => a.id === c.snapshots.at(-1).accountId)?.name || "Default account")}</option>`).join("")}</select></label><p class="muted">Manual, private tracking. This checklist does not automatically mark the whole ${d.kind} complete.</p><div id="pve-progress"></div><p id="pve-error" role="alert" class="error"></p></section>`;
 }
 export function pveView(id, encounterId, state) {
+  if(['dungeons','raids'].includes(id)){filter=id;id=undefined;}else if(!id){filter='all';}
   const d = findInstance(id);
   if (id && !d)
     return (
@@ -76,7 +78,8 @@ export function pveView(id, encounterId, state) {
     );
   if (!d)
     return (
-      heading("PvE Journal", "Dungeon / Raid → Encounter → Loot") +
+      breadcrumbs([["Game Guide","#game-guide"],["Dungeons & Raids","#pve"],...(filter === "all" ? [] : [[filter === "raids" ? "Raids" : "Dungeons"]])]) +
+      heading(filter === "raids" ? "Raid Journal" : filter === "dungeons" ? "Dungeon Journal" : "PvE Journal", "Explore instances, encounters, loot and your character’s progress.") +
       warning +
       `<section class="panel"><div class="dungeon-controls"><label>Search instances, encounters or loot<input id="dungeon-search" type="search" value="${esc(query)}" placeholder="Try Onyxia or Meteor Shard"></label><label>Show<select id="dungeon-filter">${[
         ["all", "All instances"],
@@ -99,9 +102,12 @@ export function pveView(id, encounterId, state) {
       heading("Encounter not found", d.name) +
       `<a href="#pve/${d.id}">Back to instance</a>`
     );
-  return `<a href="#pve">← All instances</a>${heading(e?.name || d.name, `${d.kind === "raid" ? "Raid" : "Dungeon"} · ${d.zone} · Level ${d.level}`)}${e ? `<p><a href="#pve/${d.id}">${esc(d.name)} · All encounters</a></p>` : ""}${warning}${d.description ? `<p>${esc(d.description)}</p>` : ""}${!e ? `<section class="panel"><h2>Visit & prepare</h2><p><strong>Location:</strong> ${esc(d.zone)}</p><p><strong>Entrance:</strong> ${esc(d.entrance) || "Exact entrance not documented."}</p><p><strong>Quests:</strong> ${d.quests.length ? d.quests.map((q) => esc(typeof q === "string" ? q : q.name)).join(", ") : "Quest coverage pending."}</p><p>${d.encounters.length} encounters listed · Coverage: ${esc(d.coverage)}</p></section>` : ""}${!e ? instanceDetails(d) + questsHTML(d) + lootPanel() : questsHTML(d, e.questIds)}${d.encounters.length ? `<nav class="encounter-nav" aria-label="Encounters">${d.encounters.map((b) => `<a href="#pve/${d.id}/${b.id}" ${b.id === encounterId ? 'aria-current="page"' : ""}>${b.order}. ${esc(b.name)}</a>`).join("")}</nav><div class="dungeon-bosses">${(e ? [e] : d.encounters).map((b) => encounterCard(d, b, !!e)).join("")}</div>${tracker(d, state)}` : '<section class="panel"><p>Encounters and loot await verified reports.</p></section>'}${d.source ? `<p>Reference: <a href="${esc(d.source)}" target="_blank" rel="noopener">${d.new ? "Listing" : "Classic guide"} ↗</a></p>` : ""}`;
+  const kind=d.kind==='raid'?'Raids':'Dungeons';
+  const sections=[['Overview','pve-overview'],...(d.encounters.length?[['Bosses','pve-bosses']]:[]),...(!e?[['Loot','pve-loot-section']]:[]),...(d.quests.length&&(!e||d.quests.some(q=>e.questIds?.includes(q.id)))?[['Quests','pve-quests']]:[]),...(d.encounters.length?[['Progress','pve-tracker']]:[])];
+  return `${breadcrumbs([['Game Guide','#game-guide'],['PvE','#pve'],[kind,'#pve/'+kind.toLowerCase()],[d.name,'#pve/'+d.id],...(e?[[e.name]]:[])])}${sectionNavigation('PvE sections',sections)}<div id="pve-overview" data-section-anchor></div><a href="#pve">← All instances</a>${heading(e?.name || d.name, `${d.kind === "raid" ? "Raid" : "Dungeon"} · ${d.zone} · Level ${d.level}`)}${e ? `<p><a href="#pve/${d.id}">${esc(d.name)} · All encounters</a></p>` : ""}${warning}${d.description ? `<p>${esc(d.description)}</p>` : ""}${!e ? `<section class="panel"><h2>Visit & prepare</h2><p><strong>Location:</strong> ${esc(d.zone)}</p><p><strong>Entrance:</strong> ${esc(d.entrance) || "Exact entrance not documented."}</p><p><strong>Quests:</strong> ${d.quests.length ? d.quests.map((q) => esc(typeof q === "string" ? q : q.name)).join(", ") : "Quest coverage pending."}</p><p>${d.encounters.length} encounters listed · Coverage: ${esc(d.coverage)}</p></section>` : ""}${!e ? instanceDetails(d) + questsHTML(d) + `<div id="pve-loot-section" data-section-anchor>${lootPanel()}</div>` : questsHTML(d, e.questIds)}${d.encounters.length ? `<nav class="encounter-nav" aria-label="Encounters">${d.encounters.map((b) => `<a href="#pve/${d.id}/${b.id}" ${b.id === encounterId ? 'aria-current="page"' : ""}>${b.order}. ${esc(b.name)}</a>`).join("")}</nav><div class="dungeon-bosses" id="pve-bosses">${(e ? [e] : d.encounters).map((b) => encounterCard(d, b, !!e)).join("")}</div>${tracker(d, state)}` : '<section class="panel"><p>Encounters and loot await verified reports.</p></section>'}${d.source ? `<p>Reference: <a href="${esc(d.source)}" target="_blank" rel="noopener">${d.new ? "Listing" : "Classic guide"} ↗</a></p>` : ""}`;
 }
 export function bindPve(root, id, getState, onProgress) {
+  bindSectionNavigation(root);
   void bindLoot(root, id, getState());
   root.querySelector("#dungeon-search")?.addEventListener("input", (e) => {
     query = e.target.value;
@@ -109,7 +115,7 @@ export function bindPve(root, id, getState, onProgress) {
   });
   root.querySelector("#dungeon-filter")?.addEventListener("change", (e) => {
     filter = e.target.value;
-    root.querySelector("#dungeon-results").innerHTML = cards();
+    location.hash = filter === "all" ? "pve" : "pve/" + filter;
   });
   const d = findInstance(id),
     select = root.querySelector("#pve-character");

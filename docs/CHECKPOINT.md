@@ -1,3 +1,15 @@
+# Latest checkpoint — navigation and unified experience, October 1
+
+- Baseline: production/main `f2e3f13`; validation and Pages succeeded, live HTML asset token `e0b0ca154485cab7`. Recovered and completed unfinished navigation draft in an isolated checkout; unrelated Journal draft untouched.
+- Implemented: shared responsive Home / Game Guide / Characters / Community / Tools navigation with separate account menu; functional mobile dialog, keyboard controls, active states, useful public/personal home, hubs, breadcrumbs, guild/Journal section shortcuts, direct WoW account/history access and URL-backed character tabs.
+- Search: grouped session/reference results plus paginated public profiles/public guilds, safe coverage/error/retry messaging, shareable query URLs, quest/zone reference hits and stale navigation protection. No full-text backend or exhaustive new game catalog claimed.
+- Preserved: imports, auth, private/cloud models, addon, all Firestore rules/indexes/collections, guild authorization/RSVPs and community activation. Existing routes remain compatible. No user records were modified for QA.
+- Local tests: 115 Node tests, 25-flow browser smoke, targeted navigation/search browser checks across 320–1440px, build/package/diff checks. CI expanded to cover both shell and existing smoke tests. Production interactive browser timed out; no fresh production OAuth/two-user acceptance claimed.
+- Release authorization: the owner approved pushing `codex/navigation-discovery` and deploying after CI passes on October 1. The terminal has no GitHub credential, so the connected GitHub integration publishes the exact verified tree. Implementation began at local commit `6caa682`; CI/Pages results must be checked before calling it deployed. See NAVIGATION.md for the audit, feature map, tests and search limits.
+- Remaining: complete verified Forever catalogs, scalable server-side full-text/personalized feed, full cross-user production acceptance. Shared guild events are discoverable within guild pages; there is no invented public global event calendar or activity.
+
+---
+
 # Latest checkpoint — single-faction invite permission failure, October 1
 
 - Reproduced the owner-reported Guild Master invite denial by changing the existing lifecycle test from Both to Horde: the recipient faction lookup exceeded Firestore rule access-call budget. Previous Both-only tests missed it.
