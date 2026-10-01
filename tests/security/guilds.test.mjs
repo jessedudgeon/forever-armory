@@ -16,7 +16,7 @@ test('shared guild lifecycle, private access, independent alts, role enforcement
   await env.withSecurityRulesDisabled(ctx=>F.setDoc(F.doc(ctx.firestore(),'communityConfig/status'),{enabled:true}));
   const character=demoState().characters[0];
   for(const [s,id] of [[alice,'a'],[bob,'b'],[bob,'alt'],[carol,'c']]) await s.publish(id,character,{fields:{}});
-  const input={name:'Casual Aggression',faction:'Both',visibility:'public',recruiting:true};
+  const input={name:'Casual Aggression',faction:'Horde',visibility:'public',recruiting:true};
   await alice.guilds.create('a',input,'guild');
   assert.equal((await reader.guilds.directory()).rows.length,1);
   assert.equal((await reader.guilds.roster('guild')).rows[0].role,'master');
@@ -81,5 +81,39 @@ test('shared guild lifecycle, private access, independent alts, role enforcement
   await assertFails(F.getDocs(F.collection(a,'communityGuilds/guild/access')));
   await env.withSecurityRulesDisabled(ctx=>F.setDoc(F.doc(ctx.firestore(),'communityConfig/status'),{enabled:false}));
   await assert.rejects(()=>alice.guilds.edit('guild',input));
+ } finally {await env.cleanup();}
+});
+
+test('faction guild invitations authorize the selected master/officer within the rule read budget', async () => {
+ const env = await initializeTestEnvironment({projectId:'demo-forever-guild-invites',firestore:{rules:await readFile('firestore.rules','utf8')}});
+ try {
+  await env.withSecurityRulesDisabled(ctx=>F.setDoc(F.doc(ctx.firestore(),'communityConfig/status'),{enabled:true}));
+  const context = uid => env.authenticatedContext(uid,{firebase:{sign_in_provider:'google.com'}}).firestore();
+  const a=context('leader'), b=context('officer'), c=context('recipient');
+  const service=(db,uid)=>communityService(F,db,{currentUser:{uid}});
+  const leader=service(a,'leader'), officer=service(b,'officer'), recipient=service(c,'recipient');
+  for (const faction of ['Horde','Alliance','Both']) {
+   const character=structuredClone(demoState().characters[0]);
+   character.snapshots.at(-1).faction=faction==='Both'?'Horde':faction;
+   const master=`master-${faction}`, alt=`alt-${faction}`, deputy=`officer-${faction}`, target=`target-${faction}`, gid=`guild-${faction}`;
+   for(const [s,id] of [[leader,master],[leader,alt],[officer,deputy],[recipient,target]]) await s.publish(id,character,{fields:{}});
+   await leader.guilds.create(master,{name:gid,faction,visibility:'private'},gid);
+   await leader.guilds.invite(gid,master,deputy);
+   await officer.guilds.respond(gid,deputy,true);
+   await leader.guilds.rank(deputy,'officer');
+   await officer.guilds.invite(gid,deputy,target);
+   await leader.guilds.invite(gid,master,target); // Existing invitations can be resent.
+   assert.equal((await recipient.guilds.invitations(target)).rows[0].id,gid);
+   await assertFails(F.setDoc(F.doc(c,`communityInvites/${target}/guilds/${gid}`),{inviterId:master,guildName:gid,createdAt:F.serverTimestamp()}));
+   await leader.guilds.invite(gid,master,alt);await leader.guilds.respond(gid,alt,true);
+   // Owning a master does not let the same account invite as an ordinary member.
+   await assert.rejects(()=>leader.guilds.invite(gid,alt,target));
+   await assert.rejects(()=>leader.guilds.invite(gid,master,`unpublished-${faction}`));
+   if(faction!=='Both') {
+    character.snapshots.at(-1).faction=faction==='Horde'?'Alliance':'Horde';
+    const opposite=`opposite-${faction}`;await recipient.publish(opposite,character,{fields:{}});
+    await assert.rejects(()=>leader.guilds.invite(gid,master,opposite));
+   }
+  }
  } finally {await env.cleanup();}
 });

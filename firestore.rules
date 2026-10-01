@@ -157,6 +157,13 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/communityMemberships/$(accessActor(gid))).data.role in ['master','officer']) || guildMaster(gid);
     }
     function guildActor(actor, gid) { return characterOwner(actor) && published(actor) && guildMember(actor,gid); }
+    // Authorize invitations from the selected character directly. Resolving the
+    // account access pointer first exceeds the read budget with faction checks.
+    function guildInviter(actor, gid) {
+      let membership = get(/databases/$(database)/documents/communityMemberships/$(actor)).data;
+      return characterOwner(actor) && membership.guildId == gid
+        && membership.role in ['master','officer'];
+    }
     function safeUrl(value) { return shortText(value,1000) && (value == '' || value.matches('https://[^ @/]+[\\S]*')); }
     function guildData(d) {
       return d.keys().hasOnly(['name','tag','description','rules','playStyle','faction','recruiting','visibility','discordUrl','websiteUrl','imageUrl','bannerUrl','masterId','createdAt','updatedAt'])
@@ -192,7 +199,7 @@ service cloud.firestore {
     }
     match /communityInvites/{actor}/guilds/{gid} {
       allow read: if characterOwner(actor) || (communityLive() && guildManager(gid));
-      allow create, update: if communityLive() && guildManager(gid) && characterOwner(request.resource.data.inviterId) && guildMember(request.resource.data.inviterId,gid)
+      allow create, update: if communityLive() && guildInviter(request.resource.data.inviterId,gid)
         && published(actor) && !guildMember(actor,gid) && compatible(actor,gid)
         && request.resource.data.keys().hasOnly(['inviterId','guildName','createdAt'])
         && request.resource.data.guildName == get(/databases/$(database)/documents/communityGuilds/$(gid)).data.name

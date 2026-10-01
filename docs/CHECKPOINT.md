@@ -1,3 +1,12 @@
+# Latest checkpoint — single-faction invite permission failure, October 1
+
+- Reproduced the owner-reported Guild Master invite denial by changing the existing lifecycle test from Both to Horde: the recipient faction lookup exceeded Firestore rule access-call budget. Previous Both-only tests missed it.
+- Invitation writes now authorize the selected character directly through immutable ownership and canonical Master/Officer membership, avoiding account access-pointer lookups. Faction/published-target/payload checks remain. Ordinary member alts cannot borrow their owner's other character's Master authority.
+- Validation: 109 application tests and all 13 emulator security scenarios pass. Added Horde/Alliance/Both, Master/Officer, resend, forged inviter, ordinary alt, unpublished recipient and wrong-faction regressions.
+- IMPORTANT: production Firebase rules are NOT deployed by Pages. Firebase CLI has no authorized accounts. Publish the narrowly changed invitation rule/helper in Firebase before retrying the real Guinu invitation. No production invitation was sent or membership modified here.
+
+---
+
 # Latest checkpoint — guild invitations by name, October 1
 
 - Replaced manual public-ID entry with first/last/full-name search over published character display names. Matching ignores case and accents and supports partial words in either order.
