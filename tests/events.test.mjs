@@ -51,3 +51,11 @@ test('calendar export escapes field injection, folds Unicode at octet boundaries
  for(const line of ics.split('\r\n'))assert.ok(new TextEncoder().encode(line).length<=75);
  assert.equal(toLocalInput(fromLocalInput('2026-09-01T18:30')),'2026-09-01T18:30');assert.throws(()=>fromLocalInput('not a date'));
 });
+
+test('delisted raid references survive private backup/cloud restoration without re-entering public catalog',async()=>{
+ const s=saveEvent(fixture(),{...fields(fixture()),type:'raid',instanceId:'onyxias-lair'},'retained-raid');
+ assert.deepEqual(backup(s),s);
+ assert.deepEqual(stateFromRecords((await recordsFor(s)).values()),s);
+ const {findInstance}=await import('../site/pve-data.js');
+ assert.equal(findInstance('onyxias-lair'),undefined);
+});

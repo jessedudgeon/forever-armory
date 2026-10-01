@@ -75,7 +75,7 @@ export function homeView(state) {
       )
       .join(
         "",
-      )}</section><div class="note">Reference data and imported observations are labeled separately. A Classic item or raid listing does not confirm its availability or stats in Forever.</div>`
+      )}</section><div class="note">Sourced Forever content and imported observations are labeled separately. Unrecorded details remain unknown.</div>`
   );
 }
 export function inventoryView(c) {

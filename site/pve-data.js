@@ -67,7 +67,7 @@ export function referenceItems() {
       .flatMap((d) =>
         d.encounters
           .filter((e) => e.loot.some((r) => r.itemId === item.id))
-          .map((e) => `${d.name} · ${e.name} (Classic reference)`),
+          .map((e) => `${d.name} · ${e.name} (Forever source)`),
       )
       .join("; "),
   }));

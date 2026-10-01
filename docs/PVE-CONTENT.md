@@ -1,3 +1,33 @@
+# Forever-only catalog correction — October 1
+
+This policy supersedes the historical Classic-reference expansion below. The public Journal and item search must not expose content on the strength of Classic availability alone.
+
+- Removed seven unconfirmed Classic raid listings, their access/quest assumptions, and unsupported drop associations. Blizzard explicitly announces **Hyjal Summit** (20 players) and **Barrow Deeps** (10 players); these appear as **Announced for Forever**, with no invented bosses or loot.
+- Existing dungeon identities/level bands are listed in Wowhead's Forever dungeon overview. Announced new dungeons have the Blizzard announcement as provenance. Announcement/listing is not a claim of current beta accessibility.
+- Added Forever guide boss-to-item associations for Hall of Thanes (4 encounters / 12 drops), Ruins of Lordaeron (6 / 18), Ragefire Chasm (4 / 6), Wailing Caverns (9 / 23), Shadowfang Keep (10 / 20). These are partial guide tables, not exhaustive drop tables. Source check: 2026-10-01. No drop rates inferred.
+- Each encounter and drop carries its Forever guide source. Item IDs, names, quality, icon, required level and slot come from the same page's Forever item records, not the old Classic npm catalog. No unsupported stat tooltips or class restrictions are filled in.
+- Removed Classic-only Deadmines boss/drop data pending a checked Forever association source; its confirmed instance listing remains. Other instances with incomplete detail show an explicit boss/loot coverage gap.
+- Public item search, goal picker, global discovery and item dialogs use the sourced catalog plus private captured inventory. Removed automatic Classic search/enrichment. Wowhead item links now use `/forever/`.
+- Existing character records, imported histories and private plans remain intact. Retired raid IDs are recognized only for private event compatibility; they do not return to the public Journal/search. No changes to Firestore rules, indexes, auth, community collections or addon.
+
+## Sources checked
+
+- https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap
+- https://news.blizzard.com/en-us/article/24304160/the-world-of-warcraft-forever-beta-now-live
+- https://www.wowhead.com/forever/guide/dungeons-overview-locations-details
+- https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards
+- https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards
+- https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards
+- https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards
+- https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards
+- https://www.wowhead.com/forever/quest=96393/old-ironforge-incursion
+
+The guide tables are beta documentation, not an official exhaustive loot database. Empty fields remain unknown. Do not restore Classic data to fill them. Retain stable instance/encounter IDs when improving sourced coverage.
+
+---
+
+## Historical contract and superseded release notes
+
 # Shared Dungeon & Raid Journal content contract
 
 Both types use `site/data/pve.js`, resolved by `pve-data.js`. Definitions remain static ES modules compatible with GitHub Pages. Replace the service's source later without changing view components.

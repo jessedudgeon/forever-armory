@@ -16,15 +16,15 @@ const {spawn}=require('node:child_process');
   await page.locator('#desktop-navigation summary').filter({hasText:'Tools'}).click();
   await page.locator('#desktop-navigation summary').filter({hasText:'Tools'}).press('Escape');
   assert.equal(await page.locator('#desktop-navigation details[open]').count(),0);
-  for(const hash of ['tools','community-home','pve/raids','pve/dungeons','pve/molten-core/ragnaros','roster/history','guide','account']){
+  for(const hash of ['tools','community-home','pve/raids','pve/dungeons','pve/hall-of-thanes/faldrim-anvilmar','roster/history','guide','account']){
    await page.goto('http://localhost:4175/#'+hash);await page.locator('h1').waitFor();assert.ok(!(await page.locator('main').innerText()).includes('Page not found'),hash);
   }
-  await page.goto('http://localhost:4175/#home');await page.locator('#home-search input').fill('Ragnaros');await page.locator('#home-search button').click();
-  await page.locator('#global-results a').filter({hasText:'Ragnaros'}).waitFor();
-  await page.reload();await page.locator('#global-results a').filter({hasText:'Ragnaros'}).waitFor();
-  assert.equal(await page.locator('#global-query').inputValue(),'Ragnaros');
-  await page.locator('#global-results a').filter({hasText:'Ragnaros'}).click();await page.getByRole('heading',{name:'Ragnaros',exact:true,level:1}).waitFor();
-  await page.goBack();await page.locator('#global-query').waitFor();assert.equal(await page.locator('#global-query').inputValue(),'Ragnaros');
+  await page.goto('http://localhost:4175/#home');await page.locator('#home-search input').fill('Faldrim Anvilmar');await page.locator('#home-search button').click();
+  await page.locator('#global-results a').filter({hasText:'Faldrim Anvilmar'}).waitFor();
+  await page.reload();await page.locator('#global-results a').filter({hasText:'Faldrim Anvilmar'}).waitFor();
+  assert.equal(await page.locator('#global-query').inputValue(),'Faldrim Anvilmar');
+  await page.locator('#global-results a').filter({hasText:'Faldrim Anvilmar'}).click();await page.getByRole('heading',{name:'Faldrim Anvilmar',exact:true,level:1}).waitFor();
+  await page.goBack();await page.locator('#global-query').waitFor();assert.equal(await page.locator('#global-query').inputValue(),'Faldrim Anvilmar');
   // Pending search input must not hijack navigation after leaving search.
   await page.locator('#global-query').fill('Orgrimmar');await page.locator('.brand').click();await page.locator('#home-search').waitFor();
   await page.waitForTimeout(250);assert.match(page.url(),/#home$/);

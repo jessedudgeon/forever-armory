@@ -1,4 +1,4 @@
-// Shared dungeon and raid catalog; item definitions live in items.js.
+// Only Forever-specific sourced content. See docs/PVE-CONTENT.md.
 export const PVE_INSTANCES = [
   {
     "kind": "dungeon",
@@ -8,10 +8,109 @@ export const PVE_INSTANCES = [
     "zone": "Beneath Ironforge",
     "faction": "Both",
     "new": true,
-    "coverage": "partial",
-    "entrance": "",
-    "quests": [],
-    "encounters": []
+    "coverage": "Boss roster and sourced loot; drop tables may be incomplete",
+    "entrance": "Follow the passage from the High Seat into Old Ironforge.",
+    "quests": [
+      {
+        "id": "old-ironforge-incursion",
+        "name": "Old Ironforge Incursion",
+        "gameQuestId": 96393,
+        "source": "https://www.wowhead.com/forever/quest=96393/old-ironforge-incursion"
+      }
+    ],
+    "encounters": [
+      {
+        "id": "faldrim-anvilmar",
+        "name": "Faldrim Anvilmar",
+        "order": 1,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 271097,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 270227,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271096,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "magmatus",
+        "name": "Magmatus",
+        "order": 2,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 270230,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 270231,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271095,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "plunder",
+        "name": "Plunder",
+        "order": 3,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 270228,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271098,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 270229,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "durgen-dirgehammer",
+        "name": "Durgen Dirgehammer",
+        "order": 4,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 270256,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 270260,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 270261,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards"
+          }
+        ]
+      }
+    ],
+    "source": "https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards",
+    "checkedAt": "2026-10-01",
+    "availability": "Documented in Forever beta"
   },
   {
     "kind": "dungeon",
@@ -21,10 +120,146 @@ export const PVE_INSTANCES = [
     "zone": "Lordaeron",
     "faction": "Both",
     "new": true,
-    "coverage": "partial",
+    "coverage": "Boss roster and sourced loot; drop tables may be incomplete",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [
+      {
+        "id": "witherfang",
+        "name": "Witherfang",
+        "order": 1,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 271201,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271203,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271202,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "the-baron",
+        "name": "The Baron",
+        "order": 2,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 271204,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271205,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271206,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "viktor-the-vile",
+        "name": "Viktor the Vile",
+        "order": 3,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 271218,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271212,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271211,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "the-abandoned",
+        "name": "The Abandoned",
+        "order": 4,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 271216,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271208,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271207,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "bjork",
+        "name": "Bjork",
+        "order": 5,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 271217,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271209,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271210,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          }
+        ]
+      },
+      {
+        "id": "rath-mael",
+        "name": "Rath'Mael",
+        "order": 6,
+        "description": "",
+        "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards",
+        "loot": [
+          {
+            "itemId": 271213,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271215,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          },
+          {
+            "itemId": 271214,
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards"
+          }
+        ]
+      }
+    ],
+    "source": "https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards",
+    "checkedAt": "2026-10-01",
+    "availability": "Documented in Forever beta"
   },
   {
     "kind": "dungeon",
@@ -37,7 +272,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever"
   },
   {
     "kind": "dungeon",
@@ -50,7 +288,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever"
   },
   {
     "kind": "dungeon",
@@ -63,20 +304,26 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever"
   },
   {
     "kind": "dungeon",
     "id": "kroldok-stronghold",
     "name": "Krol’dok Stronghold",
     "level": "40–45",
-    "zone": "Location pending",
+    "zone": "Riverglades",
     "faction": "Both",
     "new": true,
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever"
   },
   {
     "kind": "dungeon",
@@ -89,33 +336,42 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever"
   },
   {
     "kind": "dungeon",
     "id": "blackmaw-hold",
     "name": "Blackmaw Hold",
     "level": "55–60",
-    "zone": "Location pending",
+    "zone": "Northern Azshara",
     "faction": "Both",
     "new": true,
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever"
   },
   {
     "kind": "dungeon",
     "id": "shapers-terrace",
     "name": "Shaper’s Terrace",
     "level": "58–60",
-    "zone": "Location pending",
+    "zone": "Un’Goro Crater",
     "faction": "Both",
     "new": true,
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever"
   },
   {
     "kind": "dungeon",
@@ -124,8 +380,8 @@ export const PVE_INSTANCES = [
     "level": "13–18",
     "zone": "Orgrimmar",
     "faction": "Horde",
-    "source": "https://www.wowhead.com/classic/guide/ragefire-chasm-dungeon-strategy-wow-classic",
-    "coverage": "partial",
+    "source": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards",
+    "coverage": "Boss roster and sourced loot; drop tables may be incomplete",
     "entrance": "",
     "quests": [],
     "encounters": [
@@ -135,6 +391,7 @@ export const PVE_INSTANCES = [
         "order": 1,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards",
         "loot": []
       },
       {
@@ -143,18 +400,19 @@ export const PVE_INSTANCES = [
         "order": 2,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 14148,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/ragefire-chasm-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards"
           },
           {
             "itemId": 14149,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/ragefire-chasm-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards"
           },
           {
             "itemId": 14145,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/ragefire-chasm-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -164,18 +422,19 @@ export const PVE_INSTANCES = [
         "order": 3,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 14147,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/ragefire-chasm-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards"
           },
           {
             "itemId": 14150,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/ragefire-chasm-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards"
           },
           {
             "itemId": 14151,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/ragefire-chasm-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -185,9 +444,12 @@ export const PVE_INSTANCES = [
         "order": 4,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards",
         "loot": []
       }
-    ]
+    ],
+    "checkedAt": "2026-10-01",
+    "availability": "Documented in Forever beta"
   },
   {
     "kind": "dungeon",
@@ -196,8 +458,8 @@ export const PVE_INSTANCES = [
     "level": "15–25",
     "zone": "The Barrens",
     "faction": "Both",
-    "source": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic",
-    "coverage": "partial",
+    "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
+    "coverage": "Boss roster and sourced loot; drop tables may be incomplete",
     "entrance": "",
     "quests": [],
     "encounters": [
@@ -207,14 +469,15 @@ export const PVE_INSTANCES = [
         "order": 1,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 13245,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6447,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -224,14 +487,15 @@ export const PVE_INSTANCES = [
         "order": 2,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 10412,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 5404,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -241,35 +505,37 @@ export const PVE_INSTANCES = [
         "order": 3,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6465,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6460,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 10410,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
       {
         "id": "deviate-faerie-dragon-rare",
-        "name": "Deviate Faerie Dragon (rare)",
+        "name": "Deviate Faerie Dragon",
         "order": 4,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 5243,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6632,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -279,14 +545,15 @@ export const PVE_INSTANCES = [
         "order": 5,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6472,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6473,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -296,14 +563,15 @@ export const PVE_INSTANCES = [
         "order": 6,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6449,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6448,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -313,22 +581,23 @@ export const PVE_INSTANCES = [
         "order": 7,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 10411,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6459,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 5970,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6469,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -338,18 +607,19 @@ export const PVE_INSTANCES = [
         "order": 8,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6629,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6631,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6630,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -359,22 +629,25 @@ export const PVE_INSTANCES = [
         "order": 9,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6627,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6463,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6461,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/wailing-caverns-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards"
           }
         ]
       }
-    ]
+    ],
+    "checkedAt": "2026-10-01",
+    "availability": "Documented in Forever beta"
   },
   {
     "kind": "dungeon",
@@ -383,172 +656,13 @@ export const PVE_INSTANCES = [
     "level": "18–23",
     "zone": "Westfall",
     "faction": "Both",
-    "source": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic",
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": [
-      {
-        "id": "rhahkzor",
-        "name": "Rhahk’Zor",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 5187,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 872,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      },
-      {
-        "id": "miner-johnson-rare",
-        "name": "Miner Johnson (rare)",
-        "order": 2,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 5443,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5444,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      },
-      {
-        "id": "sneed",
-        "name": "Sneed",
-        "order": 3,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 5194,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5195,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 2169,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 1937,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      },
-      {
-        "id": "gilnid",
-        "name": "Gilnid",
-        "order": 4,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 5199,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 1156,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      },
-      {
-        "id": "mr-smite",
-        "name": "Mr. Smite",
-        "order": 5,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 7230,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5196,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5192,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      },
-      {
-        "id": "captain-greenskin",
-        "name": "Captain Greenskin",
-        "order": 6,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 5201,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5200,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 10403,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      },
-      {
-        "id": "edwin-vancleef",
-        "name": "Edwin VanCleef",
-        "order": 7,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 5193,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5202,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5191,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 10399,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      },
-      {
-        "id": "cookie",
-        "name": "Cookie",
-        "order": 8,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 5198,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          },
-          {
-            "itemId": 5197,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/deadmines-dungeon-strategy-wow-classic"
-          }
-        ]
-      }
-    ]
+    "encounters": [],
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -557,8 +671,8 @@ export const PVE_INSTANCES = [
     "level": "22–30",
     "zone": "Silverpine Forest",
     "faction": "Both",
-    "source": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic",
-    "coverage": "partial",
+    "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
+    "coverage": "Boss roster and sourced loot; drop tables may be incomplete",
     "entrance": "",
     "quests": [],
     "encounters": [
@@ -568,10 +682,11 @@ export const PVE_INSTANCES = [
         "order": 1,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 5254,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -581,10 +696,11 @@ export const PVE_INSTANCES = [
         "order": 2,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 932,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -594,18 +710,19 @@ export const PVE_INSTANCES = [
         "order": 3,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6226,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6633,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 1292,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -615,14 +732,15 @@ export const PVE_INSTANCES = [
         "order": 4,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6323,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6321,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -632,14 +750,15 @@ export const PVE_INSTANCES = [
         "order": 5,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 3191,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6320,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -649,31 +768,33 @@ export const PVE_INSTANCES = [
         "order": 6,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6319,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6318,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
       {
         "id": "deathsworn-captain-rare",
-        "name": "Deathsworn Captain (rare)",
+        "name": "Deathsworn Captain",
         "order": 7,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6641,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6642,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -683,14 +804,15 @@ export const PVE_INSTANCES = [
         "order": 8,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6340,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 3230,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -700,14 +822,15 @@ export const PVE_INSTANCES = [
         "order": 9,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 3748,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6314,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       },
@@ -717,22 +840,25 @@ export const PVE_INSTANCES = [
         "order": 10,
         "description": "",
         "mechanics": [],
+        "source": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards",
         "loot": [
           {
             "itemId": 6324,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6392,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           },
           {
             "itemId": 6220,
-            "sourceUrl": "https://www.wowhead.com/classic/guide/shadowfang-keep-dungeon-strategy-wow-classic"
+            "sourceUrl": "https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards"
           }
         ]
       }
-    ]
+    ],
+    "checkedAt": "2026-10-01",
+    "availability": "Documented in Forever beta"
   },
   {
     "kind": "dungeon",
@@ -744,7 +870,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -756,7 +885,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -768,7 +900,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -780,7 +915,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -792,7 +930,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -804,7 +945,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -816,7 +960,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -828,7 +975,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -840,7 +990,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -852,7 +1005,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -864,7 +1020,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -876,7 +1035,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -888,7 +1050,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -900,7 +1065,10 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
-    "encounters": []
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
   },
   {
     "kind": "dungeon",
@@ -912,703 +1080,43 @@ export const PVE_INSTANCES = [
     "coverage": "partial",
     "entrance": "",
     "quests": [],
+    "encounters": [],
+    "source": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "checkedAt": "2026-10-01",
+    "availability": "Listed for Forever"
+  },
+  {
+    "id": "hyjal-summit",
+    "name": "Hyjal Summit",
+    "kind": "raid",
+    "level": "60",
+    "zone": "Mount Hyjal",
+    "faction": "Both",
+    "new": true,
+    "playerSize": 20,
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever",
+    "coverage": "Announcement only; boss and loot details not confirmed",
+    "entrance": "",
+    "quests": [],
     "encounters": []
   },
   {
+    "id": "barrow-deeps",
+    "name": "Barrow Deeps",
     "kind": "raid",
-    "id": "molten-core",
-    "name": "Molten Core",
     "level": "60",
-    "zone": "Blackrock Mountain",
+    "zone": "Not documented",
     "faction": "Both",
-    "source": "https://www.wowhead.com/classic/guide/molten-core-raid-overview-wow-classic",
-    "description": "Classic encounter reference. Forever mechanics and loot remain unverified.",
-    "coverage": "partial",
-    "entrance": "Classic reference: inside Blackrock Depths; attunement provides a shortcut.",
-    "quests": [
-      {
-        "id": "attunement-to-the-core",
-        "name": "Attunement to the Core",
-        "description": "Classic shortcut attunement. Forever quest mapping is pending.",
-        "requirements": "Verify the quest and access conditions in the Forever client.",
-        "source": "https://www.wowhead.com/classic/quest=7848/attunement-to-the-core"
-      }
-    ],
-    "encounters": [
-      {
-        "id": "lucifron",
-        "name": "Lucifron",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "magmadar",
-        "name": "Magmadar",
-        "order": 2,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "gehennas",
-        "name": "Gehennas",
-        "order": 3,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "garr",
-        "name": "Garr",
-        "order": 4,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "baron-geddon",
-        "name": "Baron Geddon",
-        "order": 5,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "shazzrah",
-        "name": "Shazzrah",
-        "order": 6,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "sulfuron-harbinger",
-        "name": "Sulfuron Harbinger",
-        "order": 7,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "golemagg-the-incinerator",
-        "name": "Golemagg the Incinerator",
-        "order": 8,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "majordomo-executus",
-        "name": "Majordomo Executus",
-        "order": 9,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "ragnaros",
-        "name": "Ragnaros",
-        "order": 10,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      }
-    ]
-  },
-  {
-    "kind": "raid",
-    "id": "onyxias-lair",
-    "name": "Onyxia’s Lair",
-    "level": "60",
-    "zone": "Dustwallow Marsh",
-    "faction": "Both",
-    "source": "https://news.blizzard.com/en-us/article/24165121/20th-anniversary-realms-molten-core-and-onyxia-s-lair-now-live",
-    "description": "A Classic dragon encounter. Forever mechanics and loot remain unverified.",
-    "coverage": "partial",
-    "entrance": "Classic reference: Dustwallow Marsh. Exact Forever entrance is not verified.",
-    "quests": [
-      {
-        "id": "victory-for-the-horde",
-        "name": "Victory for the Horde",
-        "faction": "Horde",
-        "description": "Classic reference: deliver the Head of Onyxia to the Warchief.",
-        "source": "https://news.blizzard.com/en-us/article/24165121/20th-anniversary-realms-molten-core-and-onyxia-s-lair-now-live"
-      }
-    ],
-    "encounters": [
-      {
-        "id": "onyxia",
-        "name": "Onyxia",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 17068,
-            "sourceUrl": "https://www.wowhead.com/classic/item=17068"
-          },
-          {
-            "itemId": 17075,
-            "sourceUrl": "https://www.wowhead.com/classic/item=17075"
-          }
-        ],
-        "questIds": [
-          "victory-for-the-horde"
-        ]
-      }
-    ]
-  },
-  {
-    "kind": "raid",
-    "id": "blackwing-lair",
-    "name": "Blackwing Lair",
-    "level": "60",
-    "zone": "Blackrock Spire",
-    "faction": "Both",
-    "source": "https://news.blizzard.com/en-us/article/23302788/wow-classic-descend-into-the-depths-of-blackwing-lair",
-    "description": "Classic encounter reference. Forever mechanics and loot remain unverified.",
-    "coverage": "partial",
-    "entrance": "Classic reference: at the top of Blackrock Spire, reached from Blackrock Mountain.",
-    "quests": [
-      {
-        "id": "blackhands-command",
-        "name": "Blackhand’s Command",
-        "description": "Classic access quest; Forever quest mapping is pending.",
-        "prerequisites": [
-          {
-            "id": "scarshield",
-            "name": "Defeat the Scarshield Quartermaster near Blackrock Spire and loot the command."
-          },
-          {
-            "id": "accept-command",
-            "name": "Use the command to accept the quest.",
-            "prerequisiteIds": [
-              "scarshield"
-            ]
-          },
-          {
-            "id": "orb",
-            "name": "Reach the orb behind General Drakkisath in Upper Blackrock Spire.",
-            "prerequisiteIds": [
-              "accept-command"
-            ]
-          }
-        ],
-        "source": "https://news.blizzard.com/en-us/article/23302788/wow-classic-descend-into-the-depths-of-blackwing-lair"
-      }
-    ],
-    "encounters": [
-      {
-        "id": "razorgore-the-untamed",
-        "name": "Razorgore the Untamed",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "vaelastrasz-the-corrupt",
-        "name": "Vaelastrasz the Corrupt",
-        "order": 2,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "broodlord-lashlayer",
-        "name": "Broodlord Lashlayer",
-        "order": 3,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "firemaw",
-        "name": "Firemaw",
-        "order": 4,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "ebonroc",
-        "name": "Ebonroc",
-        "order": 5,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "flamegor",
-        "name": "Flamegor",
-        "order": 6,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "chromaggus",
-        "name": "Chromaggus",
-        "order": 7,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "nefarian",
-        "name": "Nefarian",
-        "order": 8,
-        "description": "",
-        "mechanics": [],
-        "loot": [
-          {
-            "itemId": 19364,
-            "sourceUrl": "https://www.wowhead.com/classic/item=19364"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "kind": "raid",
-    "id": "zulgurub",
-    "name": "Zul’Gurub",
-    "level": "60",
-    "zone": "Stranglethorn Vale",
-    "faction": "Both",
-    "source": "https://news.blizzard.com/en-us/article/23391283/wow-classic-zulgurub-and-more-now-available",
-    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
-    "coverage": "partial",
-    "entrance": "Classic reference: east of Lake Nazferiti.",
+    "new": true,
+    "playerSize": 10,
+    "source": "https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap",
+    "checkedAt": "2026-10-01",
+    "availability": "Announced for Forever",
+    "coverage": "Announcement only; boss and loot details not confirmed",
+    "entrance": "",
     "quests": [],
-    "encounters": [
-      {
-        "id": "high-priestess-jeklik",
-        "name": "High Priestess Jek’lik",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "high-priest-venoxis",
-        "name": "High Priest Venoxis",
-        "order": 2,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "high-priestess-marli",
-        "name": "High Priestess Mar’li",
-        "order": 3,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "high-priest-thekal",
-        "name": "High Priest Thekal",
-        "order": 4,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "high-priestess-arlokk",
-        "name": "High Priestess Arlokk",
-        "order": 5,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "bloodlord-mandokir",
-        "name": "Bloodlord Mandokir",
-        "order": 6,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "jindo-the-hexer",
-        "name": "Jin’do the Hexer",
-        "order": 7,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "gahzranka",
-        "name": "Gahz’ranka",
-        "order": 8,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "grilek",
-        "name": "Gri’lek",
-        "order": 9,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "hazzarah",
-        "name": "Hazza’rah",
-        "order": 10,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "renataki",
-        "name": "Renataki",
-        "order": 11,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "wushoolay",
-        "name": "Wushoolay",
-        "order": 12,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "hakkar",
-        "name": "Hakkar",
-        "order": 13,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      }
-    ],
-    "mechanics": [
-      "Classic reference: four Edge of Madness bosses rotate; a single reset does not include all four."
-    ]
-  },
-  {
-    "kind": "raid",
-    "id": "ruins-of-ahnqiraj",
-    "name": "Ruins of Ahn’Qiraj",
-    "level": "60",
-    "zone": "Silithus",
-    "faction": "Both",
-    "source": "https://news.blizzard.com/en-us/article/23493335/explore-the-temple-of-ahnqiraj-and-ruins-of-ahnqiraj",
-    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
-    "coverage": "partial",
-    "entrance": "Classic reference: left of the main Ahn’Qiraj gate.",
-    "quests": [],
-    "encounters": [
-      {
-        "id": "kurinnaxx",
-        "name": "Kurinnaxx",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "general-rajaxx",
-        "name": "General Rajaxx",
-        "order": 2,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "moam",
-        "name": "Moam",
-        "order": 3,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "buru-the-gorger",
-        "name": "Buru the Gorger",
-        "order": 4,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "ayamiss-the-hunter",
-        "name": "Ayamiss the Hunter",
-        "order": 5,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "ossirian-the-unscarred",
-        "name": "Ossirian the Unscarred",
-        "order": 6,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      }
-    ],
-    "accessRequirements": [
-      "Classic reference: the realm must open the Gates of Ahn’Qiraj. This is not a personal attunement or proof of character completion."
-    ]
-  },
-  {
-    "kind": "raid",
-    "id": "temple-of-ahnqiraj",
-    "name": "Temple of Ahn’Qiraj",
-    "level": "60",
-    "zone": "Silithus",
-    "faction": "Both",
-    "source": "https://news.blizzard.com/en-us/article/23493335/explore-the-temple-of-ahnqiraj-and-ruins-of-ahnqiraj",
-    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
-    "coverage": "partial",
-    "entrance": "Classic reference: right of the main Ahn’Qiraj gate.",
-    "quests": [],
-    "encounters": [
-      {
-        "id": "the-prophet-skeram",
-        "name": "The Prophet Skeram",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "silithid-royalty",
-        "name": "Silithid Royalty",
-        "order": 2,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "battleguard-sartura",
-        "name": "Battleguard Sartura",
-        "order": 3,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "fankriss-the-unyielding",
-        "name": "Fankriss the Unyielding",
-        "order": 4,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "viscidus",
-        "name": "Viscidus",
-        "order": 5,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "princess-huhuran",
-        "name": "Princess Huhuran",
-        "order": 6,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "the-twin-emperors",
-        "name": "The Twin Emperors",
-        "order": 7,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "ouro",
-        "name": "Ouro",
-        "order": 8,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "cthun",
-        "name": "C’Thun",
-        "order": 9,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      }
-    ],
-    "accessRequirements": [
-      "Classic reference: the realm must open the Gates of Ahn’Qiraj. This is not a personal attunement or proof of character completion."
-    ]
-  },
-  {
-    "kind": "raid",
-    "id": "naxxramas",
-    "name": "Naxxramas",
-    "level": "60",
-    "zone": "Eastern Plaguelands",
-    "faction": "Both",
-    "source": "https://news.blizzard.com/en-us/article/23572632/wow-classic-naxxramas-is-now-live",
-    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
-    "coverage": "partial",
-    "entrance": "Classic reference: use the teleport spire after attunement.",
-    "quests": [
-      {
-        "id": "the-dread-citadel-naxxramas",
-        "name": "The Dread Citadel – Naxxramas",
-        "description": "Classic attunement reference; Forever quest mapping is pending.",
-        "prerequisites": [
-          {
-            "id": "argent-dawn",
-            "name": "Reach Honored with the Argent Dawn."
-          },
-          {
-            "id": "angela",
-            "name": "Speak to Archmage Angela Dosantos at Light’s Hope Chapel.",
-            "prerequisiteIds": [
-              "argent-dawn"
-            ]
-          },
-          {
-            "id": "materials",
-            "name": "Supply the requested materials; higher reputation reduces the cost.",
-            "prerequisiteIds": [
-              "angela"
-            ]
-          }
-        ],
-        "source": "https://news.blizzard.com/en-us/article/23572632/wow-classic-naxxramas-is-now-live"
-      }
-    ],
-    "encounters": [
-      {
-        "id": "anubrekhan",
-        "name": "Anub’Rekhan",
-        "order": 1,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "grand-widow-faerlina",
-        "name": "Grand Widow Faerlina",
-        "order": 2,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "maexxna",
-        "name": "Maexxna",
-        "order": 3,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "noth-the-plaguebringer",
-        "name": "Noth the Plaguebringer",
-        "order": 4,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "heigan-the-unclean",
-        "name": "Heigan the Unclean",
-        "order": 5,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "loatheb",
-        "name": "Loatheb",
-        "order": 6,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "instructor-razuvious",
-        "name": "Instructor Razuvious",
-        "order": 7,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "gothik-the-harvester",
-        "name": "Gothik the Harvester",
-        "order": 8,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "the-four-horsemen",
-        "name": "The Four Horsemen",
-        "order": 9,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "patchwerk",
-        "name": "Patchwerk",
-        "order": 10,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "grobbulus",
-        "name": "Grobbulus",
-        "order": 11,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "gluth",
-        "name": "Gluth",
-        "order": 12,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "thaddius",
-        "name": "Thaddius",
-        "order": 13,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "sapphiron",
-        "name": "Sapphiron",
-        "order": 14,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      },
-      {
-        "id": "kelthuzad",
-        "name": "Kel’Thuzad",
-        "order": 15,
-        "description": "",
-        "mechanics": [],
-        "loot": []
-      }
-    ]
+    "encounters": []
   }
 ];

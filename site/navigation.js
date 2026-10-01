@@ -20,9 +20,9 @@ export function sectionFor(hash) {
 const hubCards = rows => `<section class="home-grid">${rows.map(([name,description,href])=>`<a class="panel home-card" href="${href}"><h2>${esc(name)}</h2><p>${esc(description)}</p><small>Explore →</small></a>`).join('')}</section>`;
 export function hubView(section) {
   const hubs = {
-    'game-guide': ['Game Guide','Explore available reference content. Classic references and Forever observations are labeled separately.',[
+    'game-guide': ['Game Guide','Explore sourced Forever content and your character observations.',[
       ['Dungeons & Raids','Find instances, bosses, related quests, reference loot and private encounter tracking.','#pve'],
-      ['Items','Look up items and follow their Journal sources. Classic catalog entries do not confirm Forever availability.','#items'],
+      ['Items','Look up items and follow their Journal sources. Only sourced Forever drops and your captured items are searchable.','#items'],
     ]],
     tools: ['Tools','Plan builds, organize your collection and bring in observations from the game.',[
       ['Talent calculator','Explore class talent trees and save character builds.','#talents'],

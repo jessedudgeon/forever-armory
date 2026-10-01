@@ -8,7 +8,7 @@ import {demoState,emptyState} from '../site/model.js';
 
 test('existing routes retain a navigation home, including private planners and PvE alias',()=>{
  for(const route of ['home','roster','storage','legacy','talents','pve','dungeons','items','professions','community','community/guild-example','guilds','events','activity','journal','guide','account','search','character/id'])assert.ok(sectionFor('#'+route),route);
- assert.equal(sectionFor('#dungeons/molten-core'),'game-guide');
+ assert.equal(sectionFor('#dungeons/hall-of-thanes'),'game-guide');
  assert.equal(sectionFor('#character/name/quests'),'characters');
  assert.equal(sectionFor('#community/guild-test'),'community');
  assert.equal(navigation.some(g=>g.links.some(([name])=>name==='NPCs')),false,'no empty database destinations');
@@ -41,8 +41,8 @@ test('breadcrumbs escape labels and PvE filtered routes preserve encounter navig
  assert.match(breadcrumbs([['<script>']]),/&lt;script&gt;/);
  assert.match(pveView('raids',undefined,emptyState()),/<h1>Raid Journal<\/h1>/);
  assert.match(pveView('dungeons',undefined,emptyState()),/<h1>Dungeon Journal<\/h1>/);
- assert.match(pveView('molten-core',undefined,emptyState()),/aria-label="Breadcrumb"/);
- assert.match(pveView('molten-core','ragnaros',emptyState()),/Ragnaros/);
+ assert.match(pveView('hall-of-thanes',undefined,emptyState()),/aria-label="Breadcrumb"/);
+ assert.match(pveView('hall-of-thanes','faldrim-anvilmar',emptyState()),/Faldrim Anvilmar/);
  assert.match(pveView('missing',undefined,emptyState()),/Instance not found/);
 });
 
