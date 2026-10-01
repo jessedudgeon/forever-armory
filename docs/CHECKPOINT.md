@@ -1,3 +1,13 @@
+# Latest checkpoint — guild invitations by name, October 1
+
+- Replaced manual public-ID entry with first/last/full-name search over published character display names. Matching ignores case and accents and supports partial words in either order.
+- Results show race/class/level/faction/play style and a public profile link. Explicit selection preserves stable-ID invitations; editing the query clears selection. Self and incompatible-faction results are excluded.
+- Reuses the existing paged directory and caches loaded results. Initial search reads up to 100 profiles; Search more characters loads the next batch. UI reports loaded coverage and does not claim an exhaustive search before the last page.
+- No schema, security rule, index, import or private-data changes. Names remain display/search values, not authorization identities. Unpublished characters cannot be searched or invited.
+- Validation: 109 Node tests pass; browser acceptance updated for name selection, stale-selection clearing and successful recipient acceptance. CI/deployment status must be checked separately.
+
+---
+
 # Latest checkpoint — compatible creation IDs, October 1
 
 - Owner reported guild creation failing with `crypto.randomUUID is not a function`.
