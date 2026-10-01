@@ -150,6 +150,7 @@ const assert = require("node:assert/strict");
       /Private character story/,
     );
     await page.locator("[data-tab=inventory]").click();
+    await page.locator("[data-tab=inventory][aria-pressed=true]").waitFor();
     assert.equal(await page.locator("#inventory-results tbody tr").count(), 3);
     await page.locator("#inventory-duplicates").check();
     assert.equal(await page.locator("#inventory-results tbody tr").count(), 2);
@@ -167,8 +168,10 @@ const assert = require("node:assert/strict");
       fullPage: true,
     });
     await page.locator("[data-tab=professions]").click();
+    await page.locator("[data-tab=professions][aria-pressed=true]").waitFor();
     assert.match(await page.locator("#main").innerText(), /Test craft/);
     await page.locator("[data-tab=encounters]").click();
+    await page.locator("[data-tab=encounters][aria-pressed=true]").waitFor();
     assert.match(await page.locator("#main").innerText(), /Onyxia/);
     await page.locator("#edit-progress").click();
     await page
@@ -226,6 +229,7 @@ const assert = require("node:assert/strict");
     });
     await page.goto("http://localhost:4173/" + charHash);
     await page.locator("[data-tab=profile]").click();
+    await page.locator("[data-tab=profile][aria-pressed=true]").waitFor();
     assert.match(await page.locator("#main").innerText(), /Tank plan/);
     await page.screenshot({
       path: "/tmp/forever-armory-verified.png",

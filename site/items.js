@@ -1,3 +1,4 @@
+import {breadcrumbs} from './navigation.js';
 import { referenceItems, itemSources } from "./pve-data.js";
 import { inventoryFor } from "./character-data.js";
 import {
@@ -376,7 +377,7 @@ export function renderItemsPage() {
   document
     .querySelectorAll("[data-nav]")
     .forEach((a) => a.classList.toggle("active", a.dataset.nav === "items"));
-  main.innerHTML = `<div class="page-heading"><div><span class="eyebrow">AZEROTH CATALOG</span><h1>Item database</h1><p>Search the Classic reference, inspect item artwork and tooltips, and turn anything into a character goal.</p></div></div><section class="panel item-search-panel"><label>Find an item<input id="item-search" autocomplete="off" placeholder="Peacebloom, Eye of Shadow, or item ID…" value="${esc(lastQuery)}"></label><p id="item-search-status"><small>Type at least two letters to search the full Classic catalog. The first search downloads the reference once and caches it in this browser.</small></p><div id="item-search-results"></div></section><section class="panel"><div class="section-row"><div><span class="eyebrow">YOUR LAST IMPORT</span><h2>Your captured inventory</h2></div><span class="muted">Captured by /farmory</span></div><div id="imported-inventory">${inventoryHTML()}</div></section>`;
+  main.innerHTML = `${location.hash.split("/")[1] ? breadcrumbs([["Game Guide", "#game-guide"],["Items", "#items"],["Item " + location.hash.split("/")[1]]]) : ""}<div class="page-heading"><div><span class="eyebrow">AZEROTH CATALOG</span><h1>Item database</h1><p>Search the Classic reference, inspect item artwork and tooltips, and turn anything into a character goal.</p></div></div><section class="panel item-search-panel"><label>Find an item<input id="item-search" autocomplete="off" placeholder="Peacebloom, Eye of Shadow, or item ID…" value="${esc(lastQuery)}"></label><p id="item-search-status"><small>Type at least two letters to search the full Classic catalog. The first search downloads the reference once and caches it in this browser.</small></p><div id="item-search-results"></div></section><section class="panel"><div class="section-row"><div><span class="eyebrow">YOUR LAST IMPORT</span><h2>Your captured inventory</h2></div><span class="muted">Captured by /farmory</span></div><div id="imported-inventory">${inventoryHTML()}</div></section>`;
   const input = main.querySelector("#item-search"),
     results = main.querySelector("#item-search-results"),
     status = main.querySelector("#item-search-status");

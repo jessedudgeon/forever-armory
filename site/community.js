@@ -1,3 +1,4 @@
+import {breadcrumbs} from './navigation.js';
 import {newId} from './identity.js';
 import {profileDetails,followingList} from './profile-ui.js';
 import {guildContent} from './guild-ui.js';
@@ -56,7 +57,7 @@ export async function bindCommunity(root,service,state,account,routeId,commit,re
       }
       if(routeId){
         const profile=await service.profile(routeId);if(!profile){content.innerHTML='<h2>Character unavailable</h2><p>This profile may have been unpublished.</p>';return;}
-        content.innerHTML=`<section class="panel"><span class="eyebrow">${esc(profile.faction)} · ${esc(profile.playStyle)}</span><h2>${esc(profile.name)}</h2><p>Level ${profile.level} ${esc(profile.race)} ${esc(profile.class)}</p><h3>${esc(profile.title)}</h3><p class="social-prose">${esc(profile.bio)}</p><p>${esc(profile.status)}</p>${actor&&actor!==routeId?'<button id="community-follow">Follow</button>':''}</section>`;
+        content.innerHTML=`${breadcrumbs([["Community","#community"],[profile.name]])}<section class="panel"><span class="eyebrow">${esc(profile.faction)} · ${esc(profile.playStyle)}</span><h2>${esc(profile.name)}</h2><p>Level ${profile.level} ${esc(profile.race)} ${esc(profile.class)}</p><h3>${esc(profile.title)}</h3><p class="social-prose">${esc(profile.bio)}</p><p>${esc(profile.status)}</p>${actor&&actor!==routeId?'<button id="community-follow">Follow</button>':''}</section>`;
         await profileDetails({content,service,profile,isOwner:ownership.some(o=>o.id===routeId),act,show});
         const follow=content.querySelector('#community-follow');if(follow){let on=await service.isFollowing(actor,routeId);follow.textContent=on?'Unfollow':'Follow';follow.title='Following makes your character identity visible to this profile’s visitors.';follow.onclick=()=>act(follow,async()=>{await service.follow(actor,routeId,!on);on=!on;follow.textContent=on?'Unfollow':'Follow';});}
         if(ownership.some(o=>o.id===routeId)){content.insertAdjacentHTML('beforeend','<section class="panel"><h2>Post publicly as this character</h2><form id="public-post-form"><label>Post type<select name="type">'+PUBLIC_POST_TYPES.map(t=>`<option>${t}</option>`).join('')+'</select></label><label>Content<textarea name="body" required maxlength="6000" rows="5"></textarea></label><p>This post will be readable by everyone.</p><button type="submit">Publish public post</button></form></section>');const form=content.querySelector('#public-post-form');form.onsubmit=e=>{e.preventDefault();const f=new FormData(form);void act(form.querySelector('button'),async()=>{await service.post(routeId,f.get('type'),f.get('body'));await show();});};}await feed([routeId]);return;
