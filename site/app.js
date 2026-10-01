@@ -34,6 +34,7 @@ import {
   instances,
   findInstance,
   encounterProgress,
+  instanceProgress,
 } from "./pve-data.js";
 import { pveView, bindPve } from "./pve.js";
 import {
@@ -244,7 +245,7 @@ function render() {
       roster: "Characters",
       character: "Character Armory",
       journal: "Adventure journal",
-      dungeons: "PvE Journal",
+      dungeons: "Dungeon & Raid Journal",
       guide: "Import & backups",
       account: "Your account",
       talents: "Talent calculator",
@@ -334,7 +335,7 @@ function render() {
             current(),
             normalize({
               ...prior,
-              progress: encounterProgress(
+              progress: encounterId === null ? instanceProgress(prior.progress, instanceId, done) : encounterProgress(
                 prior.progress,
                 instanceId,
                 encounterId,

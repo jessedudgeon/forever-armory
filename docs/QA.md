@@ -67,3 +67,10 @@ The cloud test substitutes only a demo Firebase configuration, locally bundled S
 - 25 browser flows passed at 390/768/1280/1440, including instance loot search and item-dialog → encounter navigation. Instance loot tables and encounter routes passed responsive checks; no page errors, failed requests, broken images or document overflow.
 - Addon packaging, JavaScript syntax and git diff checks passed. No Firebase rules/auth changes in this continuation; the previous commit's GitHub security/model validation succeeded.
 - No verified new game facts were invented. Class filters intentionally retain unknown restrictions and do not establish equipment proficiency or upgrade value. Full catalogs, quest editing, tier-set relationships and live OAuth validation remain incomplete.
+
+
+## October 1 — Journal progression after unified navigation
+
+`npm test` passes 120 tests. `node tests/browser/smoke.cjs` passes 25 existing flows. `node tests/browser/navigation.cjs` passes shell/search acceptance. New `node tests/browser/journal.cjs` passes raid/dungeon/filter routes, quest search and ordered prerequisites, independent boss/clear persistence across reload, directory progress, character isolation, failed-save rollback and 320/390/768/1440px layouts without page errors/overflow. It uses synthetic local characters, never production accounts. Journal and navigation scripts both use port 4175; run them sequentially. Chromium may be supplied by `PLAYWRIGHT_EXECUTABLE_PATH`.
+
+CI now runs the Journal script alongside unchanged community/Armory/security/addon suites. New history model checks include legacy version-1 payloads, overlap deduplication, omitted/empty history preservation, out-of-order conflicts, identity mismatch, timestamp/size constraints, cloud serialization and backup validation. These tests do not prove actual client event collection or live production OAuth.

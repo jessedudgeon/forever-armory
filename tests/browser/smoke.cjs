@@ -237,7 +237,7 @@ const assert = require("node:assert/strict");
     });
     await page.goto("http://localhost:4173/#dungeons");
     await page.locator("#dungeon-filter").selectOption("raids");
-    assert.equal(await page.locator(".dungeon-card").count(), 3);
+    assert.equal(await page.locator(".dungeon-card").count(), 7);
     await page.goto("http://localhost:4173/#dungeons/shadowfang-keep");
     await page.locator('[data-item-detail="6220"]').first().click();
     await page.locator("#item-detail-content h2").waitFor();

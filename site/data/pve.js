@@ -924,8 +924,16 @@ export const PVE_INSTANCES = [
     "source": "https://www.wowhead.com/classic/guide/molten-core-raid-overview-wow-classic",
     "description": "Classic encounter reference. Forever mechanics and loot remain unverified.",
     "coverage": "partial",
-    "entrance": "",
-    "quests": [],
+    "entrance": "Classic reference: inside Blackrock Depths; attunement provides a shortcut.",
+    "quests": [
+      {
+        "id": "attunement-to-the-core",
+        "name": "Attunement to the Core",
+        "description": "Classic shortcut attunement. Forever quest mapping is pending.",
+        "requirements": "Verify the quest and access conditions in the Forever client.",
+        "source": "https://www.wowhead.com/classic/quest=7848/attunement-to-the-core"
+      }
+    ],
     "encounters": [
       {
         "id": "lucifron",
@@ -1019,8 +1027,16 @@ export const PVE_INSTANCES = [
     "source": "https://news.blizzard.com/en-us/article/24165121/20th-anniversary-realms-molten-core-and-onyxia-s-lair-now-live",
     "description": "A Classic dragon encounter. Forever mechanics and loot remain unverified.",
     "coverage": "partial",
-    "entrance": "",
-    "quests": [],
+    "entrance": "Classic reference: Dustwallow Marsh. Exact Forever entrance is not verified.",
+    "quests": [
+      {
+        "id": "victory-for-the-horde",
+        "name": "Victory for the Horde",
+        "faction": "Horde",
+        "description": "Classic reference: deliver the Head of Onyxia to the Warchief.",
+        "source": "https://news.blizzard.com/en-us/article/24165121/20th-anniversary-realms-molten-core-and-onyxia-s-lair-now-live"
+      }
+    ],
     "encounters": [
       {
         "id": "onyxia",
@@ -1037,6 +1053,9 @@ export const PVE_INSTANCES = [
             "itemId": 17075,
             "sourceUrl": "https://www.wowhead.com/classic/item=17075"
           }
+        ],
+        "questIds": [
+          "victory-for-the-horde"
         ]
       }
     ]
@@ -1051,8 +1070,35 @@ export const PVE_INSTANCES = [
     "source": "https://news.blizzard.com/en-us/article/23302788/wow-classic-descend-into-the-depths-of-blackwing-lair",
     "description": "Classic encounter reference. Forever mechanics and loot remain unverified.",
     "coverage": "partial",
-    "entrance": "",
-    "quests": [],
+    "entrance": "Classic reference: at the top of Blackrock Spire, reached from Blackrock Mountain.",
+    "quests": [
+      {
+        "id": "blackhands-command",
+        "name": "Blackhand’s Command",
+        "description": "Classic access quest; Forever quest mapping is pending.",
+        "prerequisites": [
+          {
+            "id": "scarshield",
+            "name": "Defeat the Scarshield Quartermaster near Blackrock Spire and loot the command."
+          },
+          {
+            "id": "accept-command",
+            "name": "Use the command to accept the quest.",
+            "prerequisiteIds": [
+              "scarshield"
+            ]
+          },
+          {
+            "id": "orb",
+            "name": "Reach the orb behind General Drakkisath in Upper Blackrock Spire.",
+            "prerequisiteIds": [
+              "accept-command"
+            ]
+          }
+        ],
+        "source": "https://news.blizzard.com/en-us/article/23302788/wow-classic-descend-into-the-depths-of-blackwing-lair"
+      }
+    ],
     "encounters": [
       {
         "id": "razorgore-the-untamed",
@@ -1122,6 +1168,446 @@ export const PVE_INSTANCES = [
             "sourceUrl": "https://www.wowhead.com/classic/item=19364"
           }
         ]
+      }
+    ]
+  },
+  {
+    "kind": "raid",
+    "id": "zulgurub",
+    "name": "Zul’Gurub",
+    "level": "60",
+    "zone": "Stranglethorn Vale",
+    "faction": "Both",
+    "source": "https://news.blizzard.com/en-us/article/23391283/wow-classic-zulgurub-and-more-now-available",
+    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
+    "coverage": "partial",
+    "entrance": "Classic reference: east of Lake Nazferiti.",
+    "quests": [],
+    "encounters": [
+      {
+        "id": "high-priestess-jeklik",
+        "name": "High Priestess Jek’lik",
+        "order": 1,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "high-priest-venoxis",
+        "name": "High Priest Venoxis",
+        "order": 2,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "high-priestess-marli",
+        "name": "High Priestess Mar’li",
+        "order": 3,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "high-priest-thekal",
+        "name": "High Priest Thekal",
+        "order": 4,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "high-priestess-arlokk",
+        "name": "High Priestess Arlokk",
+        "order": 5,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "bloodlord-mandokir",
+        "name": "Bloodlord Mandokir",
+        "order": 6,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "jindo-the-hexer",
+        "name": "Jin’do the Hexer",
+        "order": 7,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "gahzranka",
+        "name": "Gahz’ranka",
+        "order": 8,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "grilek",
+        "name": "Gri’lek",
+        "order": 9,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "hazzarah",
+        "name": "Hazza’rah",
+        "order": 10,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "renataki",
+        "name": "Renataki",
+        "order": 11,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "wushoolay",
+        "name": "Wushoolay",
+        "order": 12,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "hakkar",
+        "name": "Hakkar",
+        "order": 13,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      }
+    ],
+    "mechanics": [
+      "Classic reference: four Edge of Madness bosses rotate; a single reset does not include all four."
+    ]
+  },
+  {
+    "kind": "raid",
+    "id": "ruins-of-ahnqiraj",
+    "name": "Ruins of Ahn’Qiraj",
+    "level": "60",
+    "zone": "Silithus",
+    "faction": "Both",
+    "source": "https://news.blizzard.com/en-us/article/23493335/explore-the-temple-of-ahnqiraj-and-ruins-of-ahnqiraj",
+    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
+    "coverage": "partial",
+    "entrance": "Classic reference: left of the main Ahn’Qiraj gate.",
+    "quests": [],
+    "encounters": [
+      {
+        "id": "kurinnaxx",
+        "name": "Kurinnaxx",
+        "order": 1,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "general-rajaxx",
+        "name": "General Rajaxx",
+        "order": 2,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "moam",
+        "name": "Moam",
+        "order": 3,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "buru-the-gorger",
+        "name": "Buru the Gorger",
+        "order": 4,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "ayamiss-the-hunter",
+        "name": "Ayamiss the Hunter",
+        "order": 5,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "ossirian-the-unscarred",
+        "name": "Ossirian the Unscarred",
+        "order": 6,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      }
+    ],
+    "accessRequirements": [
+      "Classic reference: the realm must open the Gates of Ahn’Qiraj. This is not a personal attunement or proof of character completion."
+    ]
+  },
+  {
+    "kind": "raid",
+    "id": "temple-of-ahnqiraj",
+    "name": "Temple of Ahn’Qiraj",
+    "level": "60",
+    "zone": "Silithus",
+    "faction": "Both",
+    "source": "https://news.blizzard.com/en-us/article/23493335/explore-the-temple-of-ahnqiraj-and-ruins-of-ahnqiraj",
+    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
+    "coverage": "partial",
+    "entrance": "Classic reference: right of the main Ahn’Qiraj gate.",
+    "quests": [],
+    "encounters": [
+      {
+        "id": "the-prophet-skeram",
+        "name": "The Prophet Skeram",
+        "order": 1,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "silithid-royalty",
+        "name": "Silithid Royalty",
+        "order": 2,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "battleguard-sartura",
+        "name": "Battleguard Sartura",
+        "order": 3,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "fankriss-the-unyielding",
+        "name": "Fankriss the Unyielding",
+        "order": 4,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "viscidus",
+        "name": "Viscidus",
+        "order": 5,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "princess-huhuran",
+        "name": "Princess Huhuran",
+        "order": 6,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "the-twin-emperors",
+        "name": "The Twin Emperors",
+        "order": 7,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "ouro",
+        "name": "Ouro",
+        "order": 8,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "cthun",
+        "name": "C’Thun",
+        "order": 9,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      }
+    ],
+    "accessRequirements": [
+      "Classic reference: the realm must open the Gates of Ahn’Qiraj. This is not a personal attunement or proof of character completion."
+    ]
+  },
+  {
+    "kind": "raid",
+    "id": "naxxramas",
+    "name": "Naxxramas",
+    "level": "60",
+    "zone": "Eastern Plaguelands",
+    "faction": "Both",
+    "source": "https://news.blizzard.com/en-us/article/23572632/wow-classic-naxxramas-is-now-live",
+    "description": "Classic reference; Forever availability, access requirements and encounter details remain unverified.",
+    "coverage": "partial",
+    "entrance": "Classic reference: use the teleport spire after attunement.",
+    "quests": [
+      {
+        "id": "the-dread-citadel-naxxramas",
+        "name": "The Dread Citadel – Naxxramas",
+        "description": "Classic attunement reference; Forever quest mapping is pending.",
+        "prerequisites": [
+          {
+            "id": "argent-dawn",
+            "name": "Reach Honored with the Argent Dawn."
+          },
+          {
+            "id": "angela",
+            "name": "Speak to Archmage Angela Dosantos at Light’s Hope Chapel.",
+            "prerequisiteIds": [
+              "argent-dawn"
+            ]
+          },
+          {
+            "id": "materials",
+            "name": "Supply the requested materials; higher reputation reduces the cost.",
+            "prerequisiteIds": [
+              "angela"
+            ]
+          }
+        ],
+        "source": "https://news.blizzard.com/en-us/article/23572632/wow-classic-naxxramas-is-now-live"
+      }
+    ],
+    "encounters": [
+      {
+        "id": "anubrekhan",
+        "name": "Anub’Rekhan",
+        "order": 1,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "grand-widow-faerlina",
+        "name": "Grand Widow Faerlina",
+        "order": 2,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "maexxna",
+        "name": "Maexxna",
+        "order": 3,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "noth-the-plaguebringer",
+        "name": "Noth the Plaguebringer",
+        "order": 4,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "heigan-the-unclean",
+        "name": "Heigan the Unclean",
+        "order": 5,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "loatheb",
+        "name": "Loatheb",
+        "order": 6,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "instructor-razuvious",
+        "name": "Instructor Razuvious",
+        "order": 7,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "gothik-the-harvester",
+        "name": "Gothik the Harvester",
+        "order": 8,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "the-four-horsemen",
+        "name": "The Four Horsemen",
+        "order": 9,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "patchwerk",
+        "name": "Patchwerk",
+        "order": 10,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "grobbulus",
+        "name": "Grobbulus",
+        "order": 11,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "gluth",
+        "name": "Gluth",
+        "order": 12,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "thaddius",
+        "name": "Thaddius",
+        "order": 13,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "sapphiron",
+        "name": "Sapphiron",
+        "order": 14,
+        "description": "",
+        "mechanics": [],
+        "loot": []
+      },
+      {
+        "id": "kelthuzad",
+        "name": "Kel’Thuzad",
+        "order": 15,
+        "description": "",
+        "mechanics": [],
+        "loot": []
       }
     ]
   }

@@ -105,3 +105,28 @@ The optional private `recordKey` anchors later snapshots to the existing route. 
 Latest state is the newest observation, not the last uploaded file. Imports from the past never inherit future data. Identical repeated exports do not add snapshots merely because import time changed. History compares observations for levels, equipped items, talent ranks, profession increases, recipes and quest status; routine XP/money changes do not generate messages. Raw observations remain private owner-only snapshot envelopes under existing Firestore rules. No production rule deployment is required for this pipeline.
 
 `#storage` searches and aggregates current captured item stacks across characters and accounts, retaining per-stack locations and timestamps. It is an in-memory index of the loaded private roster, not a new public inventory collection. Shared account-storage de-duplication and very large roster pagination remain future work.
+
+## Dungeon & Raid Journal: optional event history (September 30)
+
+The same version-1 character payload now accepts `pveHistory`. This is an **optional future collector contract**, not a claim that addon 0.3.0 emits boss/loot events. Existing addon payloads and all `progress`, `questHistory`, `completedQuestIDs`, raw-data, character identity and private cloud contracts remain valid. No Firestore migration, collection, rule or index changes are needed.
+
+```json
+{
+  "pveHistory": [
+    {"eventId":"collector:character:run1:kill1", "type":"boss-kill",
+     "instanceId":"onyxias-lair", "encounterId":"onyxia",
+     "occurredAt":"2026-09-30T20:00:00Z", "runId":"run1"},
+    {"eventId":"collector:character:run1:clear", "type":"instance-completed",
+     "instanceId":"onyxias-lair", "occurredAt":"2026-09-30T20:00:00Z"},
+    {"eventId":"collector:character:run1:loot1", "type":"loot-received",
+     "instanceId":"onyxias-lair", "encounterId":"onyxia",
+     "itemId":17068, "quantity":1, "occurredAt":"2026-09-30T20:01:00Z"}
+  ]
+}
+```
+
+These are synthetic contract examples, not verified Forever kills/drops. Event types are `boss-kill`, `instance-completed`, and `loot-received`. Required fields: nonempty stable producer `eventId` (max 500), `instanceId` (max 150), type, valid ISO timestamp with an explicit timezone. Kill events require `encounterId`; loot requires a positive integer `itemId` and quantity (default 1, maximum 1,000,000). Optional `runId`, `difficulty`, `characterGuid` (max 150) and `sessionId` (max 500) provide future run/session context. A supplied GUID must match the character when known. Unknown catalog IDs are retained for future catalog additions, not guessed by name. Text is escaped in views.
+
+At most 5,000 events per normalized snapshot/merged history, within existing byte limits. Duplicate event IDs within one payload, conflicting content for an existing ID (including out-of-order imports), invalid types/timestamps/quantities, and oversized merged histories fail before persistence. Overlapping imports merge by immutable event ID; repeated exports are idempotent. Omitted fields or an empty incoming history do not erase prior events. Historical snapshots inherit only observations at or before their timestamp, matching the existing importer. Importing old observations does not rewrite later snapshots.
+
+Events remain private observations, not verified rankings. They do not rewrite manual checklist state, infer a clear, add inventory, or create community posts. The Journal shows the latest 20 instance events with retained count; existing snapshots/backup retain the full bounded history. Manual instance/boss checks preserve events and imported quest/kill metadata and never invent events or timestamps. A future collector should send both its current `progress` summary and append-only events if both views are desired. Quest turn-ins continue to use the existing `questHistory` contract; level/XP progression continues to use snapshots.

@@ -25,6 +25,7 @@ jobs:
       - name: Install browser for community and Armory acceptance
         run: npx playwright install --with-deps chromium
       - run: node tests/browser/navigation.cjs
+      - run: node tests/browser/journal.cjs
       - run: node tests/browser/smoke.cjs
       - run: npm run test:browser
       - name: Verify guarded addon collectors with Lua mocks
