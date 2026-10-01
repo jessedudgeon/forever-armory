@@ -1,3 +1,4 @@
+import {newId} from './identity.js';
 import {publicStory,relationshipFields} from './profile-model.js';
 import {guildService} from './guild-service.js';
 import {publicCharacter,publicPost,publicIdValid,mergedFeed} from './community-model.js';
@@ -24,7 +25,7 @@ export function communityService(F,db,auth) {
       tx.set(doc('communityCharacters',id),{...old.data(),...projection,createdAt:old.data()?.createdAt||F.serverTimestamp(),updatedAt:F.serverTimestamp()});
     });},
     async unpublish(id){requireUser();await F.deleteDoc(doc('communityCharacters',checkId(id)));},
-    async post(authorId,type,body,id=crypto.randomUUID()){requireUser();checkId(authorId);checkId(id);const payload=publicPost(type,body);await F.runTransaction(db,async tx=>{const ref=doc('communityCharacters',authorId,'posts',id),old=await tx.get(ref);tx.set(ref,{...payload,createdAt:old.data()?.createdAt||F.serverTimestamp(),updatedAt:F.serverTimestamp()});});return id;},
+    async post(authorId,type,body,id=newId()){requireUser();checkId(authorId);checkId(id);const payload=publicPost(type,body);await F.runTransaction(db,async tx=>{const ref=doc('communityCharacters',authorId,'posts',id),old=await tx.get(ref);tx.set(ref,{...payload,createdAt:old.data()?.createdAt||F.serverTimestamp(),updatedAt:F.serverTimestamp()});});return id;},
     async deletePost(authorId,id){requireUser();await F.deleteDoc(doc('communityCharacters',checkId(authorId),'posts',checkId(id)));},
     async following(id){requireUser();return (await F.getDocsFromServer(F.query(col('communityOwners',checkId(id),'following'),F.orderBy(F.documentId()),F.limit(20)))).docs.map(d=>d.id);},
     async isFollowing(from,to){requireUser();return !!await read(doc('communityOwners',checkId(from),'following',checkId(to)));},

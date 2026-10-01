@@ -1,3 +1,4 @@
+import {newId} from './identity.js';
 import { findInstance } from './pve-data.js';
 export const EVENT_TYPES = {raid:'Raid', dungeon:'Dungeon', rp:'Roleplay', social:'Social', pvp:'PvP', custom:'Custom'};
 export const RSVP_STATES = {going:'Going', maybe:'Maybe', declined:'Cannot attend'};
@@ -27,7 +28,7 @@ export function normalizeEvents(input={},characters=[],guilds=[]) {
   for(const e of clean)if(e.capacity&&responses.filter(r=>r.eventId===e.id&&r.status==='going').length>e.capacity)throw Error('This event is full. Choose Maybe or increase capacity.');
   return {events:clean,rsvps:responses};
 }
-export function saveEvent(state,fields,id=crypto.randomUUID()) {
+export function saveEvent(state,fields,id=newId()) {
   const next=structuredClone(state);next.calendar??={events:[],rsvps:[]};
   const old=next.calendar.events.find(e=>e.id===id),now=new Date().toISOString();
   if(old&&old.status!=='scheduled')throw Error('Reopen the event before editing its details.');

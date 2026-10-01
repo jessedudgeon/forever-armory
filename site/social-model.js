@@ -1,3 +1,4 @@
+import {newId} from './identity.js';
 // Owner-private authoring records. Never publish these records as public profiles.
 export const PROFILE_FIELDS = {
   title: ['Title / nickname', 120],
@@ -61,7 +62,7 @@ export function saveProfile(state, characterId, fields, mainCharacterId='') {
   next.social=normalizeSocial(next.social,next.characters);
   return next;
 }
-export function savePost(state, characterId, type, body, id=crypto.randomUUID()) {
+export function savePost(state, characterId, type, body, id=newId()) {
   const next=structuredClone(state); next.social ??= {profiles:[],posts:[]};
   const old=next.social.posts.find(p=>p.id===id);
   if (old && old.characterId!==characterId) throw Error('The entry belongs to another character.');

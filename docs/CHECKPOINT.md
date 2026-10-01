@@ -1,3 +1,12 @@
+# Latest checkpoint — compatible creation IDs, October 1
+
+- Owner reported guild creation failing with `crypto.randomUUID is not a function`.
+- Added a shared UUID v4 generator using native randomUUID when available and cryptographic getRandomValues otherwise. Clear recovery message if neither exists; no Math.random fallback.
+- Applied to guild creation, guild/public/private posts, shared/private events and public character IDs. Existing IDs, schemas, Firestore rules/indexes and imports unchanged.
+- Validation: 108 Node tests passed, including getRandomValues-only guild creation and release module versioning. No live authenticated guild creation claimed; owner should refresh and retry. This checkpoint records the prepared fix, not deployment completion.
+
+---
+
 # Latest checkpoint — isolated staging build preparation, September 30
 
 - Resumed PR #7 from `da5b2f7`; GitHub validation run 36757198949 passed. Terminal works again. Interactive browser inventory works, but live-site navigation timed out; Firebase CLI has no authorized account.

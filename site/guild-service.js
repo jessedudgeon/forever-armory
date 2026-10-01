@@ -1,3 +1,4 @@
+import {newId} from './identity.js';
 import {publicIdValid} from './community-model.js';
 import {guildFields, guildEventFields, bounded, GUILD_POST_TYPES} from './guild-model.js';
 
@@ -25,7 +26,7 @@ export function guildService(F, db, auth) {
     // Access documents are private capability pointers, not copied account rosters.
     // Rules re-check the pointed character's live membership/invitation on every read.
     async open(gid, actor) { await F.setDoc(access(gid), {characterId: id(actor)}); return read(guild(gid)); },
-    async create(actor, input, gid = crypto.randomUUID()) {
+    async create(actor, input, gid = newId()) {
       user(); id(actor); const fields = guildFields(input);
       await F.runTransaction(db, async tx => {
         const existing = await tx.get(member(actor));
@@ -68,7 +69,7 @@ export function guildService(F, db, auth) {
     async leave(actor) { user(); await F.deleteDoc(member(actor)); },
     async rank(actor, role) { user(); if (!['member', 'officer'].includes(role)) throw Error('Choose member or officer.'); await F.updateDoc(member(actor), {role}); },
     roster: (gid, cursor) => page(col('communityMemberships'), [F.where('guildId', '==', id(gid))], cursor),
-    async post(gid, actor, type, body, postId = crypto.randomUUID()) {
+    async post(gid, actor, type, body, postId = newId()) {
       user(); if (!GUILD_POST_TYPES.includes(type)) throw Error('Choose a post type.');
       await F.setDoc(doc('communityGuilds', id(gid), 'posts', id(postId)), {
         actorId: id(actor), type, body: bounded(body, 6000, true), pinned: false, createdAt: F.serverTimestamp(),
@@ -79,7 +80,7 @@ export function guildService(F, db, auth) {
     pinned: gid => page(col('communityGuilds', id(gid), 'posts'), [F.where('pinned','==',true),F.orderBy('createdAt','desc')], undefined, 'desc'),
     async pin(gid, postId, on) { user(); await F.updateDoc(doc('communityGuilds', id(gid), 'posts', id(postId)), {pinned: !!on}); },
     async removePost(gid, postId) { user(); await F.deleteDoc(doc('communityGuilds', id(gid), 'posts', id(postId))); },
-    async event(gid, actor, input, eventId = crypto.randomUUID()) {
+    async event(gid, actor, input, eventId = newId()) {
       user(); const fields = guildEventFields(input);
       await F.setDoc(doc('communityGuilds', id(gid), 'events', id(eventId)), {
         ...fields, startsAt: F.Timestamp.fromDate(fields.startsAt), organizerId: id(actor),
