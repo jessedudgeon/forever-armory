@@ -1,3 +1,4 @@
+import {evidenceLabel} from "./content-evidence.js";
 import { instanceLoot, filterLoot, findInstance } from "./pve-data.js";
 import { referenceItemsById, itemButton } from "./items.js";
 const esc = (v) =>
@@ -9,7 +10,7 @@ const esc = (v) =>
       ],
   );
 export const lootPanel = () =>
-  `<section class="panel"><h2>Find loot</h2><p class="muted">Sourced Forever drops. Class filters use explicit restrictions only; unknown restrictions remain visible. Missing stats and drop rates are not inferred.</p><div id="pve-loot"><p role="status">Loading item metadata…</p></div></section>`;
+  `<section class="panel"><h2>Find loot</h2><p class="muted">Reported Forever boss drops and instance rewards. Class filters use explicit restrictions only; unknown restrictions remain visible. Missing stats and drop rates are not inferred.</p><div id="pve-loot"><p role="status">Loading item metadata…</p></div></section>`;
 export async function bindLoot(root, id, state) {
   const host = root.querySelector("#pve-loot");
   if (!host) return;
@@ -28,9 +29,9 @@ export async function bindLoot(root, id, state) {
       ),
     ]
       .sort((a, b) => String(a).localeCompare(String(b)))
-      .map((v) => `<option value="${esc(v)}">${esc(v)}</option>`)
+      .map((v) => `<option value="${esc(v)}">${key === "quality" && Number.isInteger(v) ? esc(["Poor","Common","Uncommon","Rare","Epic","Legendary"][v] || v) : esc(v)}</option>`)
       .join("");
-  host.innerHTML = `<div class="loot-filters"><label>Search loot<input type="search" data-loot-filter="query"></label><label>Encounter<select data-loot-filter="boss"><option value="">All encounters</option>${findInstance(
+  host.innerHTML = `<div class="loot-filters"><label>Search loot<input type="search" data-loot-filter="query"></label><label>Reward source<select data-loot-filter="sourceType"><option value="">All sources</option><option value="boss">Boss / encounter</option><option value="quest-reward">Quest reward</option><option value="trash">Instance enemies</option><option value="chest">Chest</option><option value="reputation">Reputation</option><option value="instance-reward">Instance reward</option></select></label><label>Encounter<select data-loot-filter="boss"><option value="">All encounters</option>${findInstance(
     id,
   )
     .encounters.map((e) => `<option value="${e.id}">${esc(e.name)}</option>`)
@@ -46,12 +47,12 @@ export async function bindLoot(root, id, state) {
     );
     const visible = filterLoot(rows, filters);
     host.querySelector("#loot-count").textContent =
-      `${visible.length} of ${rows.length} listed drops. Missing metadata is shown as unknown.`;
+      `${visible.length} of ${rows.length} listed rewards. Missing metadata is shown as unknown.`;
     host.querySelector("#loot-rows").innerHTML =
       visible
         .map(
           (i) =>
-            `<tr><td>${itemButton(i)}<br><a href="#items/${i.id}">Item ${i.id} →</a></td><td><a href="#pve/${id}/${i.encounterId}">${esc(i.encounter)}</a>${i.variation ? `<small>${esc(i.variation)}</small>` : ""}${Number.isFinite(i.dropRate) && i.sourceUrl ? `<small>${i.dropRate}% · <a href="${esc(i.sourceUrl)}" rel="noopener" target="_blank">Source</a></small>` : ""}</td><td>${esc(i.slot) || "Unknown"}<br>${esc(i.subclass) || "Unknown"}</td><td>Item: ${esc(i.itemLevel ?? "Unknown")}<br>Required: ${esc(i.requiredLevel ?? "Unknown")}</td><td>${i.allowedClasses?.length ? i.allowedClasses.map(esc).join(", ") : "Unknown / not recorded"}</td></tr>`,
+            `<tr><td data-label="Item">${itemButton(i)}<br><a href="#items/${i.id}">Item ${i.id} →</a></td><td data-label="Source"><a href="#pve/${id}${i.encounterId ? "/"+i.encounterId : ""}">${esc(i.encounter || i.sourceName || "Instance reward")}</a><small>${esc({boss:"Encounter drop","quest-reward":"Quest reward",trash:"Instance enemies",chest:"Chest",reputation:"Reputation reward","instance-reward":"Instance reward"}[i.sourceType] || "Instance reward")} · ${esc(evidenceLabel(i))}</small>${i.sourceUrl ? `<small><a href="${esc(i.sourceUrl)}" target="_blank" rel="noopener">Source ↗</a></small>` : ""}${i.requirements ? `<small>${esc(i.requirements)}</small>` : ""}${i.variation ? `<small>${esc(i.variation)}</small>` : ""}${Number.isFinite(i.dropRate) && i.sourceUrl ? `<small>${i.dropRate}% · <a href="${esc(i.sourceUrl)}" rel="noopener" target="_blank">Source</a></small>` : ""}</td><td data-label="Slot / type">${esc(i.slot) || "Unknown"}<br>${esc(i.subclass) || "Unknown"}</td><td data-label="Levels">Item: ${esc(i.itemLevel ?? "Unknown")}<br>Required: ${esc(i.requiredLevel ?? "Unknown")}</td><td data-label="Class restriction">${i.allowedClasses?.length ? i.allowedClasses.map(esc).join(", ") : "Unknown / not recorded"}</td></tr>`,
         )
         .join("") ||
       `<tr><td colspan="5">${rows.length ? "No listed loot matches these filters." : "Forever loot has not been verified for this instance yet."}</td></tr>`;

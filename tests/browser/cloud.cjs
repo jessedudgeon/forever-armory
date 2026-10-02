@@ -70,7 +70,7 @@ const assert = require("node:assert/strict"),
     });
     await page.waitForFunction(() =>
       document
-        .querySelector("#account-header")
+        .querySelector("#account-status")
         ?.textContent.includes("Saved to your account"),
     );
     await page.goto("http://localhost:4173/#roster");
@@ -179,7 +179,7 @@ const assert = require("node:assert/strict"),
     });
     await page.waitForFunction(() =>
       document
-        .querySelector("#account-header")
+        .querySelector("#account-status")
         ?.textContent.includes("Saved to your account"),
     );
     await page.goto("http://localhost:4173/#roster");

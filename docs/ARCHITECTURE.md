@@ -1,3 +1,5 @@
+> October 2 Journal update: CONTENT-VERIFICATION.md and PVE-CONTENT.md are authoritative for current content policy. A shared evidence projection gates public instances, encounters, quests and loot; raw registry IDs remain available for private compatibility. Older release descriptions below are historical.
+
 > October 1 navigation update: see [NAVIGATION.md](NAVIGATION.md) for current routes, shared shell, dashboard and search providers. Older community-status notes below are historical; the current community implementation and activation are preserved.
 
 # Architecture and migration notes
@@ -11,10 +13,11 @@ Static ES modules, no production build dependency, GitHub Pages hash routing. `a
 - `cloud.js`: existing Google session authentication, in-memory Firestore cache, revision-checked atomic persistence.
 - `cloud-model.js`: cloud serialization and reconstruction; no display concerns.
 - `features.js`: Armory sections, private guild views, profession/craftbook views, and available-data search.
-- `items.js` / `item-core.js`: shared item lookup, optional Classic catalog enrichment, modal tooltips and permalinks. Character equipment, inventory, recipe items, dungeon loot, and search use the same detail view.
+- `items.js` / `item-core.js`: shared item lookup, evidence-gated Forever references, modal tooltips and permalinks. Character equipment, inventory, recipe items, dungeon loot, and search use the same detail view.
 - `talents.js` / `data/talents`: calculator rules and existing community dataset. Builds save to the Armory rather than encoding new plans as generic goal notes. Older goal-note links still open.
 - `data/items.js`: central reference item definitions.
-- `data/pve.js`: dungeon/raid encounter references with stable IDs, source URLs, and coverage.
+- `data/pve.js`: non-destructive source registry with stable IDs and per-assertion evidence.
+- `content-evidence.js`: public evidence/field projection; unknown and inherited-only records stay unpublished.
 - `pve-data.js`: shared catalog lookups, item source indexing, search, and non-destructive encounter progress updates.
 - `pve.js`: directory, instance and encounter views, private per-character boss tracking. `#pve/{instance}/{encounter}` is canonical; old `#dungeons/...` routes and `dungeons.js` exports remain compatible.
 - `ads.js`: disabled placements; no ad network, remote script, or fake advertisements.

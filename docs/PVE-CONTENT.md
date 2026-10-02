@@ -1,85 +1,39 @@
-# Forever-only catalog correction — October 1
+# Dungeon & Raid Journal contract — October 2, 2026
 
-This policy supersedes the historical Classic-reference expansion below. The public Journal and item search must not expose content on the strength of Classic availability alone.
+This document supersedes the October 1 assumption that a `/forever/` URL proves a fact is verified. See [CONTENT-VERIFICATION.md](CONTENT-VERIFICATION.md) for the complete catalog audit and research backlog.
 
-- Removed seven unconfirmed Classic raid listings, their access/quest assumptions, and unsupported drop associations. Blizzard explicitly announces **Hyjal Summit** (20 players) and **Barrow Deeps** (10 players); these appear as **Announced for Forever**, with no invented bosses or loot.
-- Existing dungeon identities/level bands are listed in Wowhead's Forever dungeon overview. Announced new dungeons have the Blizzard announcement as provenance. Announcement/listing is not a claim of current beta accessibility.
-- Added Forever guide boss-to-item associations for Hall of Thanes (4 encounters / 12 drops), Ruins of Lordaeron (6 / 18), Ragefire Chasm (4 / 6), Wailing Caverns (9 / 23), Shadowfang Keep (10 / 20). These are partial guide tables, not exhaustive drop tables. Source check: 2026-10-01. No drop rates inferred.
-- Each encounter and drop carries its Forever guide source. Item IDs, names, quality, icon, required level and slot come from the same page's Forever item records, not the old Classic npm catalog. No unsupported stat tooltips or class restrictions are filled in.
-- Removed Classic-only Deadmines boss/drop data pending a checked Forever association source; its confirmed instance listing remains. Other instances with incomplete detail show an explicit boss/loot coverage gap.
-- Public item search, goal picker, global discovery and item dialogs use the sourced catalog plus private captured inventory. Removed automatic Classic search/enrichment. Wowhead item links now use `/forever/`.
-- Existing character records, imported histories and private plans remain intact. Retired raid IDs are recognized only for private event compatibility; they do not return to the public Journal/search. No changes to Firestore rules, indexes, auth, community collections or addon.
+## Publication policy
 
-## Sources checked
+`site/data/pve.js` is the non-destructive source registry. `content-evidence.js` produces the public projection consumed by Journal views, search, item sources and event choices. A record must carry reviewed `evidence`; a source URL alone is insufficient. `confirmed` and `observed` records publish with distinct labels. `likely-inherited`, `unknown` and missing evidence do not publish. An official announcement confirms only its stated claims, not present accessibility.
 
-- https://news.blizzard.com/en-us/article/24303862/world-of-warcraft-forever-whats-next-panel-recap
-- https://news.blizzard.com/en-us/article/24304160/the-world-of-warcraft-forever-beta-now-live
-- https://www.wowhead.com/forever/guide/dungeons-overview-locations-details
-- https://www.wowhead.com/forever/guide/hall-of-thanes-dungeon-overview-location-rewards
-- https://www.wowhead.com/forever/guide/ruins-of-lordaeron-dungeon-overview-location-rewards
-- https://www.wowhead.com/forever/guide/ragefire-chasm-dungeon-overview-location-rewards
-- https://www.wowhead.com/forever/guide/wailing-caverns-dungeon-overview-location-rewards
-- https://www.wowhead.com/forever/guide/shadowfang-keep-dungeon-overview-location-rewards
-- https://www.wowhead.com/forever/quest=96393/old-ironforge-incursion
+Evidence shape: `{status, source, sourceType, verifiedAt, notes}`. `source` is a public HTTPS reference; `verifiedAt` is the review date, not an invented observation time. Source types include official-announcement, forever-guide, forever-database, forever-api, addon and user-observation. Never expose a private export, character/account ID or screenshot URL as public provenance. Sanitize and obtain permission before adding user evidence to the public repository.
 
-The guide tables are beta documentation, not an official exhaustive loot database. Empty fields remain unknown. Do not restore Classic data to fill them. Retain stable instance/encounter IDs when improving sourced coverage.
+Review the actual assertion. Database records establish their reported identity/fields only; neither historical comments nor a version-prefixed URL confirms an instance/drop association. Guides are displayed as **Reported for Forever**, not independently client-verified. `fieldEvidence` overrides control individual uncertain fields; an announcement's presence cannot make an unsupported recommended level public. Each encounter, quest, prerequisite and loot association has separate evidence. `orderEvidence` establishes guide ordering, not mandatory kill order. Missing order is unnumbered and follows known orders.
 
----
+## Instances and encounters
 
-## Historical contract and superseded release notes
+Existing stable IDs and routes are unchanged. Instances retain `kind`, name, recommended `level`, `minimumLevel`, `playerSize`, zone, entrance, description, source, coverage, map, accessRequirements, attunement, preparation, mechanics, lockout, wings, quests, encounters, and additive `loot[]`, `evidence`, `fieldEvidence`.
 
-# Shared Dungeon & Raid Journal content contract
+Encounter fields: id, name, order, orderEvidence, encounterType (boss/rare/group), area, wingId, description, artwork, abilities, mechanics, tankNotes, healerNotes, dpsNotes, strategy, questIds, prerequisites, notes, loot, source, evidence. Arrays are plain escaped text except explicit structured quest steps. Local artwork still requires documented rights; no third-party map was copied.
 
-Both types use `site/data/pve.js`, resolved by `pve-data.js`. Definitions remain static ES modules compatible with GitHub Pages. Replace the service's source later without changing view components.
+Public encounters sort by order without mutating source data. Rare encounters and enemy groups retain their old IDs for saved progress. Numbers express guide order only. Empty mechanics, quests, access and loot panels/shortcuts are omitted; one short coverage note discloses gaps. Boss cards precede the loot browser. Mobile loot renders as cards using the existing item buttons.
 
-## Instance
+## Loot and items
 
-`id`, `kind` (`dungeon` or `raid`), `name`, `level` (recommended display range), `minimumLevel`, `playerSize`, `zone`, `entrance`, `description`, `coverage`, `source`, `map`, `accessRequirements[]`, `attunement[]`, `preparation[]`, `mechanics[]`, `lockout`, `wings[]`, `quests[]`, `encounters[]`.
+`data/items.js` owns item identity/details. Association records use `{itemId, sourceType, sourceName, sourceUrl, questId?, variation?, requirements?, dropRate?, evidence, fieldEvidence?}`. Encounter `loot[]` implies an encounter source; instance `loot[]` supports quest-reward, trash, chest, reputation and instance-reward. Unsupported metadata stays unknown.
 
-Unknown values are null/empty. Do not infer Forever levels, lockouts, attunements or party sizes from Classic. Requirements/preparation are short strings. Wings may be strings or `{id,name,description}`. `map` and encounter `artwork` use `{src,alt,credit}`; only project-local `./assets/` artwork renders. Add assets only with documented rights.
+`lootRows`, `instanceLoot`, `lootFor`, `itemSources`, `referenceItems` and search all use the public projection. Inverse links without an encounter point to the instance, never `/null` or `/undefined`. Existing tooltips, inventory, item goals and permalinks are reused. Filters include source type, encounter, text/ID, slot/type/quality and explicit class restrictions. This is not an upgrade or proficiency calculator.
 
-Quests accept legacy strings or `{id,name,description,requirements,rewardItemIds[]}`. Rewards use the central item dialog. Quest search results link to their owning instance. No fake quest catalog is supplied.
+A drop percentage requires its own `fieldEvidence.dropRate` and a finite value in 0–100. No production percentages are supplied. Owning an item does not prove where it dropped. An observed item never promotes an unverified drop association. Added reward items deliberately omit quality/icons/requirements that were not established; the shared item dialog handles missing details.
 
-## Encounter
+## Quests and character progress
 
-`id`, `name`, `order`, `wingId`, `description`, `artwork`, `abilities[]`, `mechanics[]`, `tankNotes[]`, `healerNotes[]`, `dpsNotes[]`, `strategy`, `questIds[]`, `prerequisites[]`, `loot[]`.
+Quests retain stable catalog IDs, names, descriptions, faction, requirements, rewardItemIds and ordered `prerequisites[]`, each with evidence. Verified numeric `gameQuestId` can match imported completedQuestIDs, questHistory or active quest log. A ready-to-turn-in objective is not a completed turn-in. Do not infer numeric mappings from a matching Classic name. Only Old Ironforge Incursion currently has a published top-level numeric mapping; Underground Map's ID is recorded in its prerequisite step (step-level automatic matching is not implemented).
 
-Stable IDs power routes and imported progress. `order` is reference listing order, not a claim that optional bosses must be killed in that order. Strategy and role notes are plain text, escaped at rendering boundaries. Rich guides, videos, comments, scheduling and composition services can key off the same instance/encounter IDs without changing character identity.
+Private boss checks and whole-instance completion remain independent. Existing reported kill counts/dates and quest/attunement records survive edits. Optional pveHistory displays recorded kills, clears and obtained loot without inferring inventory, clear state or lockouts. Addon 0.3.0 does not emit that future PvE event contract. See IMPORT-SCHEMA.md and the next collector milestone in CONTENT-VERIFICATION.md.
 
-## Loot and central items
+Gated instances remain in the source registry. `recordedInstanceKind` is for private event validation only: old events, backup and cloud round trips remain compatible without republishing hidden listings. Private snapshots and unknown history IDs are unchanged. No Firestore/schema/auth/addon changes or production user writes are required.
 
-`site/data/items.js` owns reference item definitions. Journal loot stores `{itemId,sourceUrl,variation?,dropRate?}` only; it does not maintain copies of item names/stats. Equipment, inventory, recipes, global search and journal loot use `items.js` dialogs/permalinks. `itemSources()` produces inverse item → encounter → instance links, preserving multiple sources.
+## Validation
 
-`referenceItemsById()` enriches Journal rows through the existing optional Classic catalog service; failure preserves local names/IDs and source links. Filters include search, encounter, slot, armor/weapon subtype, quality and explicit `allowedClasses[]`. A character selector applies its class. Unknown restrictions remain visible and explicitly labeled; this is not an equipment proficiency or upgrade scoring engine. Imported character inventory does not become public catalog metadata.
-
-The supplied data still has incomplete mechanics, quests and stats. Populate verified Forever facts with provenance before claiming full content coverage. No rates are inferred, and displayed numeric rates require a source URL. Tier-set relationships, wishlists, videos, scheduling and guild dashboards remain future work.
-
-## September 30 expansion
-
-- `#pve` is the combined Dungeon & Raid Journal; `#pve/dungeons` and `#pve/raids` are bookmarkable overview filters. Existing `#pve/<instance>/<encounter>` and legacy `#dungeons/...` routes and item links still work.
-- Seven raid references: Molten Core, Onyxia’s Lair, Blackwing Lair, Zul’Gurub, Ruins of Ahn’Qiraj, Temple of Ahn’Qiraj, Naxxramas. All previous dungeon data remains unchanged.
-- Added raid entrances and selected quest/access sequences. `quests[].prerequisites` contains ordered `{id,name,prerequisiteIds[]}` steps; preceding stable IDs express dependencies. These are reference preparation steps, not fabricated quest completions. Source links accompany the quests. Catalog IDs do not claim to be game IDs.
-- `quests[].gameQuestId` is an optional **verified Forever** numeric mapping. Without it, matching uses explicit `progress[].quests[].id` only. With it, `completedQuestIDs`/`questHistory` mean turned in; an active `quests[].completed` means ready to turn in. Missing data remains “Not recorded.” No Classic numeric quest IDs have been silently mapped to Forever.
-- Selecting a character shows private completion and listed-boss counts on overview cards, imported boss totals/dates on details, related quest status and imported PvE history. Full-instance completion is an independent explicit checkbox, including instances whose encounter list is still empty. Clearing it preserves boss/quest/attunement data and history.
-- Snapshot `pveHistory` supports future collectors without changing the public catalog, character identity or private persistence path. See IMPORT-SCHEMA.md for bounds, merge rules and examples.
-
-### Provenance checked for this increment
-
-The content is deliberately labeled Classic reference, not a verified Forever raid roster or release schedule. No combat mechanics, group sizes, reset durations or drop rates were inferred for Forever.
-
-- Blizzard Classic [Zul’Gurub overview](https://news.blizzard.com/en-us/article/23391283/wow-classic-zulgurub-and-more-now-available): location, entrance and named encounter roster; rotating Edge of Madness bosses are not all available in one reset.
-- Blizzard Classic [Ahn’Qiraj overview](https://news.blizzard.com/en-us/article/23493335/explore-the-temple-of-ahnqiraj-and-ruins-of-ahnqiraj): entrances, level, names and realm gate prerequisite. Season of Discovery rules were not substituted.
-- Blizzard Classic [Naxxramas overview](https://news.blizzard.com/en-us/article/23572632/wow-classic-naxxramas-is-now-live): level, location, encounter roster and attunement sequence.
-- Existing Blizzard [Blackwing Lair reference](https://news.blizzard.com/en-us/article/23302788/wow-classic-descend-into-the-depths-of-blackwing-lair): entrance and Blackhand’s Command sequence.
-- Blizzard [Molten Core / Onyxia reference](https://news.blizzard.com/en-us/article/24165121/20th-anniversary-realms-molten-core-and-onyxia-s-lair-now-live) and the linked Classic quest reference provide selected access/quest notes.
-
-### Remaining content and collector work
-
-Verify Forever raid availability, game encounter/quest IDs, entrances and level ranges in the actual client. Populate full quest chains, faction branches, mechanics, maps and loot only from verified sources. Implement and real-client-test addon kill/clear/loot collection before advertising automatic tracking. Larger history browsing, reset/lockout views and reconciliation of historical events into newer snapshots remain future work. No community QA task is completed or changed by this increment.
-
-
-### October 1 production integration
-
-The September draft was integrated after the navigation release (`7bf1eb1`). Shared breadcrumbs, section shortcuts and filtered headings remain. All filter URLs now work, including `#pve/new` and `#pve/classic`. Added isolated browser acceptance without modifying community QA. Character progress stays private and explicit; manual clear state is independent of listed bosses (including rotating or optional encounters). Empty quest/loot sections indicate incomplete coverage rather than absence of content.
-
-The cited Blizzard Classic sources were re-opened during this integration. They establish Classic reference content only. Forever availability, numeric quest/encounter mappings and addon collection remain unverified.
+127 Node tests; 13 Firestore security tests; Journal, navigation, 25-flow smoke and emulator-backed guild/community browser suites. The Journal suite covers filters, source and reward links, missing panels, guide order, independent completion, reload, character isolation, failed-save recovery and 320/390/768/1440px layouts. See CHECKPOINT.md for current release state. Real Google OAuth, production cross-user acceptance and real-client addon collection are separate from emulator results.
