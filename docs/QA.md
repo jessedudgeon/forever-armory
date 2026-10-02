@@ -1,3 +1,13 @@
+# October 2 — Journal evidence release
+
+127 Node tests and 13 Firestore security scenarios pass. Journal, navigation, 25-flow smoke and emulator-backed community/guild suites pass. Journal coverage includes seven non-boss rewards using existing tooltips, evidence exclusions, ordering, conditional sections, private progress and mobile loot cards. Desktop/mobile screenshots were inspected. Smoke logged three failed external icon CDN requests; application flows completed with no page errors.
+
+The separate Auth + Firestore browser test also passed emulated Google-provider sign-in, account/character creation and reload, 2,000-slot import/reload, guild persistence, sign-out clearing and second-user isolation. Its old `#account-header` status assertion was updated to `#account-status`, matching the existing navigation shell. No authentication implementation was changed. Real Google OAuth and production two-user acceptance are not claimed.
+
+Reproduce the cloud test using the existing SDK-bundle instructions below. Local browser scripts use `PLAYWRIGHT_EXECUTABLE_PATH`; the guild script uses `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH`. CI uses its installed Playwright Chromium. Build/package/diff checks pass. See CONTENT-VERIFICATION.md for the separate game-content verification limits.
+
+---
+
 # Private observation / quest journal acceptance — September 30
 
 105 Node tests pass, including 20,000 completed IDs, repeatable quest events, untimed backfill, page clamping/filtering, HTML escaping, zero reputation values and retained lookup indexes. All 12 existing security scenarios pass with unchanged rules. Production packaging and versioned site staging succeed.
