@@ -1,3 +1,4 @@
+import {evidenceLabel} from "./content-evidence.js";
 import {breadcrumbs, sectionNavigation, bindSectionNavigation} from './navigation.js';
 import {
   instances,
@@ -5,6 +6,7 @@ import {
   findEncounter,
   searchInstances,
   lootFor,
+  instanceLoot,
   journalProgress,
   journalQuestStatus,
 } from "./pve-data.js";
@@ -22,12 +24,12 @@ let query = "",
   filter = "all",
   selectedCharacter = "";
 const warning =
-  '<div class="note">Only Forever-specific sources are listed. Announced content is labeled separately from beta documentation. Missing boss or loot details are unverified, not evidence that an instance has none.</div>';
+  '<div class="note">Announcements and Forever guide reports are labeled separately. Guide reports are not independently verified in-game. Missing details remain unknown.</div>';
 const heading = (title, sub) =>
   `<div class="page-heading"><div><span class="eyebrow">PVE JOURNAL</span><h1>${esc(title)}</h1><p>${esc(sub)}</p></div></div>`;
 function cards(state = {}) {
   const matches = searchInstances(query, filter);
-  return `<p class="muted">${matches.length} of ${instances.length} instances</p><div class="dungeon-grid">${matches.map((d) => `<a class="dungeon-card" href="#pve/${d.id}"><small>${d.kind.toUpperCase()} · ${esc(d.availability)}</small><strong>${esc(d.name)}</strong><span>${esc(d.zone)} · Level ${esc(d.level)}</span><em>${d.encounters.length} listed encounters · ${d.encounters.reduce((n,e)=>n+e.loot.length,0)} listed drops</em>${selectedCharacter ? `<span>${progressCaption(d, state)}</span>` : ""}</a>`).join("") || "<p>No instances match this search.</p>"}</div>`;
+  return `<p class="muted">${matches.length} of ${instances.length} instances</p><div class="dungeon-grid">${matches.map((d) => `<a class="dungeon-card" href="#pve/${d.id}"><small>${d.kind.toUpperCase()} · ${esc(evidenceLabel(d))}</small><strong>${esc(d.name)}</strong><span>${esc(d.zone || "Location not yet verified")}${d.level ? " · Level "+esc(d.level) : ""}</span><em>${d.encounters.length} listed encounters · ${instanceLoot(d.id).length} listed rewards</em>${selectedCharacter ? `<span>${progressCaption(d, state)}</span>` : ""}</a>`).join("") || "<p>No instances match this search.</p>"}</div>`;
 }
 function currentSnapshot(state) {
   return state.characters?.find(c => c.id === selectedCharacter)?.snapshots.at(-1);
@@ -48,8 +50,8 @@ function notes(title, values) {
 }
 function questsHTML(d, ids, snapshot) {
   const quests = ids ? d.quests.filter(q => ids.includes(q.id)) : d.quests;
-  if (!quests.length) return '<section class="panel"><h2>Related quests</h2><p>Quest coverage pending; this does not mean there are no quests.</p></section>';
-  return `<section class="panel"><h2>Related quests & prerequisite chains</h2>${quests.map(q => typeof q === "string" ? `<p>${esc(q)}</p>` : `<article class="pve-quest"><h3>${esc(q.name)}</h3><p>${esc(q.description || "")}</p><p>${esc(q.requirements || "")}${q.faction ? ` · ${esc(q.faction)}` : ""}</p>${snapshot ? `<p><strong>${esc(journalQuestStatus(snapshot, d.id, q))}</strong>${q.gameQuestId == null ? " · Automatic game-ID mapping pending." : ""}</p>` : ""}${q.prerequisites?.length ? `<h4>Preparation sequence (reference)</h4><ol>${q.prerequisites.map(step => `<li>${esc(step.name)}${step.prerequisiteIds?.length ? `<small> After: ${step.prerequisiteIds.map(id => esc(q.prerequisites.find(p => p.id === id)?.name || id)).join("; ")}</small>` : ""}</li>`).join("")}</ol>` : ""}${q.rewardItemIds?.map(id => itemButton({id})).join(" ") || ""}${q.source ? `<p><a href="${esc(q.source)}" target="_blank" rel="noopener">Quest reference ↗</a></p>` : ""}</article>`).join("")}</section>`;
+  if (!quests.length) return "";
+  return `<section class="panel"><h2>Related quests & prerequisite chains</h2>${quests.map(q => typeof q === "string" ? `<p>${esc(q)}</p>` : `<article class="pve-quest"><h3>${esc(q.name)}</h3>${q.description ? `<p>${esc(q.description)}</p>` : ""}${q.requirements || q.faction ? `<p>${esc(q.requirements || "")}${q.faction ? ` · ${esc(q.faction)}` : ""}</p>` : ""}${snapshot ? `<p><strong>${esc(journalQuestStatus(snapshot, d.id, q))}</strong>${q.gameQuestId == null ? " · Automatic quest matching is not available yet." : ""}</p>` : ""}${q.prerequisites?.length ? `<h4>Before you pick it up</h4><ol>${q.prerequisites.map(step => `<li>${esc(step.name)}${step.prerequisiteIds?.length ? `<small> After: ${step.prerequisiteIds.map(id => esc(q.prerequisites.find(p => p.id === id)?.name || id)).join("; ")}</small>` : ""}</li>`).join("")}</ol>` : ""}${q.rewardItemIds?.map(id => itemButton(instanceLoot(d.id).find(i=>i.id===id) || {id})).join(" ") || ""}${q.source ? `<p><a href="${esc(q.source)}" target="_blank" rel="noopener">Quest reference ↗</a></p>` : ""}</article>`).join("")}</section>`;
 }
 function artworkHTML(art) {
   return art && typeof art.src === "string" && /^\.\/assets\//.test(art.src)
@@ -57,19 +59,11 @@ function artworkHTML(art) {
     : "";
 }
 function instanceDetails(d) {
-  return `<section class="panel"><h2>Access & preparation</h2>${artworkHTML(d.map)}<p>Minimum level: ${esc(d.minimumLevel ?? "Not documented")} · Group size: ${esc(d.playerSize ?? "Not documented")}</p><p>Lockout / reset: ${esc(d.lockout || "Not documented")}</p>${notes("Keys & access", d.accessRequirements)}${notes("Attunement", d.attunement)}${notes("Preparation", d.preparation)}${notes("Instance mechanics", d.mechanics)}${notes("Wings / sections", d.wings)}</section>`;
+  const content = `${artworkHTML(d.map)}${d.minimumLevel != null ? `<p>Minimum level: ${esc(d.minimumLevel)}</p>` : ""}${d.playerSize ? `<p>Group size: ${esc(d.playerSize)}</p>` : ""}${d.lockout ? `<p>Lockout / reset: ${esc(d.lockout)}</p>` : ""}${notes("Keys & access", d.accessRequirements)}${notes("Attunement", d.attunement)}${notes("Preparation", d.preparation)}${notes("Instance mechanics", d.mechanics)}${notes("Wings / sections", d.wings)}`;
+  return content ? `<section class="panel" id="pve-access" data-section-anchor><h2>Access & preparation</h2>${content}</section>` : "";
 }
 function encounterCard(d, e, detail = false) {
-  return `<section class="panel dungeon-boss"><div class="section-row"><h2>${detail ? esc(e.name) : `<a href="#pve/${d.id}/${e.id}">${esc(e.name)}</a>`}</h2><span class="muted">${e.loot.length} sourced drops</span></div>${artworkHTML(e.artwork)}${e.description ? `<p>${esc(e.description)}</p>` : ""}${detail ? `${e.strategy ? `<h3>Strategy</h3><p>${esc(e.strategy)}</p>` : ""}${notes("Abilities", e.abilities)}${notes("Tank notes", e.tankNotes)}${notes("Healer notes", e.healerNotes)}${notes("DPS notes", e.dpsNotes)}${notes("Prerequisites", e.prerequisites)}` : ""}${detail ? `<h3>Mechanics</h3>${e.mechanics.length ? `<ul>${e.mechanics.map((m) => `<li>${esc(m)}</li>`).join("")}</ul>` : '<p class="muted">Verified Forever mechanics have not been documented yet.</p>'}<h3>Loot</h3>` : ""}${
-    e.loot.length
-      ? `<ul class="dungeon-loot">${lootFor(e)
-          .map(
-            (i) =>
-              `<li><span aria-hidden="true">◆</span>${itemButton(i)}${detail && i.sourceUrl ? ` <a href="${esc(i.sourceUrl)}" target="_blank" rel="noopener">Source ↗</a>` : ""}</li>`,
-          )
-          .join("")}</ul>`
-      : '<p class="muted">Loot data is pending. An empty table does not mean this encounter drops nothing.</p>'
-  }</section>`;
+  return `<section class="panel dungeon-boss"><div class="section-row"><h2>${detail ? esc(e.name) : `<a href="#pve/${d.id}/${e.id}">${e.order != null ? e.order+". " : ""}${esc(e.name)}</a>`}</h2><span class="muted">${e.encounterType === 'rare' ? 'Rare encounter · ' : e.encounterType === 'group' ? 'Enemy group · ' : ''}${e.loot.length} listed drops</span></div><p class="muted">${esc(evidenceLabel(e))}${e.area ? ` · ${esc(e.area)}` : ""}</p>${artworkHTML(e.artwork)}${e.description ? `<p>${esc(e.description)}</p>` : ""}${detail ? `${e.strategy ? `<h3>Strategy</h3><p>${esc(e.strategy)}</p>` : ""}${notes("Abilities", e.abilities)}${notes("Mechanics",e.mechanics)}${notes("Tank notes", e.tankNotes)}${notes("Healer notes", e.healerNotes)}${notes("DPS notes", e.dpsNotes)}${notes("Prerequisites", e.prerequisites)}${notes("Encounter notes",e.notes)}` : ""}${e.loot.length ? `${detail ? '<h3>Loot</h3>' : ''}<ul class="dungeon-loot">${lootFor(e).map(i=>`<li><span aria-hidden="true">◆</span>${itemButton(i)}</li>`).join('')}</ul>` : '<p class="muted">Drops have not yet been documented here.</p>'}${detail && e.source ? `<p><a href="${esc(e.source)}" target="_blank" rel="noopener">Encounter report ↗</a> · Checked ${esc(e.evidence.verifiedAt)}</p>` : ""}</section>`;
 }
 function tracker(d, state) {
   if (!state.characters?.length) return '<section class="panel" id="pve-tracker"><h2>Your instance progress</h2><p>Add a character to keep private dungeon and raid records.</p><a href="#roster">Open characters →</a></section>';
@@ -115,8 +109,13 @@ export function pveView(id, encounterId, state) {
     );
   if (!state.characters?.some(c => c.id === selectedCharacter)) selectedCharacter = state.characters?.[0]?.id || "";
   const kind=d.kind==='raid'?'Raids':'Dungeons';
-  const sections=[['Overview','pve-overview'],['Bosses','pve-bosses'],...(!e?[['Loot','pve-loot-section']]:[]),['Quests','pve-quests'],['Progress','pve-tracker']];
-  return `${breadcrumbs([['Game Guide','#game-guide'],['Dungeons & Raids','#pve'],[kind,'#pve/'+kind.toLowerCase()],[d.name,'#pve/'+d.id],...(e?[[e.name]]:[])])}${sectionNavigation('PvE sections',sections)}<div id="pve-overview" data-section-anchor></div><a href="#pve">← All instances</a>${heading(e?.name || d.name, `${d.kind === "raid" ? "Raid" : "Dungeon"} · ${d.zone} · Level ${d.level}`)}${e ? `<p><a href="#pve/${d.id}">${esc(d.name)} · All encounters</a></p>` : ""}${warning}<p><strong>${esc(d.availability)}</strong> · Sources checked ${esc(d.checkedAt)}</p>${d.description ? `<p>${esc(d.description)}</p>` : ""}${!e ? `<section class="panel"><h2>Visit & prepare</h2><p><strong>Location:</strong> ${esc(d.zone)}</p><p><strong>Entrance:</strong> ${esc(d.entrance) || "Exact entrance not documented."}</p><p><strong>Quests:</strong> ${d.quests.length ? d.quests.map((q) => esc(typeof q === "string" ? q : q.name)).join(", ") : "Quest coverage pending."}</p><p>${d.encounters.length} encounters listed · Coverage: ${esc(d.coverage)}</p></section>` : ""}${!e ? instanceDetails(d) + `<div id="pve-quests" data-section-anchor>${questsHTML(d, null, currentSnapshot(state))}</div>` + `<div id="pve-loot-section" data-section-anchor>${lootPanel()}</div>` : `<div id="pve-quests" data-section-anchor data-boss="${esc(e.id)}">${questsHTML(d, e.questIds, currentSnapshot(state))}</div>`}${d.encounters.length ? `<nav class="encounter-nav" aria-label="Encounters">${d.encounters.map((b) => `<a href="#pve/${d.id}/${b.id}" ${b.id === encounterId ? 'aria-current="page"' : ""}>${b.order}. ${esc(b.name)}</a>`).join("")}</nav><div class="dungeon-bosses" id="pve-bosses">${(e ? [e] : d.encounters).map((b) => encounterCard(d, b, !!e)).join("")}</div>` : '<section class="panel" id="pve-bosses"><h2>Bosses</h2><p>Boss names and loot have not been verified for this instance. We do not substitute Classic encounters or drops.</p></section>'}${tracker(d, state)}${d.source ? `<p>Source: <a href="${esc(d.source)}" target="_blank" rel="noopener">Forever source ↗</a></p>` : ""}`;
+  const quests=questsHTML(d,e?.questIds,currentSnapshot(state));
+  const access=!e ? instanceDetails(d) : '';
+  const hasLoot=!e && instanceLoot(d.id).length>0;
+  const sections=[['Overview','pve-overview'],...(d.encounters.length?[['Bosses','pve-bosses']]:[]),...(hasLoot?[['Loot','pve-loot-section']]:[]),...(quests?[['Quests','pve-quests']]:[]),...(access?[['Requirements','pve-access']]:[]),['Progress','pve-tracker']];
+  const gaps=[!d.encounters.length?'bosses':null,!instanceLoot(d.id).length?'loot':null,!d.quests.length?'quests':null,!d.entrance?'entrance details':null].filter(Boolean);
+  return `${breadcrumbs([['Game Guide','#game-guide'],['Dungeons & Raids','#pve'],[kind,'#pve/'+kind.toLowerCase()],[d.name,'#pve/'+d.id],...(e?[[e.name]]:[])])}${sectionNavigation('PvE sections',sections)}<div id="pve-overview" data-section-anchor></div><a href="#pve">← All instances</a>${heading(e?.name || d.name, `${d.kind === "raid" ? "Raid" : "Dungeon"}${d.zone ? " · "+d.zone : ""}${d.level ? " · Recommended level "+d.level : ""}`)}${e ? `<p><a href="#pve/${d.id}">${esc(d.name)} · All encounters</a></p>` : ""}<p><strong>${esc(evidenceLabel(d))}</strong> · Checked ${esc(d.evidence.verifiedAt)}</p>${d.description ? `<p>${esc(d.description)}</p>` : ""}${!e && d.entrance ? `<p><strong>Entrance:</strong> ${esc(d.entrance)}</p>` : ""}<p class="muted">${d.evidence.sourceType === 'official-announcement' ? 'The announcement does not establish current access.' : 'Guide reports have not been independently verified in the Forever client.'}${!e && gaps.length ? ' Still researching: '+esc(gaps.join(', '))+'.' : ''}</p>${d.encounters.length ? `<div id="pve-bosses" data-section-anchor><h2>Bosses & encounters</h2><p class="muted">Shown in guide order; optional encounters and alternate routes may vary.</p><nav class="encounter-nav" aria-label="Encounters">${d.encounters.map(b=>`<a href="#pve/${d.id}/${b.id}" ${b.id===encounterId?'aria-current="page"':''}>${b.order != null ? b.order+'. ' : ''}${esc(b.name)}</a>`).join('')}</nav><div class="dungeon-bosses">${(e?[e]:d.encounters).map(b=>encounterCard(d,b,!!e)).join('')}</div></div>` : '<p id="pve-bosses" class="muted">Boss names and loot have not been verified for this instance. We do not substitute Classic encounters or drops.</p>'}${hasLoot ? `<div id="pve-loot-section" data-section-anchor>${lootPanel()}</div>` : ''}${quests ? `<div id="pve-quests" data-section-anchor ${e?`data-boss="${esc(e.id)}"`:''}>${quests}</div>` : ''}${access}${tracker(d,state)}${d.source ? `<p>Source: <a href="${esc(d.source)}" target="_blank" rel="noopener">Forever source ↗</a></p>` : ''}`;
+
 }
 export function bindPve(root, id, getState, onProgress) {
   bindSectionNavigation(root);

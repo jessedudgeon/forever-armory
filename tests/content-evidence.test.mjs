@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {hasEvidence,publicCatalog,publishedLoot} from '../site/content-evidence.js';
+import {instances,findInstance,instanceLoot,itemSources,searchInstances,referenceItems} from '../site/pve-data.js';
+import {pveView} from '../site/pve.js';
+const evidence={status:'observed',sourceType:'forever-guide',source:'https://example.test/forever-report',verifiedAt:'2026-10-02'};
+const state={characters:[]};
+test('a source URL, inherited data, unknown data, and missing provenance never publish themselves',()=>{
+ for(const status of [undefined,'unknown','likely-inherited','invented'])assert.equal(hasEvidence({...evidence,status}),false);
+ assert.equal(hasEvidence({...evidence,sourceType:'classic-database'}),false);
+ assert.equal(hasEvidence({...evidence,source:'javascript:alert(1)'}),false);
+ assert.equal(hasEvidence({...evidence,verifiedAt:'invalid'}),false);
+ assert.deepEqual(publicCatalog([{id:'classic',source:'https://wowhead.com/forever/'}]),[]);
+ assert.equal(findInstance('deadmines'),undefined);
+ assert.equal(searchInstances('The Deadmines').length,0);
+ assert.equal(instances.length,14);
+});
+test('confidence is per assertion: child rows, field overrides, ordering and percentages fail closed',()=>{
+ const input=[{id:'test',evidence,level:'60',fieldEvidence:{level:{...evidence,status:'unknown'}},quests:[{id:'inherited'},{id:'reported',evidence,prerequisites:[{id:'unsafe'},{id:'safe',evidence}]}],encounters:[{id:'last',order:8,evidence,orderEvidence:evidence,loot:[]},{id:'first',order:1,evidence,orderEvidence:evidence,loot:[{itemId:1},{itemId:2,evidence,dropRate:50}]},{id:'unverified',order:0}]}];
+ const before=structuredClone(input),[d]=publicCatalog(input);
+ assert.deepEqual(input,before);
+ assert.equal(d.level,null);
+ assert.deepEqual(d.encounters.map(e=>e.id),['first','last']);
+ assert.deepEqual(d.quests[0].prerequisites.map(q=>q.id),['safe']);
+ assert.deepEqual(d.encounters[0].loot.map(i=>i.itemId),[2]);
+ assert.equal(d.encounters[0].loot[0].dropRate,undefined);
+ assert.equal(publishedLoot([{evidence,dropRate:0,fieldEvidence:{dropRate:evidence}}])[0].dropRate,0);
+ assert.equal(publishedLoot([{evidence,dropRate:101,fieldEvidence:{dropRate:evidence}}])[0].dropRate,undefined);
+});
+test('instance reward sources reuse items, search and inverse links without fake encounter routes',()=>{
+ const rewards=instanceLoot('hall-of-thanes').filter(i=>i.sourceType==='quest-reward');
+ assert.equal(rewards.length,5);
+ assert.ok(rewards.every(i=>!i.encounterId && i.questId && i.name && i.evidence));
+ assert.equal(itemSources(279895)[0].sourceType,'quest-reward');
+ assert.equal(searchInstances('Deepblaze')[0].id,'hall-of-thanes');
+ assert.equal(referenceItems().find(i=>i.id===279895).name,'Ironforge Greathammer');
+ assert.equal(instanceLoot('shadowfang-keep').filter(i=>i.sourceType==='trash').length,2);
+});
+test('announcements suppress unsupported fields and empty UI sections while preserving known party sizes',()=>{
+ const d=findInstance('city-of-dalaran');assert.equal(d.level,null);assert.equal(d.encounters.length,0);
+ const html=pveView('hyjal-summit',null,state);
+ assert.match(html,/Announced for Forever/);
+ assert.match(html,/Group size: 20/);
+ assert.doesNotMatch(html,/id="pve-quests"|id="pve-loot-section"|Recommended level 60|Loading item/);
+ assert.doesNotMatch(pveView('deadmines',null,state),/18–23|Westfall/);
+ const encounter=pveView('hall-of-thanes','faldrim-anvilmar',state);
+ assert.match(encounter,/An Ancient Grudge/);
+ assert.match(encounter,/Clear a safe space/);
+ assert.doesNotMatch(encounter,/Old Ironforge Incursion|Tank notes|Healer notes/);
+});

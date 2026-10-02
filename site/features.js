@@ -215,7 +215,7 @@ export async function bindSearch(root, state, service, initialQuery = "") {
         meta: d.zone,
         href: "#pve/" + d.id,
       },
-      {type:'Zone reference',name:d.zone,meta:d.name,href:'#pve/'+d.id},
+      ...(d.zone ? [{type:'Zone reference',name:d.zone,meta:d.name,href:'#pve/'+d.id}] : []),
       ...d.quests.map((q) => ({
         type: "Quest",
         name: typeof q === "string" ? q : q.name,

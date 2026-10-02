@@ -1,5 +1,5 @@
 import {newId} from './identity.js';
-import { findInstance } from './pve-data.js';
+import { findInstance, recordedInstanceKind } from './pve-data.js';
 // Compatibility only: retain private plans made before unverified raids were delisted.
 const retiredRaids = new Set(['molten-core','onyxias-lair','blackwing-lair','zulgurub','ruins-of-ahnqiraj','temple-of-ahnqiraj','naxxramas']);
 export const EVENT_TYPES = {raid:'Raid', dungeon:'Dungeon', rp:'Roleplay', social:'Social', pvp:'PvP', custom:'Custom'};
@@ -15,7 +15,7 @@ export function normalizeEvents(input={},characters=[],guilds=[]) {
     if(e.visibility!=='private'||!Object.hasOwn(EVENT_TYPES,e.type)||!['scheduled','completed','cancelled'].includes(e.status)) throw Error('Invalid event type, status or audience.');
     const title=bounded(e.title,150);if(!title)throw Error('Give your event a title.');
     if(e.guildId&&!guilds.some(g=>g.id===e.guildId))throw Error('Choose a guild from your collection.');
-    if(e.instanceId) { const instance=findInstance(e.instanceId) || (retiredRaids.has(e.instanceId) ? {kind:'raid'} : null); if(!instance||!['dungeon','raid'].includes(e.type)||instance.kind!==e.type) throw Error('Choose a matching dungeon or raid.'); }
+    if(e.instanceId) { const instance=findInstance(e.instanceId) || (recordedInstanceKind(e.instanceId) ? {kind:recordedInstanceKind(e.instanceId)} : retiredRaids.has(e.instanceId) ? {kind:'raid'} : null); if(!instance||!['dungeon','raid'].includes(e.type)||instance.kind!==e.type) throw Error('Choose a matching dungeon or raid.'); }
     const startsAt=instant(e.startsAt),endsAt=instant(e.endsAt);
     if(Date.parse(endsAt)<=Date.parse(startsAt)) throw Error('The end time must be after the start.');
     if(!Number.isInteger(e.capacity)||e.capacity<0||e.capacity>1000) throw Error('Capacity must be 0 (unlimited) to 1000.');

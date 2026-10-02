@@ -6,3 +6,12 @@
 .pve-quest + .pve-quest { border-top: 1px solid var(--line); margin-top: 1.5rem; padding-top: 1rem; }
 .pve-quest li { margin-block: .6rem; }
 .pve-quest li small { display: block; }
+
+/* Loot becomes a readable list on small screens; item buttons remain shared. */
+@media(max-width:600px){
+ #pve-loot .loot-table-wrap thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+ #pve-loot .loot-table-wrap table,#pve-loot .loot-table-wrap tbody,#pve-loot .loot-table-wrap tr,#pve-loot .loot-table-wrap td{display:block;width:100%;box-sizing:border-box}
+ #pve-loot .loot-table-wrap tr{border:1px solid var(--line);border-radius:6px;margin-bottom:12px;padding:8px}
+ #pve-loot .loot-table-wrap td{border:0;padding:6px;overflow-wrap:anywhere;white-space:normal}
+ #pve-loot .loot-table-wrap td[data-label]::before{content:attr(data-label);display:block;font-size:.75rem;color:var(--muted);margin-bottom:3px}
+}

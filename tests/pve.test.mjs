@@ -226,7 +226,7 @@ test('PvE observations reject ambiguous times, oversized history and out-of-orde
 test('public catalog requires Forever provenance and excludes unverified Classic raid/loot records', () => {
   for (const d of instances) {
     assert.match(d.source, /wowhead\.com\/forever\/|blizzard\.com\/en-us\/article\/24303862\//);
-    assert.equal(d.checkedAt, '2026-10-01');
+    assert.match(d.evidence.verifiedAt, /^2026-10-0[12]$/);
     assert.ok(d.availability);
     for (const e of d.encounters) {
       assert.match(e.source, /wowhead\.com\/forever\//);

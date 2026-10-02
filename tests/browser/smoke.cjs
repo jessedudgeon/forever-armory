@@ -248,7 +248,7 @@ const assert = require("node:assert/strict");
     await page.locator(".item-modal-close").click();
     await page.goto("http://localhost:4173/#pve/hall-of-thanes");
     await page.locator("#loot-rows tr").first().waitFor();
-    assert.equal(await page.locator("#loot-rows tr").count(), 12);
+    assert.equal(await page.locator("#loot-rows tr").count(), 17);
     await page.locator('[data-loot-filter="query"]').fill("Spiritwraith Drape");
     assert.equal(await page.locator("#loot-rows tr").count(), 1);
     await page.locator('#loot-rows [data-item-detail="271097"]').click();

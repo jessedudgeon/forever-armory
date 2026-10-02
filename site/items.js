@@ -84,7 +84,7 @@ export async function referenceItemsById(ids) {
 function journalSourcesHTML(id) {
   const sources = itemSources(id);
   return sources.length
-    ? `<section class="item-source"><h3>Journal sources</h3>${sources.map((s) => `<p><a href="#pve/${s.instanceId}/${s.encounterId}" data-journal-source>${esc(s.encounter)}</a> · <a href="#pve/${s.instanceId}" data-journal-source>${esc(s.instance)}</a> <small>(Forever source)</small></p>`).join("")}</section>`
+    ? `<section class="item-source"><h3>Journal sources</h3>${sources.map((s) => `<p><a href="#pve/${s.instanceId}${s.encounterId ? "/"+s.encounterId : ""}" data-journal-source>${esc(s.encounter || s.sourceName || "Instance reward")}</a> · <a href="#pve/${s.instanceId}" data-journal-source>${esc(s.instance)}</a> <small>(Reported for Forever)</small></p>`).join("")}</section>`
     : "";
 }
 function localMatches(query) {
@@ -174,7 +174,7 @@ export async function openItem(item) {
       .filter(Boolean)
       .join(" · ");
   dialog.querySelector("#item-detail-content").innerHTML =
-    `<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details ? `<p>${esc(details)}</p>` : ""}${level ? `<small>${esc(level)}</small>` : ""}</div><button class="item-modal-close" aria-label="Close">×</button></div><p class="reference-label">Forever source or captured inventory. Unrecorded stats remain unknown.</p>${tooltipHTML(item)}${journalSourcesHTML(item.id)}${source ? `<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>` : ""}<div class="item-modal-actions"><a href="#items/${item.id}" data-item-permalink>Item permalink</a>${wowheadLink(item, "Forever database ↗")}<button class="primary" type="button" data-item-goal>Add as goal</button></div>`;
+    `<div class="item-modal-head"><div class="item-modal-art">${itemIconHTML(item)}</div><div><span class="eyebrow">ITEM ${item.id}</span><h2 class="${qualityClass(item.quality)}">${esc(item.name)}</h2>${details ? `<p>${esc(details)}</p>` : ""}${level ? `<small>${esc(level)}</small>` : ""}</div><button class="item-modal-close" aria-label="Close">×</button></div><p class="reference-label">Reported Forever reference or captured inventory. Unrecorded stats remain unknown.</p>${tooltipHTML(item)}${journalSourcesHTML(item.id)}${source ? `<div class="item-source"><small>Source</small><strong>${esc(source)}</strong></div>` : ""}<div class="item-modal-actions"><a href="#items/${item.id}" data-item-permalink>Item permalink</a>${wowheadLink(item, "Forever database ↗")}<button class="primary" type="button" data-item-goal>Add as goal</button></div>`;
   dialog.querySelector("[data-item-permalink]").onclick = () => dialog.close();
   dialog.querySelector(".item-modal-close").onclick = () => dialog.close();
   dialog.querySelector("[data-item-goal]").onclick = () => {
@@ -265,7 +265,7 @@ export function renderItemsPage() {
   document
     .querySelectorAll("[data-nav]")
     .forEach((a) => a.classList.toggle("active", a.dataset.nav === "items"));
-  main.innerHTML = `${location.hash.split("/")[1] ? breadcrumbs([["Game Guide", "#game-guide"],["Items", "#items"],["Item " + location.hash.split("/")[1]]]) : ""}<div class="page-heading"><div><span class="eyebrow">AZEROTH CATALOG</span><h1>Item database</h1><p>Search sourced Forever drops and your captured items, then add a character goal.</p></div></div><section class="panel item-search-panel"><label>Find an item<input id="item-search" autocomplete="off" placeholder="Spiritwraith, Meteor Shard, or item ID…" value="${esc(lastQuery)}"></label><p id="item-search-status"><small>Search verified Forever references and your imports. The catalog is incomplete.</small></p><div id="item-search-results"></div></section><section class="panel"><div class="section-row"><div><span class="eyebrow">YOUR LAST IMPORT</span><h2>Your captured inventory</h2></div><span class="muted">Captured by /farmory</span></div><div id="imported-inventory">${inventoryHTML()}</div></section>`;
+  main.innerHTML = `${location.hash.split("/")[1] ? breadcrumbs([["Game Guide", "#game-guide"],["Items", "#items"],["Item " + location.hash.split("/")[1]]]) : ""}<div class="page-heading"><div><span class="eyebrow">AZEROTH CATALOG</span><h1>Item database</h1><p>Search sourced Forever drops and your captured items, then add a character goal.</p></div></div><section class="panel item-search-panel"><label>Find an item<input id="item-search" autocomplete="off" placeholder="Spiritwraith, Meteor Shard, or item ID…" value="${esc(lastQuery)}"></label><p id="item-search-status"><small>Search reported Forever references and your imports. The catalog is incomplete.</small></p><div id="item-search-results"></div></section><section class="panel"><div class="section-row"><div><span class="eyebrow">YOUR LAST IMPORT</span><h2>Your captured inventory</h2></div><span class="muted">Captured by /farmory</span></div><div id="imported-inventory">${inventoryHTML()}</div></section>`;
   const input = main.querySelector("#item-search"),
     results = main.querySelector("#item-search-results"),
     status = main.querySelector("#item-search-status");
@@ -298,13 +298,13 @@ export function renderItemsPage() {
           : "";
         bindItemResults(results, local);
         status.innerHTML =
-          "<small>Search verified Forever references and your imports.</small>";
+          "<small>Search reported Forever references and your imports.</small>";
         return;
       }
       const matches = localMatches(q);
       results.innerHTML = matches.length
         ? `<div class="item-results">${matches.map(itemResultCard).join("")}</div>`
-        : '<p class="muted">No matching verified or captured item. Unverified Classic items are excluded.</p>';
+        : '<p class="muted">No matching reported or captured item. Unverified Classic items are excluded.</p>';
       status.innerHTML = `<small>${matches.length} results · Sourced Forever items and your imports; partial coverage.</small>`;
       bindItemResults(results, matches);
     }, 220);

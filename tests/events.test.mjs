@@ -59,3 +59,12 @@ test('delisted raid references survive private backup/cloud restoration without 
  const {findInstance}=await import('../site/pve-data.js');
  assert.equal(findInstance('onyxias-lair'),undefined);
 });
+
+test('newly gated dungeon plans retain backup/cloud compatibility without public catalog leakage',async()=>{
+ const s=saveEvent(fixture(),{...fields(fixture()),type:'dungeon',instanceId:'deadmines'},'retained-dungeon');
+ assert.deepEqual(backup(s),s);
+ assert.deepEqual(stateFromRecords((await recordsFor(s)).values()),s);
+ const {findInstance,searchInstances}=await import('../site/pve-data.js');
+ assert.equal(findInstance('deadmines'),undefined);
+ assert.equal(searchInstances('Deadmines').length,0);
+});

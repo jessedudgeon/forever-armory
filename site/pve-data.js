@@ -1,36 +1,15 @@
 import { PVE_INSTANCES } from "./data/pve.js";
 import { REFERENCE_ITEMS } from "./data/items.js";
-// Unknown values remain null/empty, never guessed from Classic conventions.
-export const instances = PVE_INSTANCES.map((d) => ({
-  minimumLevel: null,
-  playerSize: null,
-  map: null,
-  accessRequirements: [],
-  attunement: [],
-  preparation: [],
-  lockout: null,
-  wings: [],
-  mechanics: [],
-  ...d,
-  encounters: d.encounters.map((e) => ({
-    abilities: [],
-    tankNotes: [],
-    healerNotes: [],
-    dpsNotes: [],
-    strategy: "",
-    questIds: [],
-    prerequisites: [],
-    artwork: null,
-    wingId: null,
-    ...e,
-  })),
-}));
+import {publicCatalog, isPublished, projectFields, publishedLoot} from "./content-evidence.js";
+export const instances = publicCatalog(PVE_INSTANCES);
+// Private compatibility only; never use this registry to populate public choices/search.
+export const recordedInstanceKind = id => PVE_INSTANCES.find(d => d.id === id)?.kind;
 export const findInstance = (id) => instances.find((d) => d.id === id);
 export const findEncounter = (instanceId, encounterId) =>
   findInstance(instanceId)?.encounters.find((e) => e.id === encounterId);
 export const lootFor = (encounter) =>
-  encounter.loot.map((ref) => ({
-    ...REFERENCE_ITEMS[ref.itemId],
+  publishedLoot(encounter.loot).map((ref) => ({
+    ...(isPublished(REFERENCE_ITEMS[ref.itemId]) ? projectFields(REFERENCE_ITEMS[ref.itemId]) : {}),
     ...ref,
     id: ref.itemId,
   }));
@@ -53,23 +32,17 @@ export function searchInstances(query = "", filter = "all") {
           d.name,
           d.zone,
           ...d.quests.map(q => typeof q === "string" ? q : q.name),
+          ...lootFor(d).map(i => i.name),
           ...d.encounters.flatMap((e) => [
             e.name,
             ...lootFor(e).map((i) => i.name),
           ]),
-        ].some((s) => s.toLocaleLowerCase().includes(q))),
+        ].some((s) => String(s ?? "").toLocaleLowerCase().includes(q))),
   );
 }
 export function referenceItems() {
-  return Object.values(REFERENCE_ITEMS).map((item) => ({
-    ...item,
-    source: instances
-      .flatMap((d) =>
-        d.encounters
-          .filter((e) => e.loot.some((r) => r.itemId === item.id))
-          .map((e) => `${d.name} · ${e.name} (Forever source)`),
-      )
-      .join("; "),
+  return Object.values(REFERENCE_ITEMS).filter(isPublished).map(item => ({
+    ...projectFields(item), source: itemSources(item.id).map(s => `${s.instance} · ${s.encounter || s.sourceName} (Forever report)`).join("; "),
   }));
 }
 // Keep imported/legacy encounter names and unrelated milestones when updating one boss.
@@ -109,34 +82,18 @@ export function encounterProgress(
   return [...(progress || []).filter((p) => p.id !== d.id), entry];
 }
 
+export function lootRows(d) {
+  return [
+    ...d.encounters.flatMap(e => lootFor(e).map(item => ({...item, sourceType:'boss', sourceName:e.name, encounterId:e.id, encounter:e.name, instanceId:d.id}))),
+    ...lootFor(d).map(item => ({...item, encounterId:null, instanceId:d.id})),
+  ];
+}
 export function itemSources(itemId) {
-  return instances.flatMap((d) =>
-    d.encounters.flatMap((e) =>
-      e.loot
-        .filter((r) => r.itemId === Number(itemId))
-        .map((r) => ({
-          instanceId: d.id,
-          instance: d.name,
-          kind: d.kind,
-          encounterId: e.id,
-          encounter: e.name,
-          ...r,
-        })),
-    ),
-  );
+  return instances.flatMap(d => lootRows(d).filter(r => r.id === Number(itemId)).map(r => ({...r, instance:d.name, kind:d.kind})));
 }
 export function instanceLoot(instanceId) {
-  const d = findInstance(instanceId);
-  return d
-    ? d.encounters.flatMap((e) =>
-        lootFor(e).map((item) => ({
-          ...item,
-          encounterId: e.id,
-          encounter: e.name,
-          instanceId: d.id,
-        })),
-      )
-    : [];
+  const d=findInstance(instanceId);
+  return d ? lootRows(d) : [];
 }
 // Explicit class restrictions only. Missing metadata is not proof of eligibility.
 export function filterLoot(rows, filters = {}) {
@@ -147,6 +104,7 @@ export function filterLoot(rows, filters = {}) {
         norm(i.name).includes(norm(filters.query)) ||
         String(i.id) === filters.query) &&
       (!filters.boss || i.encounterId === filters.boss) &&
+      (!filters.sourceType || i.sourceType === filters.sourceType) &&
       (!filters.slot || norm(i.slot) === norm(filters.slot)) &&
       (!filters.type || norm(i.subclass) === norm(filters.type)) &&
       (!filters.quality || norm(i.quality) === norm(filters.quality)) &&
