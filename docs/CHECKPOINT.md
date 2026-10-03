@@ -1,3 +1,13 @@
+# Latest checkpoint — Faction visuals and character dropdown, October 3
+
+- Baseline main `c90851a`, branch `codex/faction-visuals`. Added a shared character selector beneath the website account name, grouped by WoW game account, with a mobile drawer equivalent.
+- Opening or selecting an owned character sets a session-scoped shell identity. Horde uses crimson and original Horde-inspired heraldry; Alliance uses blue/gold and original lion heraldry. No selection uses a warm gold/forest Forever companion treatment. Selection remains across routes, clears when removed or collection/account changes, and can be explicitly cleared. Unknown faction uses neutral styling.
+- Local SVG standards, themed panels/header, readable contrast, responsive header and reduced-motion styling. No private schema, Firebase security, community publishing or addon changes.
+- Validation: all 127 Node tests; existing navigation browser acceptance; new faction browser acceptance (Horde/Alliance/clear, route continuity, mobile drawer selection and 320–1440px overflow checks); visual review of both faction pages; build/package and diff checks passed. Browser testing used temporary Chromium 1161 headless shell because the pinned Chromium download was unavailable.
+- Implementation verified locally. Deployment status is tracked by the PR and existing main → Pages workflow.
+
+---
+
 # Latest checkpoint — Journal evidence and reference pages, October 2
 
 - Baseline main `3081db4` (PR #12), clean checkout; both baseline CI and Pages passed. Inspected the production Hall of Thanes page before edits. Work branch: `codex/journal-evidence-validation`.
