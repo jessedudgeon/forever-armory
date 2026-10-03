@@ -87,6 +87,7 @@ let state = emptyState(),
   accountFilter = "all",
   legacyCharacter = "",
   toastTimer;
+let shellCharacter = "", shellCollection = null;
 try {
   const raw = localStorage.getItem(KEY);
   if (raw)
@@ -256,7 +257,11 @@ function render() {
       search: "Search",
     }[view] || "Page not found";
   document.title = $("#section-label").textContent + " · Forever";
-  updateAccountHeader();
+  const collection = demo ? "demo" : account?.uid || account?.id || (localMode ? "local" : "guest");
+  if (collection !== shellCollection) { shellCharacter = ""; shellCollection = collection; }
+  if (view === "character" && visible.characters.some(c => c.id === decodeRoute(id))) shellCharacter = decodeRoute(id);
+  if (!visible.characters.some(c => c.id === shellCharacter)) shellCharacter = "";
+  updateAccountHeader(visible);
   let banner = demo
     ? '<div class="demo-banner"><span>EXAMPLE ROSTER · Your saved data is untouched.</span><button id="leave-demo" class="text-button">Exit demo</button></div>'
     : "";
@@ -1123,7 +1128,7 @@ if (document.modelContext?.registerTool) {
     } catch {}
 }
 
-function updateAccountHeader() {
+function updateAccountHeader(visible = account || localMode || demo ? current() : emptyState()) {
   const status = demo
     ? "Example roster"
     : account
@@ -1135,7 +1140,16 @@ function updateAccountHeader() {
             ? "Sync needs attention"
             : "Saved to your account"
       : "Local to this device";
-  updateNavigation(location.hash || "#home", account, status);
+  updateNavigation(location.hash || "#home", account, status, visible, shellCharacter);
+  document.querySelectorAll('[data-shell-character]').forEach(select => {
+    select.onchange = () => {
+      shellCharacter = select.value;
+      if (select.closest("#navigation-drawer")) $("#navigation-drawer").close();
+      if (shellCharacter) location.hash = `character/${encodeURIComponent(shellCharacter)}`;
+      else location.hash = "home";
+      render();
+    };
+  });
 }
 function googleButton(id = "google-signin") {
   return `<button type="button" id="${id}" class="google-button" ${!cloudClient ? "disabled" : ""}><span aria-hidden="true" class="google-g">G</span>Continue with Google</button>`;

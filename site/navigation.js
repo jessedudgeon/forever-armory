@@ -70,7 +70,7 @@ export function initializeNavigation() {
   }));
   matchMedia('(min-width: 1100px)').addEventListener('change', e=>{if(e.matches&&drawer.open)drawer.close();});
 }
-export function updateNavigation(hash, account, status) {
+export function updateNavigation(hash, account, status, state = {characters:[], gameAccounts:[]}, selectedId = "") {
   document.querySelectorAll('[data-section]').forEach(el=>{
     const active=el.dataset.section===sectionFor(hash); el.classList.toggle('active-section',active);
     if(el.tagName==='A'&&active)el.setAttribute('aria-current','page');else el.removeAttribute('aria-current');
@@ -78,10 +78,16 @@ export function updateNavigation(hash, account, status) {
   document.querySelectorAll('#desktop-navigation .nav-popover a, #mobile-navigation .nav-popover a').forEach(a=>{
     const active=a.getAttribute('href')===hash; if(active)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');
   });
-  const rows=[['My characters','#roster'],['My WoW accounts','#roster/accounts'],['Import character & backups','#guide'],['Character & import history','#roster/history'],['Account settings','#account']];
+  const character = state.characters.find(c => c.id === selectedId)?.snapshots.at(-1);
+  const faction = ['Horde','Alliance'].includes(character?.faction) ? character.faction.toLowerCase() : 'forever';
+  document.body.dataset.faction = faction;
+  const banner = document.querySelector('#faction-banner');
+  if (banner) banner.innerHTML = `<div class="faction-banner-inner"><span class="faction-standard" aria-hidden="true"></span><div><span class="eyebrow">${character ? esc(character.faction || 'YOUR ADVENTURE') : 'WORLD OF WARCRAFT · FOREVER'}</span><strong>${character ? esc(character.name) : 'A world worth returning to.'}</strong><p>${character ? `Level ${esc(character.level)} · ${esc(character.race)} · ${esc(character.class)} · ${esc(state.gameAccounts.find(a => a.id === (character.accountId || 'default'))?.name || 'WoW account')}` : 'Your characters. Your adventures. Your Azeroth.'}</p></div><span class="banner-wordmark" aria-hidden="true">FOREVER</span></div>`;
+  const selector = id => `<label class="header-character" for="${id}"><span>Character</span><select id="${id}" data-shell-character><option value="">No character selected</option>${state.gameAccounts.map(a => `<optgroup label="${esc(a.name)}">${state.characters.filter(c => (c.snapshots.at(-1)?.accountId || 'default') === a.id).map(c => {const s=c.snapshots.at(-1);return `<option value="${esc(c.id)}" ${c.id === selectedId ? 'selected' : ''}>${esc(s.name)} · ${esc(s.faction || 'Unknown faction')} · ${esc(s.level)}</option>`;}).join('')}</optgroup>`).join('')}</select></label>`;
+  const rows=[['My characters' ,'#roster'],['My WoW accounts','#roster/accounts'],['Import character & backups','#guide'],['Character & import history','#roster/history'],['Account settings','#account']];
   const menu=`${account?`<p class="account-identity">Website account<br><strong>${esc(account.name)}</strong></p>`:''}${links(rows)}${account?'<button type="button" data-signout>Sign out</button>':'<a href="#account">Sign in with Google</a>'}`;
-  document.querySelector('#account-header').innerHTML=`<details class="account-menu"><summary>${account?'My account':'Account / Sign in'}</summary><div class="nav-popover">${menu}</div></details>`;
-  document.querySelector('#mobile-account').innerHTML=`<details><summary>Account</summary><div class="nav-popover">${menu}</div></details>`;
+  document.querySelector('#account-header').innerHTML=`<details class="account-menu"><summary>${account?esc(account.name || 'My account'):'Account / Sign in'}</summary><div class="nav-popover">${menu}</div></details>${selector("header-character")}`;
+  document.querySelector('#mobile-account').innerHTML=`<details><summary>${account?esc(account.name || "My account"):"Account"}</summary>${selector("drawer-character")}<div class="nav-popover">${menu}</div></details>`;
   document.querySelector('#account-status').textContent=status;
 }
 export function breadcrumbs(rows) {
