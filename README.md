@@ -3,6 +3,7 @@
 Static WoW Forever character tracker for **forever.dudgeon.io**, deployed on GitHub Pages.
 
 ## Features
+- AutoBiographer character-history imports with searchable events, equipment changes, and milestone gear/talent/skill details. [Setup and supported coverage](docs/AUTOBIOGRAPHER.md).
 - Character roster and detail pages; equipment, talents, professions, XP, gold and location when present in the export.
 - Imports the included `/farmory` JSON format and the verified `WFB1` format from WoW Forever Builds `/wfb`.
 - Review before import, dated snapshots, level history, gear changes, manual character updates.

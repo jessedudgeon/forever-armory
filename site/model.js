@@ -292,6 +292,7 @@ export function addSnapshot(state, c, {targetId} = {}) {
       "talentDetails",
       "quests",
       "questHistory",
+      "autobiography",
       "pveHistory",
       "completedQuestIDs",
       "questHistoryStatus",
