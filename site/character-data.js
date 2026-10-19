@@ -1,3 +1,4 @@
+import { normalizeAutobiography } from './autobiographer.js';
 import { normalizePveHistory } from "./pve-history.js";
 // Shared validation boundary for manual input, backups, cloud records, and addon imports.
 export const text = (v, max = 200) =>
@@ -132,6 +133,10 @@ export function progression(raw) {
 }
 export function characterExtras(o, at) {
   const out = {};
+  if(o.autobiography!==undefined) {
+    out.autobiography=normalizeAutobiography(o.autobiography);
+    if(o.gameIdentity?.guid && o.gameIdentity.guid!==out.autobiography.guid)throw Error('AutoBiographer character GUID mismatch.');
+  }
   if(o.recordKey !== undefined) {if(typeof o.recordKey !== 'string'||!o.recordKey||o.recordKey.length>500)throw Error('Invalid stored character identity.');out.recordKey=o.recordKey;}
   if(o.rawAddon !== undefined) {if(!o.rawAddon || o.rawAddon.format!=='forever-armory'||JSON.stringify(o.rawAddon).length>1000000)throw Error('Invalid raw addon observation.');out.rawAddon=structuredClone(o.rawAddon);}
   if(o.importedAt) out.importedAt=validProgressDate(o.importedAt);

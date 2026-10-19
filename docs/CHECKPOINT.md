@@ -1,3 +1,13 @@
+# Latest checkpoint — AutoBiographer history, October 19
+
+- Added direct data-only import for per-character AutoBiographer 5.0.0 SavedVariables, checked against upstream commit 8890054dfa0a48fafaf4746006d86c777ac2de7b.
+- Explicit existing-character selection, GUID checks, new-event preview, idempotent merge, and history retention across older uploads. Existing current-state observations and website-managed content remain intact.
+- Activity & history now includes searchable/paginated event categories, equipment changes, milestone gear/talent/skill tables, original observation details and per-level statistics/catalogs. Setup instructions lead with AutoBiographer; existing companion imports remain available.
+- 134 Node tests pass; addon packaging, static build, syntax and whitespace checks pass. No browser QA available; no real character file or game-client validation. See AUTOBIOGRAPHER.md for coverage and limits.
+- Release state is tracked in the associated PR and Pages workflow.
+
+---
+
 # Latest checkpoint — Faction visuals and character dropdown, October 3
 
 - Baseline main `c90851a`, branch `codex/faction-visuals`. Added a shared character selector beneath the website account name, grouped by WoW game account, with a mobile drawer equivalent.
